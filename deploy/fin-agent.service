@@ -1,0 +1,26 @@
+# 智能客服系统 — FastAPI 服务 (systemd)
+# 用法: 复制到 /etc/systemd/system/fin-agent.service, 修改 User/WorkingDirectory 后
+#       systemctl daemon-reload && systemctl enable --now fin-agent
+
+[Unit]
+Description=Fin-Agent Customer Service API (FastAPI)
+After=network.target redis-server.service
+Wants=network.target
+
+[Service]
+Type=simple
+# ← 改成实际运行用户与项目路径
+User=ubuntu
+WorkingDirectory=/opt/kefu
+EnvironmentFile=/opt/kefu/.env.prod
+ExecStart=/opt/kefu/.venv/bin/python -X utf8 -m uvicorn src.api.main:app --host 127.0.0.1 --port 8001 --workers 1
+Restart=always
+RestartSec=5
+
+# 日志
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=fin-agent
+
+[Install]
+WantedBy=multi-user.target

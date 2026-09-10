@@ -1,0 +1,104 @@
+{
+  "__inputs": [],
+  "__requires": [],
+  "title": "Fin-Agent 4.0 — 系统监控",
+  "uid": "fin-agent-main",
+  "version": 1,
+  "timezone": "browser",
+  "panels": [
+    {
+      "id": 1,
+      "title": "API 请求速率",
+      "type": "graph",
+      "gridPos": {"h": 8, "w": 8, "x": 0, "y": 0},
+      "targets": [
+        {"expr": "rate(http_requests_total[5m])", "legendFormat": "总请求"},
+        {"expr": "rate(http_requests_total{status=~\"2..\"}[5m])", "legendFormat": "2xx"},
+        {"expr": "rate(http_requests_total{status=~\"5..\"}[5m])", "legendFormat": "5xx"}
+      ]
+    },
+    {
+      "id": 2,
+      "title": "P50 / P95 / P99 延迟",
+      "type": "graph",
+      "gridPos": {"h": 8, "w": 8, "x": 8, "y": 0},
+      "targets": [
+        {"expr": "histogram_quantile(0.50, rate(http_request_duration_seconds_bucket[5m]))", "legendFormat": "P50"},
+        {"expr": "histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m]))", "legendFormat": "P95"},
+        {"expr": "histogram_quantile(0.99, rate(http_request_duration_seconds_bucket[5m]))", "legendFormat": "P99"}
+      ]
+    },
+    {
+      "id": 3,
+      "title": "缓存命中率",
+      "type": "stat",
+      "gridPos": {"h": 4, "w": 4, "x": 16, "y": 0},
+      "targets": [
+        {"expr": "rate(cache_hits_total[5m]) / (rate(cache_hits_total[5m]) + rate(cache_misses_total[5m])) * 100"}
+      ],
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {"calcs": ["lastNotNull"]},
+        "text": {},
+        "textMode": "auto"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {"color": "red", "value": null},
+              {"color": "yellow", "value": 30},
+              {"color": "green", "value": 70}
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": 4,
+      "title": "知识库统计",
+      "type": "stat",
+      "gridPos": {"h": 4, "w": 4, "x": 16, "y": 4},
+      "targets": [
+        {"expr": "knowledge_documents_total", "legendFormat": "文档数"}
+      ]
+    },
+    {
+      "id": 5,
+      "title": "Redis 内存使用",
+      "type": "graph",
+      "gridPos": {"h": 8, "w": 8, "x": 0, "y": 8},
+      "targets": [
+        {"expr": "redis_memory_used_bytes", "legendFormat": "已用"},
+        {"expr": "redis_memory_max_bytes", "legendFormat": "上限"}
+      ]
+    },
+    {
+      "id": 6,
+      "title": "LLM Token 消耗",
+      "type": "graph",
+      "gridPos": {"h": 8, "w": 8, "x": 8, "y": 8},
+      "targets": [
+        {"expr": "sum(rate(llm_tokens_total[5m])) by (model)", "legendFormat": "{{model}}"}
+      ]
+    },
+    {
+      "id": 7,
+      "title": "容器资源使用",
+      "type": "graph",
+      "gridPos": {"h": 8, "w": 8, "x": 0, "y": 16},
+      "targets": [
+        {"expr": "sum(container_memory_usage_bytes{container!=\"\"}) by (container)", "legendFormat": "{{container}} 内存"},
+        {"expr": "sum(rate(container_cpu_usage_seconds_total{container!=\"\"}[5m])) by (container)", "legendFormat": "{{container}} CPU"}
+      ]
+    }
+  ],
+  "schemaVersion": 38,
+  "tags": ["fin-agent", "monitoring"],
+  "time": {"from": "now-6h", "to": "now"}
+}

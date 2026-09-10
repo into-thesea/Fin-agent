@@ -1,0 +1,58 @@
+# Fin-Agent Prometheus 告警规则
+
+groups:
+  - name: fin-agent-alerts
+    interval: 30s
+
+    rules:
+      # 服务可用性
+      - alert: APIDown
+        expr: up{job="fin-agent-api"} == 0
+        for: 1m
+        labels: { severity: critical }
+        annotations:
+          summary: "Fin-Agent API 不可用"
+          description: "API 服务已宕机超过 1 分钟"
+
+      # 高延迟
+      - alert: HighLatency
+        expr: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m])) > 5
+        for: 5m
+        labels: { severity: warning }
+        annotations:
+          summary: "API 响应延迟过高 (P95 > 5s)"
+          description: "过去 5 分钟 P95 延迟为 {{ $value }}s"
+
+      # 高错误率
+      - alert: HighErrorRate
+        expr: rate(http_requests_total{status=~"5.."}[5m]) / rate(http_requests_total[5m]) > 0.05
+        for: 5m
+        labels: { severity: critical }
+        annotations:
+          summary: "API 错误率超过 5%"
+          description: "过去 5 分钟错误率为 {{ $value | humanizePercentage }}"
+
+      # Redis 连接数
+      - alert: RedisHighConnections
+        expr: redis_connected_clients > 100
+        for: 5m
+        labels: { severity: warning }
+        annotations:
+          summary: "Redis 连接数过高 ({{ $value }})"
+
+      # 缓存命中率过低
+      - alert: LowCacheHitRatio
+        expr: rate(cache_hits_total[10m]) / (rate(cache_hits_total[10m]) + rate(cache_misses_total[10m])) < 0.3
+        for: 10m
+        labels: { severity: warning }
+        annotations:
+          summary: "缓存命中率低于 30%"
+          description: "当前命中率 {{ $value | humanizePercentage }}"
+
+      # 磁盘空间
+      - alert: DiskSpaceLow
+        expr: (node_filesystem_avail_bytes / node_filesystem_size_bytes) < 0.1
+        for: 5m
+        labels: { severity: critical }
+        annotations:
+          summary: "磁盘空间不足 10%"

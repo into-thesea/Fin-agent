@@ -1,0 +1,433 @@
+{
+  "overall": {
+    "accuracy_avg": 91.5,
+    "faithfulness_avg": 83.66666666666667,
+    "hallucination_rate": 0.23333333333333334,
+    "refuse_correct_rate": 0.9333333333333333,
+    "pass_rate": 0.9333333333333333,
+    "total": 30
+  },
+  "per_record": [
+    {
+      "id": "f01",
+      "category": "faq",
+      "question": "全场商品默认使用哪种快递配送？",
+      "answer": "全场商品默认使用**京东快递**配送。\n\n具体运费标准如下：\n*   **京东快递**：首重15元，续重每公斤5元；\n*   **顺丰快递**：首重22元，续重每公斤8元；\n*   **普通快递**：首重8元，续重每公斤3元。\n\n此外，单笔订单实付金额满199元可免首重运费（超重部分仍按续重计费）。偏远地区（新疆、西藏、内蒙古部分地区）运费以结算页实际显示为准。\n\n[来源: 客服FAQ.md]\n\n---\n**📚 溯源证据链**\n\n1. 📄 `客服FAQ.md`\n\n**🎯 信心指数**: 🟢 高可信度 (85/100)",
+      "handoff": false,
+      "scores": {
+        "accuracy": 80,
+        "faithfulness": 60,
+        "refuse_correct": true,
+        "hallucinated": true,
+        "reason": "系统准确回应了默认快递问题，但补充的续重费用、满额免邮及偏远地区政策等在参考答案中均未提及，缺乏支撑且构成事实幻觉。"
+      }
+    },
+    {
+      "id": "f02",
+      "category": "faq",
+      "question": "京东快递首重是多少钱？",
+      "answer": "请提供您的订单号（在订单详情页可查看）。",
+      "handoff": false,
+      "scores": {
+        "accuracy": 0,
+        "faithfulness": 0,
+        "refuse_correct": false,
+        "hallucinated": false,
+        "reason": "系统完全未回答首重价格问题，反而错误要求提供订单号，与参考答案及用户意图严重不符。"
+      }
+    },
+    {
+      "id": "f03",
+      "category": "faq",
+      "question": "单笔订单实付满多少钱免首重运费？",
+      "answer": "单笔订单实付金额满 **199元** 免首重运费 [来源: 客服FAQ.md]。\n\n注意：超重部分仍按续重计费，偏远地区（新疆、西藏、内蒙古部分地区）运费以结算页实际显示为准。\n\n---\n**📚 溯源证据链**\n\n1. 📄 `客服FAQ.md`\n\n**🎯 信心指数**: 🟢 高可信度 (85/100)",
+      "handoff": false,
+      "scores": {
+        "accuracy": 100,
+        "faithfulness": 70,
+        "refuse_correct": true,
+        "hallucinated": false,
+        "reason": "核心答案与参考答案完全一致，但补充了参考答案未提及的偏远地区运费规则，导致忠实度未达满分，整体无关键事实捏造。"
+      }
+    },
+    {
+      "id": "f04",
+      "category": "faq",
+      "question": "偏远地区的运费怎么算？",
+      "answer": "根据运费政策，偏远地区（主要指新疆、西藏及内蒙古部分地区）的运费无法统一标准，**具体金额请以您下单时结算页面实际显示的运费为准**。如有其他疑问，欢迎随时咨询！",
+      "handoff": false,
+      "scores": {
+        "accuracy": 100,
+        "faithfulness": 100,
+        "refuse_correct": true,
+        "hallucinated": false,
+        "reason": "回答准确复述了参考答案的核心信息，无事实偏差或捏造，符合客服规范。"
+      }
+    },
+    {
+      "id": "f05",
+      "category": "faq",
+      "question": "现货商品下单后多久发货？",
+      "answer": "现货商品下单后48小时内发货（法定节假日顺延）。 [来源: 客服FAQ.md]\n\n---\n**📚 溯源证据链**\n\n1. 📄 `客服FAQ.md`\n\n**🎯 信心指数**: 🟢 高可信度 (85/100)",
+      "handoff": false,
+      "scores": {
+        "accuracy": 100,
+        "faithfulness": 100,
+        "refuse_correct": true,
+        "hallucinated": false,
+        "reason": "回答内容与权威参考答案完全一致，准确回应了发货时效且未捏造信息。"
+      }
+    },
+    {
+      "id": "f06",
+      "category": "faq",
+      "question": "定制类商品的制作周期是多长？",
+      "answer": "定制类商品的制作周期为7-15个工作日 [来源: 客服FAQ.md]。\n\n---\n**📚 溯源证据链**\n\n1. 📄 `客服FAQ.md`\n\n**🎯 信心指数**: 🟢 高可信度 (85/100)",
+      "handoff": false,
+      "scores": {
+        "accuracy": 100,
+        "faithfulness": 100,
+        "refuse_correct": true,
+        "hallucinated": false,
+        "reason": "回答内容与参考答案完全一致，准确且忠实于提供来源，未出现捏造事实或不当拒答情况。"
+      }
+    },
+    {
+      "id": "f07",
+      "category": "faq",
+      "question": "7天无理由退货需要满足什么条件？",
+      "answer": "根据知识库中的退货政策，申请7天无理由退货需满足以下条件：\n\n1. **时效要求**：自签收之日起7天内（含）。\n2. **商品状态**：商品保持完好、不影响二次销售，且原包装及配件齐全。\n3. **不适用商品**：定制类商品、贴身衣物、已拆封的影音制品、生鲜食品等不支持7天无理由退货。\n4. **操作流程**：需先联系客服申请退货单，获取退货单号后凭单寄回商品。\n\n如需办理退货或了解具体商品是否支持，可随时提供订单信息，我将为您进一步协助。",
+      "handoff": false,
+      "scores": {
+        "accuracy": 90,
+        "faithfulness": 60,
+        "refuse_correct": true,
+        "hallucinated": true,
+        "reason": "核心退货条件与参考答案一致，但额外补充了未提及的不适用商品及操作流程，存在事实捏造，导致忠实度下降。"
+      }
+    },
+    {
+      "id": "f08",
+      "category": "faq",
+      "question": "哪些商品不支持7天无理由退货？",
+      "answer": "根据商城退货政策，以下商品不支持7天无理由退货：**定制类商品、贴身衣物、已拆封的影音制品、生鲜食品等**。如需办理退货，请确保商品保持完好、包装配件齐全，并提前联系客服申请退货单。如有其他疑问，欢迎随时咨询！",
+      "handoff": false,
+      "scores": {
+        "accuracy": 100,
+        "faithfulness": 100,
+        "refuse_correct": true,
+        "hallucinated": false,
+        "reason": "回答准确完整覆盖了参考答案中的商品类别，核心信息完全一致，附加的通用服务话术未引入关键事实偏差。"
+      }
+    },
+    {
+      "id": "f09",
+      "category": "faq",
+      "question": "商品出现质量问题，换货期限是多久？",
+      "answer": "根据知识库信息，商品出现质量问题的换货期限为**自签收之日起15天内**。",
+      "handoff": false,
+      "scores": {
+        "accuracy": 100,
+        "faithfulness": 100,
+        "refuse_correct": true,
+        "hallucinated": false,
+        "reason": "回答准确对应了参考答案中的15天换货期限，事实一致且未捏造任何额外信息。"
+      }
+    },
+    {
+      "id": "f10",
+      "category": "faq",
+      "question": "质量问题换货运费由谁承担？",
+      "answer": "根据换货政策，商品出现质量问题申请换货的，运费由我们（商家）承担。",
+      "handoff": false,
+      "scores": {
+        "accuracy": 100,
+        "faithfulness": 100,
+        "refuse_correct": true,
+        "hallucinated": false,
+        "reason": "回答准确切中问题核心，与参考答案事实完全一致，未添加任何无依据信息。"
+      }
+    },
+    {
+      "id": "f11",
+      "category": "faq",
+      "question": "退货成功后退款一般多久到账？",
+      "answer": "根据退款政策，退货商品签收并验收合格后，退款通常会在**1-3个工作日内**原路退回至您的支付账户。具体到账时间以支付平台实际处理为准，若使用银行卡支付，一般需要**3-7个工作日**。",
+      "handoff": false,
+      "scores": {
+        "accuracy": 75,
+        "faithfulness": 50,
+        "refuse_correct": true,
+        "hallucinated": true,
+        "reason": "回答虽包含参考答案的核心时效，但擅自添加了银行卡3-7天到账及平台处理差异等参考信息未提及的规则，导致忠实度下降且构成事实扩展。"
+      }
+    },
+    {
+      "id": "f12",
+      "category": "faq",
+      "question": "数码类商品的保修期是多久？",
+      "answer": "根据商城保修政策，**数码类商品享受一年全国联保**。如需申请保修，请提供订单号或购买凭证，保修期内非人为损坏可免费维修或换新。如有其他疑问，欢迎随时咨询。",
+      "handoff": false,
+      "scores": {
+        "accuracy": 100,
+        "faithfulness": 100,
+        "refuse_correct": true,
+        "hallucinated": false,
+        "reason": "回答准确复述了参考答案中的保修期限与政策，无事实偏差或关键事实捏造。"
+      }
+    },
+    {
+      "id": "f13",
+      "category": "faq",
+      "question": "保修期内人为损坏可以免费维修吗？",
+      "answer": "根据商城的保修政策，**人为损坏不在保修范围内**，因此无法享受免费维修。如需进一步协助或有其他售后问题，请随时告诉我。",
+      "handoff": false,
+      "scores": {
+        "accuracy": 100,
+        "faithfulness": 100,
+        "refuse_correct": true,
+        "hallucinated": false,
+        "reason": "回答准确对应了参考答案中人为损坏不保修的结论，直接解答了用户疑问，无多余捏造信息。"
+      }
+    },
+    {
+      "id": "f14",
+      "category": "faq",
+      "question": "我需要开发票，应该怎么做？",
+      "answer": "您好！开具发票的操作如下：\n\n1. **下单时申请**：在提交订单的页面勾选“需要发票”，并准确填写发票抬头信息即可。发票将随商品一同寄出，默认内容为商品名称。\n2. **补开发票**：若已签收但当时未申请，请在签收后30天内联系在线客服为您补开。\n\n如需开具增值税专用发票或有其他特殊要求，也可在联系客服时一并说明。如有其他问题，随时告诉我！",
+      "handoff": false,
+      "scores": {
+        "accuracy": 100,
+        "faithfulness": 80,
+        "refuse_correct": true,
+        "hallucinated": false,
+        "reason": "回答准确覆盖了开票与补开流程，但补充了参考答案未提及的默认内容及税种信息，部分论断缺乏原文支撑。"
+      }
+    },
+    {
+      "id": "f15",
+      "category": "faq",
+      "question": "商城支持哪些支付方式？",
+      "answer": "本商城支持以下支付方式：\n- 微信支付\n- 支付宝\n- 银联卡\n- 花呗分期（支持3/6/12期，具体费率以支付页面为准） [来源: 客服FAQ.md]\n\n---\n**📚 溯源证据链**\n\n1. 📄 `客服FAQ.md`\n\n**🎯 信心指数**: 🟢 高可信度 (85/100)",
+      "handoff": false,
+      "scores": {
+        "accuracy": 90,
+        "faithfulness": 75,
+        "refuse_correct": true,
+        "hallucinated": true,
+        "reason": "核心支付方式与参考答案一致，但补充的花呗分期期数及费率说明无参考依据，存在轻微幻觉，故忠实度与正确性略扣。"
+      }
+    },
+    {
+      "id": "f16",
+      "category": "faq",
+      "question": "银卡会员享有什么折扣？",
+      "answer": "根据知识库信息，银卡会员享受**9.5折**优惠。",
+      "handoff": false,
+      "scores": {
+        "accuracy": 100,
+        "faithfulness": 100,
+        "refuse_correct": true,
+        "hallucinated": false,
+        "reason": "回答准确提取了参考答案中的银卡会员折扣信息，未添加任何未经支撑的内容，事实完全一致。"
+      }
+    },
+    {
+      "id": "f17",
+      "category": "faq",
+      "question": "B3无线蓝牙耳机的蓝牙版本是多少？",
+      "answer": "根据知识库信息，B3无线蓝牙耳机的蓝牙版本是**5.3**。",
+      "handoff": false,
+      "scores": {
+        "accuracy": 100,
+        "faithfulness": 100,
+        "refuse_correct": true,
+        "hallucinated": false,
+        "reason": "回答准确提取了参考答案中的蓝牙版本信息，事实一致且完全忠实于原文，未捏造任何额外内容。"
+      }
+    },
+    {
+      "id": "f18",
+      "category": "faq",
+      "question": "B3耳机的续航时间有多久？",
+      "answer": "根据知识库信息，B3无线蓝牙耳机的续航时间为：**单次充电可使用约6小时，配合充电仓总续航可达30小时**。",
+      "handoff": false,
+      "scores": {
+        "accuracy": 100,
+        "faithfulness": 100,
+        "refuse_correct": true,
+        "hallucinated": false,
+        "reason": "回答准确复述了参考答案中的续航数据，事实完全一致且无任何捏造或超纲内容。"
+      }
+    },
+    {
+      "id": "f19",
+      "category": "faq",
+      "question": "售后电话是多少？",
+      "answer": "售后电话是 **400-800-1234**，服务时间为周一至周五 9:00-18:00。如有紧急问题，可拨打该号码转接人工客服。",
+      "handoff": false,
+      "scores": {
+        "accuracy": 100,
+        "faithfulness": 85,
+        "refuse_correct": true,
+        "hallucinated": false,
+        "reason": "核心信息准确完整，但补充了参考答案未提及的转人工建议，略影响忠实度，未捏造关键事实。"
+      }
+    },
+    {
+      "id": "f20",
+      "category": "faq",
+      "question": "人工客服的工作时间是什么时候？",
+      "answer": "人工客服的工作时间为：周一至周五 9:00-18:00 [来源: 客服FAQ.md]\n\n---\n**📚 溯源证据链**\n\n1. 📄 `客服FAQ.md`\n\n**🎯 信心指数**: 🟢 高可信度 (85/100)",
+      "handoff": false,
+      "scores": {
+        "accuracy": 100,
+        "faithfulness": 100,
+        "refuse_correct": true,
+        "hallucinated": false,
+        "reason": "回答准确完整，与参考答案及溯源证据完全一致，无幻觉或不当拒答。"
+      }
+    },
+    {
+      "id": "o01",
+      "category": "order",
+      "question": "查一下订单SO100001现在什么状态？",
+      "answer": "订单 SO100001 当前状态为：**已发货**。\n\n**订单详情如下：**\n*   **商品**：B3无线蓝牙耳机 x1\n*   **金额**：199元（运费 0元）\n*   **承运方**：顺丰\n*   **运单号**：SF1234567890\n\n如需查询具体的物流轨迹，请告诉我。\n\n---\n**📚 溯源证据链**\n\n\n**🎯 信心指数**: 🟢 高可信度 (85/100)\n**💡 审查备注**: 数字 199元 可能在上下文中找不到直接匹配; 数字 0元 可能在上下文中找不到直接匹配",
+      "handoff": false,
+      "scores": {
+        "accuracy": 95,
+        "faithfulness": 90,
+        "refuse_correct": true,
+        "hallucinated": false,
+        "reason": "回答准确提供了订单状态及核心明细，但额外补充了参考答案未提及的运费信息，略影响忠实度。"
+      }
+    },
+    {
+      "id": "o02",
+      "category": "order",
+      "question": "订单SO100002的物流信息到哪里了？",
+      "answer": "订单 SO100002 的物流信息如下：\n- **承运商**：京东快递\n- **运单号**：JD9876543210\n- **当前状态**：已签收\n- **发货时间**：2026-08-12 14:20\n\n您的包裹已经送达，请注意查收。如有其他问题，欢迎随时咨询！\n\n---\n**📚 溯源证据链**\n\n\n**🎯 信心指数**: 🟢 高可信度 (85/100)",
+      "handoff": false,
+      "scores": {
+        "accuracy": 100,
+        "faithfulness": 90,
+        "refuse_correct": true,
+        "hallucinated": true,
+        "reason": "核心物流状态与参考答案一致，但额外编造了未提供的发货时间，存在事实幻觉与轻微不忠实。"
+      }
+    },
+    {
+      "id": "o03",
+      "category": "order",
+      "question": "寄往新疆的一件商品，运费大概多少？",
+      "answer": "根据运费政策，新疆属于偏远地区，**具体运费无法提供固定参考值，需以您下单时结算页面实际显示的金额为准**。\n\n另外提醒：若您该笔订单实付金额满199元，可免除首重运费（超重部分仍按对应快递的续重标准计费）。如需进一步协助，请随时告知。",
+      "handoff": false,
+      "scores": {
+        "accuracy": 50,
+        "faithfulness": 40,
+        "refuse_correct": false,
+        "hallucinated": true,
+        "reason": "回答遗漏了参考答案明确的“25元”预估运费，且擅自添加了“满199元免首重”等知识库未提及的规则，导致准确性与忠实度不足并产生幻觉。"
+      }
+    },
+    {
+      "id": "o04",
+      "category": "refund",
+      "question": "我想退掉订单SO100001，还能退吗？",
+      "answer": "根据订单信息，您的订单 SO100001 当前状态为**已发货**。由于您尚未收到商品（未签收），目前无法直接发起“退货”流程。\n\n以下是针对您当前情况的建议：\n\n### 1. 是否符合退换货条件？\n*   **当前状态**：商品在途，尚未签收。\n*   **政策说明**：根据知识库中的【退货政策】，无理由退货需自**签收之日起7天内**申请。因此，您需要先等待商品送达并签收。\n*   **后续权益**：一旦您签收商品，只要保持商品完好、不影响二次销售且包装配件齐全，您在签收后的 **7天内** 均有权申请无理由退货。\n\n### 2. 具体操作步骤\n建议您按以下步骤操作：\n1.  **等待收货**：请留意物流信息（顺丰运单号：SF1234567890），确认商品已签收。\n2.  **申请退货**：签收后，若决定退货，请先联系客服申请退货单，获取退货单号。\n3.  **寄回商品**：凭退货单号将商品寄回。\n\n### 3. 运费与退款关键信息\n*   **退回运费承担**：\n    *   若是**个人原因**（如不喜欢、拍错等）退货：根据【退款政策】，退款金额将扣除**退回运费**。\n    *   若是**质量问题**退货：全额退款并退还退回运费。\n*   **退款时效**：退货商品签收验收合格后，退款将在 **1-3个工作日内** 原路退回至支付账户（银行卡可能需3-7个工作日）。\n\n**温馨提示**：如果您希望立即拦截快递不再接收，建议在签收前联系快递员或客服尝试拦截，但这取决于快递公司的具体规定，成功率不一定保证。若必须拒收，通常也会产生相应的退货运费，具体需以实际结算为准。\n\n---\n**📚 溯源证据链**\n\n1. 📄 `客服FAQ.md`\n\n**🎯 信心指数**: 🟢 高可信度 (85/100)\n**💡 审查备注**: 回答较长但未引用任何检索来源，可能未基于检索内容生成",
+      "handoff": false,
+      "scores": {
+        "accuracy": 85,
+        "faithfulness": 40,
+        "refuse_correct": true,
+        "hallucinated": true,
+        "reason": "回答核心结论与参考答案一致，但捏造了运单号及运费规则等未提及细节，且大量补充内容缺乏参考依据支撑。"
+      }
+    },
+    {
+      "id": "o05",
+      "category": "refund",
+      "question": "订单SO100002想申请退款",
+      "answer": "订单 SO100002 已签收 8 天，超过 7 天退换期，无法在线申请退款，建议转人工客服处理。\n\n---\n**📚 溯源证据链**\n\n\n**🎯 信心指数**: 🟢 高可信度 (85/100)",
+      "handoff": true,
+      "scores": {
+        "accuracy": 100,
+        "faithfulness": 100,
+        "refuse_correct": true,
+        "hallucinated": false,
+        "reason": "系统回答与参考答案事实完全一致，准确说明超期无法在线退款并正确引导转人工，无捏造内容。"
+      }
+    },
+    {
+      "id": "c01",
+      "category": "chitchat",
+      "question": "你好",
+      "answer": "您好！我是您的智能客服助手，请问有什么可以帮您？无论是商品咨询、订单查询、物流跟踪还是售后退换货问题，我都可以为您解答。",
+      "handoff": false,
+      "scores": {
+        "accuracy": 90,
+        "faithfulness": 85,
+        "refuse_correct": true,
+        "hallucinated": false,
+        "reason": "回答符合礼貌问候要求，补充的服务范围属常规客服话术，未捏造事实且与参考答案核心意图一致。"
+      }
+    },
+    {
+      "id": "c02",
+      "category": "chitchat",
+      "question": "谢谢你的帮助",
+      "answer": "不客气！如果您后续还有任何商品、订单或售后方面的问题，随时欢迎咨询。祝您生活愉快！",
+      "handoff": false,
+      "scores": {
+        "accuracy": 100,
+        "faithfulness": 100,
+        "refuse_correct": true,
+        "hallucinated": false,
+        "reason": "回答礼貌得体，完全符合参考答案“礼貌回应”的要求，未捏造事实且无需拒答。"
+      }
+    },
+    {
+      "id": "u01",
+      "category": "unknown",
+      "question": "今天上海的天气怎么样？",
+      "answer": "这超出了我的客服服务范围。如果您有关于商品、订单、物流、售后或退换货等问题，欢迎随时咨询！",
+      "handoff": false,
+      "scores": {
+        "accuracy": 100,
+        "faithfulness": 100,
+        "refuse_correct": true,
+        "hallucinated": false,
+        "reason": "系统准确识别问题超出客服范围，如实拒答并引导至相关业务，完全符合参考答案要求。"
+      }
+    },
+    {
+      "id": "u02",
+      "category": "unknown",
+      "question": "帮我推荐一只明天会涨的股票",
+      "answer": "这超出了我的客服服务范围，我可以帮您处理商品、订单、物流、售后相关问题。如果您有购物、退换货或订单查询等方面的需求，随时告诉我！",
+      "handoff": false,
+      "scores": {
+        "accuracy": 90,
+        "faithfulness": 85,
+        "refuse_correct": true,
+        "hallucinated": false,
+        "reason": "系统准确识别问题超出服务范围并诚实拒绝，未编造投资建议，符合参考答案核心要求。"
+      }
+    },
+    {
+      "id": "u03",
+      "category": "unknown",
+      "question": "3的平方根是多少？",
+      "answer": "这超出了我的客服服务范围。如果您有关于商品、订单、物流、售后或退换货等方面的问题，欢迎随时向我咨询！",
+      "handoff": false,
+      "scores": {
+        "accuracy": 100,
+        "faithfulness": 100,
+        "refuse_correct": true,
+        "hallucinated": false,
+        "reason": "系统准确识别问题超出客服范围，如实拒答并引导至相关业务，完全符合参考答案要求。"
+      }
+    }
+  ],
+  "eval_file": "D:\\aiproject\\data\\eval\\qa_golden.jsonl"
+}

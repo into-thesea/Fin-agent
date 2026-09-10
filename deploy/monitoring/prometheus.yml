@@ -1,0 +1,47 @@
+# Fin-Agent Prometheus 监控配置
+
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  scrape_timeout: 10s
+
+# 告警规则
+rule_files:
+  - "alerts.yml"
+
+scrape_configs:
+  # FastAPI 应用指标
+  - job_name: 'fin-agent-api'
+    static_configs:
+      - targets: ['api:8000']
+    metrics_path: '/api/v1/monitor/metrics'
+    scrape_interval: 10s
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+        regex: '(.*)'
+        replacement: 'fin-agent-api'
+
+  # Streamlit UI 指标
+  - job_name: 'fin-agent-web'
+    static_configs:
+      - targets: ['web:8501']
+    scrape_interval: 30s
+
+  # Redis 指标 (通过 redis_exporter)
+  - job_name: 'redis'
+    static_configs:
+      - targets: ['redis-exporter:9121']
+    scrape_interval: 15s
+
+  # Node 指标 (通过 node_exporter)
+  - job_name: 'node'
+    static_configs:
+      - targets: ['node-exporter:9100']
+    scrape_interval: 30s
+
+  # Docker 容器指标 (通过 cadvisor)
+  - job_name: 'cadvisor'
+    static_configs:
+      - targets: ['cadvisor:8080']
+    scrape_interval: 30s

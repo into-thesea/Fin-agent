@@ -1,0 +1,54 @@
+/* Fin-Agent 全局样式 */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+#root {
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+}
+
+/* 流式消息打字动画 */
+.typing-cursor::after {
+  content: '|';
+  animation: blink 1s step-end infinite;
+}
+
+@keyframes blink {
+  50% { opacity: 0; }
+}
+
+/* 溯源卡片 */
+.evidence-card {
+  border-left: 3px solid #1677ff;
+  margin: 8px 0;
+  padding: 8px 12px;
+  background: #f6f8fa;
+  border-radius: 4px;
+  font-size: 13px;
+}
+
+/* 进度条自定义 */
+.etl-progress .ant-progress-text {
+  font-size: 13px;
+  color: #666;
+}
+
+/* 登录页背景 */
+.login-bg {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+/* 图表容器 */
+.chart-container {
+  height: 350px;
+  width: 100%;
+}

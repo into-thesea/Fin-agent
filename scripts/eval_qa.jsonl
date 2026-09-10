@@ -1,0 +1,80 @@
+{"id": 1, "question": "比亚迪的股票代码是多少？", "answer": "H shares: 01211 (HKD counter); 81211 (RMB counter); A shares: 002594", "golden_chunk_ids": ["BYD_2024_Annual_Report.pdf_0002"], "intent": "fact"}
+{"id": 2, "question": "比亚迪主要从事哪些业务？", "answer": "principally engaged in automobile business which mainly includes new energy vehicles, handset components and assembly services, rechargeable batteries and photovoltaics business. Meanwhile, with its technological advantage, the Group actively develops urban rail transportation business segment.", "golden_chunk_ids": ["BYD_2024_Annual_Report.pdf_0002"], "intent": "fact"}
+{"id": 3, "question": "“Song L DM-i” 是什么时候正式上市的？", "answer": "“Song L DM-i” 七月正式上市。", "golden_chunk_ids": ["BYD_2024_Annual_Report.pdf_0030"], "intent": "fact"}
+{"id": 4, "question": "“SEALION 05 DM-i” 搭载了什么技术？", "answer": "“SEALION 05 DM-i” 搭载「第五代DM技術」。", "golden_chunk_ids": ["BYD_2024_Annual_Report.pdf_0030"], "intent": "fact"}
+{"id": 5, "question": "2024年員工持股計劃累計購買了多少股A股股票？", "answer": "二零二四年員工持股計劃已累計購買664,755股A股股票，佔於本年報日期本公司已發行股份總數的0.0219%。", "golden_chunk_ids": ["BYD_2024_Annual_Report.pdf_0058"], "intent": "fact"}
+{"id": 6, "question": "2024年員工持股計劃的存續期是多久？", "answer": "二零二四年員工持股計劃的存續期為72個月，自二零二四年員工持股計劃經本公司股東會審議通過且本公司公告最後一筆標的股票購買完成之日（二零二四年十一月二十七日）起算。", "golden_chunk_ids": ["BYD_2024_Annual_Report.pdf_0058"], "intent": "fact"}
+{"id": 7, "question": "What are the primary duties of the audit committee?", "answer": "One of the primary duties of the audit committee is to review the financial reporting process and the risk management and internal control systems of the Group.", "golden_chunk_ids": ["BYD_2024_Annual_Report.pdf_0086"], "intent": "fact"}
+{"id": 8, "question": "Who are the members of the audit committee as at 31 December 2024?", "answer": "As at 31 December 2024, the audit committee consists of three independent non-executive Directors, namely Mr. Cai Hong-ping, Mr. Zhang Min and Ms. Yu Ling, and a non-executive Director, Mr. Xia Zuo-quan, with Mr. Zhang Min as the chairman.", "golden_chunk_ids": ["BYD_2024_Annual_Report.pdf_0086"], "intent": "fact"}
+{"id": 9, "question": "截至二零二四年十二月三十一日止年度，最大供應商佔採購額的百分比是多少？", "answer": "9.87%", "golden_chunk_ids": ["BYD_2024_Annual_Report.pdf_0114"], "intent": "fact"}
+{"id": 10, "question": "截至二零二四年十二月三十一日止年度，本集團是否有任何根據上市條例所需披露之關連人士交易？", "answer": "截至二零二四年十二月三十一日止年度，本集團並無任何根據上市條例所需披露之關連人士交易，且本集團已遵守上市規則第14A章的規定。", "golden_chunk_ids": ["BYD_2024_Annual_Report.pdf_0114"], "intent": "fact"}
+{"id": 11, "question": "比亚迪对于“重要的资本化研发项目”是如何确定其重要性标准的？", "answer": "单个项目期末余额占开发支出期末余额10%以上且金额大于5亿", "golden_chunk_ids": ["BYD_2024_Annual_Report.pdf_0170"], "intent": "fact"}
+{"id": 12, "question": "比亚迪在什么情况下会认定合同负债账面价值发生了重大变动？", "answer": "合同负债账面价值变动金额占合同负债总额的30%以上", "golden_chunk_ids": ["BYD_2024_Annual_Report.pdf_0170"], "intent": "fact"}
+{"id": 13, "question": "比亚迪对于因企业合并所形成的商誉，在什么情况下进行减值测试？", "answer": "對因企業合併所形成的商譽、使用壽命不確定的無形資產和尚未達到可使用狀態的無形資產，無論是否存在減值跡象，至少於每年末進行減值測試。", "golden_chunk_ids": ["BYD_2024_Annual_Report.pdf_0198"], "intent": "fact"}
+{"id": 14, "question": "比亚迪资产的可收回金额是如何确定的？", "answer": "可收回金額根據資產的公允價值減去處置費用後的淨額與資產預計未來現金流量的現值兩者之間較高者確定。", "golden_chunk_ids": ["BYD_2024_Annual_Report.pdf_0198"], "intent": "fact"}
+{"id": 15, "question": "比亚迪对于上市的权益工具投资，是如何确定公允价值的？", "answer": "本集團對於上市的權益工具投資，以市場報價確定公允價值。", "golden_chunk_ids": ["BYD_2024_Annual_Report.pdf_0226"], "intent": "fact"}
+{"id": 16, "question": "比亚迪在对非上市股权投资进行公允价值计量时，使用了哪些重要的不可观察参数？", "answer": "企業價值/收入（「EV/Revenue」）比率、流動性折扣等。", "golden_chunk_ids": ["BYD_2024_Annual_Report.pdf_0226"], "intent": "fact"}
+{"id": 17, "question": "2024年账面价值的总额是多少？", "answer": "3,616,030", "golden_chunk_ids": ["BYD_2024_Annual_Report.pdf_0254"], "intent": "fact"}
+{"id": 18, "question": "2024年坏账准备的总额是多少？", "answer": "176,946", "golden_chunk_ids": ["BYD_2024_Annual_Report.pdf_0254"], "intent": "fact"}
+{"id": 19, "question": "在二零二四年的财务数据中，第一项列出的数值是多少？", "answer": "3,284,471", "golden_chunk_ids": ["BYD_2024_Annual_Report.pdf_0282"], "intent": "fact"}
+{"id": 20, "question": "二零二四年报表片段中，最后一项呈现的数值是多少？", "answer": "8,501,093", "golden_chunk_ids": ["BYD_2024_Annual_Report.pdf_0282"], "intent": "fact"}
+{"id": 21, "question": "2024年的总金额是多少？", "answer": "73,823,355", "golden_chunk_ids": ["BYD_2024_Annual_Report.pdf_0311"], "intent": "fact"}
+{"id": 22, "question": "2024年报表中列出的其中一项数值314,088对应的年份是哪一年？", "answer": "2024", "golden_chunk_ids": ["BYD_2024_Annual_Report.pdf_0311"], "intent": "fact"}
+{"id": 23, "question": "根据财报，Note 1对应的账面价值是多少？", "answer": "9,929,334", "golden_chunk_ids": ["BYD_2024_Annual_Report.pdf_0339"], "intent": "fact"}
+{"id": 24, "question": "本年增加的账面价值总额是多少？", "answer": "14,894,442", "golden_chunk_ids": ["BYD_2024_Annual_Report.pdf_0339"], "intent": "fact"}
+{"id": 25, "question": "公司2024年的固定资产处置收益或损失是多少？", "answer": "二零二四年固定资产处置收益╱（损失）为 (126,527) 千元。", "golden_chunk_ids": ["BYD_2024_Annual_Report.pdf_0367"], "intent": "fact"}
+{"id": 26, "question": "2024年公司营业外收入中的违约金及损失赔款金额是多少？", "answer": "2024年违约金及损失赔款为 786,690 千元。", "golden_chunk_ids": ["BYD_2024_Annual_Report.pdf_0367"], "intent": "fact"}
+{"id": 27, "question": "2024年折合人民币的合计金额是多少？", "answer": "2024年折合人民币的合计金额为17,552,549。", "golden_chunk_ids": ["BYD_2024_Annual_Report.pdf_0395"], "intent": "fact"}
+{"id": 28, "question": "表格中汇率为7.1884对应的折合人民币金额是多少？", "answer": "表格中汇率为7.1884对应的折合人民币金额分别为12,404,483和553,280。", "golden_chunk_ids": ["BYD_2024_Annual_Report.pdf_0395"], "intent": "fact"}
+{"id": 29, "question": "当基点增加5%时，利润总额会增加多少人民币千元？", "answer": "1,206,285", "golden_chunk_ids": ["BYD_2024_Annual_Report.pdf_0423"], "intent": "fact"}
+{"id": 30, "question": "如果基点减少5%，股东权益合计的变动金额是多少？", "answer": "(1,206,285)", "golden_chunk_ids": ["BYD_2024_Annual_Report.pdf_0423"], "intent": "fact"}
+{"id": 31, "question": "比亚迪2024年应付关联方的款项合计是多少？", "answer": "5,408,739千元", "golden_chunk_ids": ["BYD_2024_Annual_Report.pdf_0452"], "intent": "fact"}
+{"id": 32, "question": "2024年比亚迪存放于比亚迪汽车金融有限公司的货币资金是多少？", "answer": "22,146,767千元", "golden_chunk_ids": ["BYD_2024_Annual_Report.pdf_0452"], "intent": "fact"}
+{"id": 33, "question": "二零二四年第一项数据合计是多少？", "answer": "61,140", "golden_chunk_ids": ["BYD_2024_Annual_Report.pdf_0481"], "intent": "fact"}
+{"id": 34, "question": "二零二四年表格中最后一行的数据是多少？", "answer": "5", "golden_chunk_ids": ["BYD_2024_Annual_Report.pdf_0481"], "intent": "fact"}
+{"id": 35, "question": "2024年归属于母公司普通股股东的净利润的加权平均净资产收益率是多少？", "answer": "26.05%", "golden_chunk_ids": ["BYD_2024_Annual_Report.pdf_0509"], "intent": "fact"}
+{"id": 36, "question": "2024年扣除非经常性损益后归属于母公司普通股股东的每股收益是多少？", "answer": "基本每股收益为12.71元，稀释每股收益为12.71元。", "golden_chunk_ids": ["BYD_2024_Annual_Report.pdf_0509"], "intent": "fact"}
+{"id": 37, "question": "宁德时代2024年的动力电池系统收入是多少？", "answer": "253,041,337千元", "golden_chunk_ids": ["CATL_2024_Annual_Report.pdf_0026"], "intent": "fact"}
+{"id": 38, "question": "2024年宁德时代的境外收入占营业收入的比重是多少？", "answer": "30.48%", "golden_chunk_ids": ["CATL_2024_Annual_Report.pdf_0026"], "intent": "fact"}
+{"id": 39, "question": "宁德时代2022年向特定对象发行股票的募集资金净额是多少？", "answer": "实际募集资金净额为人民币 44,870,113 千元。", "golden_chunk_ids": ["CATL_2024_Annual_Report.pdf_0054"], "intent": "fact"}
+{"id": 40, "question": "截至2024年12月31日，宁德时代累计投入的募集资金总额是多少？", "answer": "截至 2024 年 12 月 31 日，公司已累计投入募集资金总额 37,668,391 千元。", "golden_chunk_ids": ["CATL_2024_Annual_Report.pdf_0054"], "intent": "fact"}
+{"id": 41, "question": "公司现任高级管理人员共有几位？", "answer": "公司现任高级管理人员共计4人。", "golden_chunk_ids": ["CATL_2024_Annual_Report.pdf_0082"], "intent": "fact"}
+{"id": 42, "question": "公司副总经理兼董事会秘书蒋理先生是在哪一年加入公司的？", "answer": "蒋先生于2017年6月加入公司。", "golden_chunk_ids": ["CATL_2024_Annual_Report.pdf_0082"], "intent": "fact"}
+{"id": 43, "question": "公司收购宁普时代电池科技有限公司后，持股比例是多少？", "answer": "公司持有宁普时代94.44%股权。", "golden_chunk_ids": ["CATL_2024_Annual_Report.pdf_0110"], "intent": "fact"}
+{"id": 44, "question": "2024年度内部控制评价报告的披露日期是什么时候？", "answer": "2025年3月15日。", "golden_chunk_ids": ["CATL_2024_Annual_Report.pdf_0110"], "intent": "fact"}
+{"id": 45, "question": "宁德时代向上海快卜新能源科技有限公司销售储能电池系统的关联交易金额是多少？", "answer": "12,172", "golden_chunk_ids": ["CATL_2024_Annual_Report.pdf_0139"], "intent": "fact"}
+{"id": 46, "question": "宁德时代2024年度与关联方发生的关联交易合计实际发生金额是多少？", "answer": "2,217,499", "golden_chunk_ids": ["CATL_2024_Annual_Report.pdf_0139"], "intent": "fact"}
+{"id": 47, "question": "本次变动后，有限售条件股份的数量是多少？", "answer": "本次变动后，有限售条件股份的数量是 500,910,125。", "golden_chunk_ids": ["CATL_2024_Annual_Report.pdf_0167"], "intent": "fact"}
+{"id": 48, "question": "无限售条件股份在本次变动后的持股比例是多少？", "answer": "无限售条件股份在本次变动后的持股比例是 88.62%。", "golden_chunk_ids": ["CATL_2024_Annual_Report.pdf_0167"], "intent": "fact"}
+{"id": 49, "question": "负责该公司审计的会计师事务所叫什么名字？", "answer": "致同会计师事务所（特殊普通合伙）", "golden_chunk_ids": ["CATL_2024_Annual_Report.pdf_0195"], "intent": "fact"}
+{"id": 50, "question": "该公司的审计报告签署日期是哪一天？", "answer": "2025年3月13日", "golden_chunk_ids": ["CATL_2024_Annual_Report.pdf_0195"], "intent": "fact"}
+{"id": 51, "question": "宁德时代对于处于第一阶段的金融工具，如何计量其损失准备？", "answer": "金融工具自初始确认后信用风险未显著增加的，处于第一阶段，本公司按照未来 12 个月内的预期信用损失计量损失准备。", "golden_chunk_ids": ["CATL_2024_Annual_Report.pdf_0251"], "intent": "fact"}
+{"id": 52, "question": "宁德时代对应收票据、应收账款和合同资产的损失准备是如何计量的？", "answer": "对于应收票据、应收账款、合同资产，无论是否存在重大融资成分，本公司始终按照相当于整个存续期内预期信用损失的金额计量其损失准备。", "golden_chunk_ids": ["CATL_2024_Annual_Report.pdf_0251"], "intent": "fact"}
+{"id": 53, "question": "时代长安动力电池有限公司的所得税优惠税率是多少，优惠期限到什么时候？", "answer": "时代长安动力电池有限公司的所得税优惠税率为15%，优惠期限为2023年6月至2030年12月。", "golden_chunk_ids": ["CATL_2024_Annual_Report.pdf_0279"], "intent": "fact"}
+{"id": 54, "question": "宜宾创能测试分析技术服务有限公司的税收优惠政策是从哪一年开始执行的？", "answer": "宜宾创能测试分析技术服务有限公司的税收优惠政策是从2024年1月开始执行的。", "golden_chunk_ids": ["CATL_2024_Annual_Report.pdf_0279"], "intent": "fact"}
+{"id": 55, "question": "福鼎时代园区建筑物的账面价值是多少？", "answer": "福鼎时代园区建筑物的账面价值是4,765,523。", "golden_chunk_ids": ["CATL_2024_Annual_Report.pdf_0307"], "intent": "fact"}
+{"id": 56, "question": "在建工程的期末余额是多少？", "answer": "在建工程的期末余额是29,754,703。", "golden_chunk_ids": ["CATL_2024_Annual_Report.pdf_0307"], "intent": "fact"}
+{"id": 57, "question": "公司期末的售后综合服务费是多少？其形成原因是什么？", "answer": "期末余额为 39,070,181，形成原因是根据质保协议预计承担的质量保证费用", "golden_chunk_ids": ["CATL_2024_Annual_Report.pdf_0335"], "intent": "fact"}
+{"id": 58, "question": "公司期末的应付合作投资款是多少？", "answer": "1,233,333", "golden_chunk_ids": ["CATL_2024_Annual_Report.pdf_0335"], "intent": "fact"}
+{"id": 59, "question": "时代绿色能源有限公司下属有多少家项目子公司在报告期内设立？", "answer": "43家", "golden_chunk_ids": ["CATL_2024_Annual_Report.pdf_0363"], "intent": "fact"}
+{"id": 60, "question": "新加坡邦普时代控股有限公司在报告期内的变动原因是什么？", "answer": "注销", "golden_chunk_ids": ["CATL_2024_Annual_Report.pdf_0363"], "intent": "fact"}
+{"id": 61, "question": "期末余额中，1年以内的应收账款账面余额是多少？", "answer": "40,249,904", "golden_chunk_ids": ["CATL_2024_Annual_Report.pdf_0391"], "intent": "fact"}
+{"id": 62, "question": "应收账款坏账准备的本期计提金额是多少？", "answer": "352,750", "golden_chunk_ids": ["CATL_2024_Annual_Report.pdf_0391"], "intent": "fact"}
+{"id": 63, "question": "该季度的总营收是多少？同比变化情况如何？", "answer": "Total quarterly revenue decreased 3% YoY to $24.9B.", "golden_chunk_ids": ["TSLA-Q4-2025-Update.pdf_0035"], "intent": "fact"}
+{"id": 64, "question": "期末的现金、现金等价物及投资总额是多少？", "answer": "Quarter-end cash, cash equivalents and investments was $44.1B.", "golden_chunk_ids": ["TSLA-Q4-2025-Update.pdf_0035"], "intent": "fact"}
+{"id": 65, "question": "投资人及股东关注的议题主要包括哪些？", "answer": "經濟績效、行業合作與發展、用氣安全與保障", "golden_chunk_ids": ["Xiaomi_2024_Annual_Report.pdf_0018"], "intent": "fact"}
+{"id": 66, "question": "针对投资人及股东，公司主要通过哪些方式进行沟通与回应？", "answer": "股東大會、集團網站及公告、投資者調研接待", "golden_chunk_ids": ["Xiaomi_2024_Annual_Report.pdf_0018"], "intent": "fact"}
+{"id": 67, "question": "嘉燃建設在2024年舉辦了第幾屆「嘉燃盃」消防運動會？", "answer": "第十三屆", "golden_chunk_ids": ["Xiaomi_2024_Annual_Report.pdf_0051"], "intent": "fact"}
+{"id": 68, "question": "2024年嘉燃建設在安全月活動中開展了哪些應急演練？", "answer": "消防應急演練和鍋爐房突發性停水應急演練", "golden_chunk_ids": ["Xiaomi_2024_Annual_Report.pdf_0051"], "intent": "fact"}
+{"id": 69, "question": "截至二零二四年十二月三十一日止年度，公司的综合收益总额是多少？", "answer": "截至二零二四年十二月三十一日止年度，综合收益总额为890,825,13人民幣千元。", "golden_chunk_ids": ["BYD_2024_Annual_Report.pdf_0142"], "intent": "fact"}
+{"id": 70, "question": "截至二零二四年十二月三十一日止年度，归属于母公司股东的权益年末余额是多少？", "answer": "截至二零二四年十二月三十一日止年度，归属于母公司股东的权益年末余额为560,018,831人民幣千元。", "golden_chunk_ids": ["BYD_2024_Annual_Report.pdf_0142"], "intent": "fact"}
+{"id": 71, "question": "宁德时代2024年期初的所有者权益合计是多少？", "answer": "219,883,151千元", "golden_chunk_ids": ["CATL_2024_Annual_Report.pdf_0223"], "intent": "fact"}
+{"id": 72, "question": "宁德时代2024年度的综合收益总额是多少？", "answer": "52,319,181千元", "golden_chunk_ids": ["CATL_2024_Annual_Report.pdf_0223"], "intent": "fact"}
+{"id": 73, "question": "2024年的总收入是多少？", "answer": "Total revenues 97,690", "golden_chunk_ids": ["TSLA-Q4-2025-Update.pdf_0006"], "intent": "fact"}
+{"id": 74, "question": "预计2025年的自由现金流是多少？", "answer": "Free cash flow 6,220", "golden_chunk_ids": ["TSLA-Q4-2025-Update.pdf_0006"], "intent": "fact"}
+{"id": 75, "question": "嘉興燃氣集團在氣候相關風險方面可能面臨哪些聲譽影響？", "answer": "各利益相關方對可持續發展與氣候變化問題日益關注，若集團未能有效開展低碳轉型工作以滿足利益相關方期待，或出現相關違規行為，或信息披露不充分，可能會損害集團的聲譽從而產生負面影響，從而造成客戶的流失，收入下降。", "golden_chunk_ids": ["Xiaomi_2024_Annual_Report.pdf_0083"], "intent": "fact"}
+{"id": 76, "question": "嘉興燃氣集團如何將氣候相關風險管理與其整體戰略框架結合？", "answer": "為將氣候相關風險管理納入集團的整體戰略框架，我們已將其與企業ESG管理體系和風險管理體系深度融合。", "golden_chunk_ids": ["Xiaomi_2024_Annual_Report.pdf_0083"], "intent": "fact"}
+{"id": 77, "question": "嘉興燃氣內部職務評聘流程的第一步是什麼？", "answer": "1. 崗位發佈：根據集團對各崗位的人才需求規劃，公開發佈待評聘的崗位信息，鼓勵員工自薦報名。", "golden_chunk_ids": ["Xiaomi_2024_Annual_Report.pdf_0115"], "intent": "fact"}
+{"id": 78, "question": "嘉興燃氣擬聘人選的公示期是多久？", "answer": "擬聘名單將在集團內部進行任前公示，公示期不少於3天，接受員工監督。", "golden_chunk_ids": ["Xiaomi_2024_Annual_Report.pdf_0115"], "intent": "fact"}
+{"id": 79, "question": "负责监督气候相关风险和机遇的治理机构在报告中的哪个位置？", "answer": "生態守護行 綠意滿人間－應對 氣候變化 應對氣候 守護藍天", "golden_chunk_ids": ["Xiaomi_2024_Annual_Report.pdf_0143"], "intent": "fact"}
+{"id": 80, "question": "报告中用于识别、评估气候相关风险的流程及相关政策在哪里可以找到？", "answer": "生態守護行 綠意滿人間－應對 氣候變化 應對氣候 守護藍天", "golden_chunk_ids": ["Xiaomi_2024_Annual_Report.pdf_0143"], "intent": "fact"}

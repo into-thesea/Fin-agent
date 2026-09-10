@@ -1,0 +1,30 @@
+{"id": "f01", "question": "全场商品默认使用哪种快递配送？", "category": "faq", "golden_chunk_id": "kb_客服FAQ_0001", "reference": "全场商品默认使用快递配送。京东快递首重15元，续重每公斤5元；顺丰首重22元；普通快递首重8元。"}
+{"id": "f02", "question": "京东快递首重是多少钱？", "category": "faq", "golden_chunk_id": "kb_客服FAQ_0001", "reference": "京东快递首重15元，续重每公斤5元。"}
+{"id": "f03", "question": "单笔订单实付满多少钱免首重运费？", "category": "faq", "golden_chunk_id": "kb_客服FAQ_0001", "reference": "单笔订单实付金额满199元免首重运费，超重部分仍按续重计费。"}
+{"id": "f04", "question": "偏远地区的运费怎么算？", "category": "faq", "golden_chunk_id": "kb_客服FAQ_0001", "reference": "偏远地区（新疆、西藏、内蒙古部分地区）运费以结算页实际显示为准。"}
+{"id": "f05", "question": "现货商品下单后多久发货？", "category": "faq", "golden_chunk_id": "kb_客服FAQ_0002", "reference": "现货商品下单后48小时内发货（法定节假日顺延）。"}
+{"id": "f06", "question": "定制类商品的制作周期是多长？", "category": "faq", "golden_chunk_id": "kb_客服FAQ_0002", "reference": "定制类商品制作周期为7-15个工作日。"}
+{"id": "f07", "question": "7天无理由退货需要满足什么条件？", "category": "faq", "golden_chunk_id": "kb_客服FAQ_0004", "reference": "自签收之日起7天内（含），商品保持完好、不影响二次销售、包装配件齐全，可申请无理由退货。"}
+{"id": "f08", "question": "哪些商品不支持7天无理由退货？", "category": "faq", "golden_chunk_id": "kb_客服FAQ_0004", "reference": "定制类商品、贴身衣物、已拆封的影音制品、生鲜食品等不支持7天无理由退货。"}
+{"id": "f09", "question": "商品出现质量问题，换货期限是多久？", "category": "faq", "golden_chunk_id": "kb_客服FAQ_0005", "reference": "自签收之日起15天内，商品出现质量问题（如功能故障、破损），可申请换货。"}
+{"id": "f10", "question": "质量问题换货运费由谁承担？", "category": "faq", "golden_chunk_id": "kb_客服FAQ_0005", "reference": "因质量问题换货，运费由我们承担；非质量问题换货产生的运费由用户承担。"}
+{"id": "f11", "question": "退货成功后退款一般多久到账？", "category": "faq", "golden_chunk_id": "kb_客服FAQ_0006", "reference": "退货商品签收并验收合格后，退款将在1-3个工作日内原路退回至您的支付账户。"}
+{"id": "f12", "question": "数码类商品的保修期是多久？", "category": "faq", "golden_chunk_id": "kb_客服FAQ_0007", "reference": "数码类商品享受一年全国联保，保修期内非人为损坏可免费维修或换新。"}
+{"id": "f13", "question": "保修期内人为损坏可以免费维修吗？", "category": "faq", "golden_chunk_id": "kb_客服FAQ_0007", "reference": "人为损坏、进水、自行拆修等不在保修范围内。"}
+{"id": "f14", "question": "我需要开发票，应该怎么做？", "category": "faq", "golden_chunk_id": "kb_客服FAQ_0008", "reference": "下单时在订单页面选择需要发票并填写抬头，发票随商品寄出；签收后30天内可联系客服补开。"}
+{"id": "f15", "question": "商城支持哪些支付方式？", "category": "faq", "golden_chunk_id": "kb_客服FAQ_0009", "reference": "支持微信支付、支付宝、银联卡、花呗分期。"}
+{"id": "f16", "question": "银卡会员享有什么折扣？", "category": "faq", "golden_chunk_id": "kb_客服FAQ_0010", "reference": "累计消费满1000元升级为银卡会员，享9.5折；满5000元升级金卡享9折。"}
+{"id": "f17", "question": "B3无线蓝牙耳机的蓝牙版本是多少？", "category": "faq", "golden_chunk_id": "kb_客服FAQ_0011", "reference": "B3无线蓝牙耳机：蓝牙版本5.3，续航单次6小时/配合充电仓30小时，Type-C接口，IPX5防水。"}
+{"id": "f18", "question": "B3耳机的续航时间有多久？", "category": "faq", "golden_chunk_id": "kb_客服FAQ_0011", "reference": "B3无线蓝牙耳机续航单次6小时，配合充电仓共30小时。"}
+{"id": "f19", "question": "售后电话是多少？", "category": "faq", "golden_chunk_id": "kb_客服FAQ_0012", "reference": "售后电话：400-800-1234（周一至周五9:00-18:00）。"}
+{"id": "f20", "question": "人工客服的工作时间是什么时候？", "category": "faq", "golden_chunk_id": "kb_客服FAQ_0000", "reference": "工作日（周一至周五 9:00-18:00）提供人工客服支持。"}
+{"id": "o01", "question": "查一下订单SO100001现在什么状态？", "category": "order", "reference": "订单SO100001：已发货，B3无线蓝牙耳机x1，金额199元，顺丰承运，运单号SF1234567890。"}
+{"id": "o02", "question": "订单SO100002的物流信息到哪里了？", "category": "order", "reference": "订单SO100002：已签收，家居收纳箱x2，京东承运，运单号JD9876543210。"}
+{"id": "o03", "question": "寄往新疆的一件商品，运费大概多少？", "category": "order", "reference": "偏远地区（新疆）预估运费25元（偏远地区，运费以结算页实际显示为准）。"}
+{"id": "o04", "question": "我想退掉订单SO100001，还能退吗？", "category": "refund", "reference": "订单SO100001签收0天，在7天退换期内，可申请退款。退款1-3个工作日原路退回。"}
+{"id": "o05", "question": "订单SO100002想申请退款", "category": "refund", "reference": "订单SO100002已签收8天，超过7天退换期，无法在线申请退款，应建议转人工客服处理。"}
+{"id": "c01", "question": "你好", "category": "chitchat", "reference": "礼貌的客服问候回应即可，不检索知识库。"}
+{"id": "c02", "question": "谢谢你的帮助", "category": "chitchat", "reference": "礼貌回应，不检索知识库。"}
+{"id": "u01", "question": "今天上海的天气怎么样？", "category": "unknown", "reference": "该问题与客服业务无关，应诚实说明无法回答，不编造天气信息。"}
+{"id": "u02", "question": "帮我推荐一只明天会涨的股票", "category": "unknown", "reference": "该问题超出客服知识库范围，应诚实拒绝并说明不提供投资建议，不编造。"}
+{"id": "u03", "question": "3的平方根是多少？", "category": "unknown", "reference": "该问题与商城客服无关，应诚实说明无法回答或引导回客服主题，不得编造答案。"}

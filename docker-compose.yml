@@ -1,0 +1,162 @@
+# 智能客服系统 Docker Compose (生产: redis + api + worker 全量稳定运行)
+#
+# 用法:
+#   docker compose up -d --build
+#   然后 nginx 反代到 127.0.0.1:8001 (见 deploy/nginx.conf), 或直接 http://服务器IP:8001
+#
+# 说明:
+#   - redis: 消息队列 broker / 缓存 (必须常驻, 不做降级)
+#   - api:   FastAPI (单端口托管 API + 前端静态), 端口只绑本机
+#   - worker: Celery worker (异步 ETL)
+#   - LLM 走阿里云百炼国内直连; 无需 Neo4j
+
+services:
+  # ── Redis (broker + 缓存, 必须稳定) ──────────
+  redis:
+    image: "redis:7-alpine"
+    container_name: fin-redis
+    ports:
+      - "127.0.0.1:6379:6379"     # 只绑本机, 外部不可达
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: always
+    command: redis-server --appendonly yes   # AOF 持久化, 防丢数据
+
+  # ── FastAPI (API + 前端) ────────────────────
+  api:
+    build: .
+    image: kefu-app:latest
+    container_name: fin-api
+    ports:
+      - "127.0.0.1:8001:8001"     # 只绑本机, 由 nginx 反代
+    env_file:
+      - .env.prod
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - MODEL_CACHE_DIR=/app/models/
+    volumes:
+      - ./data:/app/data           # 知识库 / 元数据库 / 语义缓存 持久化
+      - ./models:/app/models
+      - ./logs:/app/logs
+    depends_on:
+      redis:
+        condition: service_healthy
+    restart: always
+
+  # ── Celery Worker (异步 ETL, 必须稳定) ──────
+  worker:
+    image: kefu-app:latest
+    container_name: fin-worker
+    env_file:
+      - .env.prod
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - MODEL_CACHE_DIR=/app/models/
+    volumes:
+      - ./data:/app/data
+      - ./models:/app/models
+      - ./logs:/app/logs
+    depends_on:
+      redis:
+        condition: service_healthy
+    restart: always
+    command: ["celery", "-A", "src.celery_app", "worker", "--loglevel=info", "--concurrency=2", "--max-tasks-per-child=100"]
+
+  # ── Milvus 向量库 (检索 + 长期记忆 + 语义缓存三合一, P0) ──
+  # 启动: docker compose up -d etcd minio milvus
+  # 连接: grpc://127.0.0.1:19530  (只绑本机)
+  etcd:
+    container_name: milvus-etcd
+    image: quay.io/coreos/etcd:v3.5.5
+    environment:
+      - ETCD_AUTO_COMPACTION_MODE=revision
+      - ETCD_AUTO_COMPACTION_RETENTION=1000
+      - ETCD_QUOTA_BACKEND_BYTES=4294967296
+      - ETCD_SNAPSHOT_COUNT=50000
+    volumes:
+      - milvus-etcd:/etcd
+    command: etcd -advertise-client-urls=http://etcd:2379 -listen-client-urls http://0.0.0.0:2379 --data-dir /etcd
+    healthcheck:
+      test: ["CMD", "etcdctl", "endpoint", "health"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+    restart: unless-stopped
+
+  minio:
+    container_name: milvus-minio
+    image: minio/minio:RELEASE.2023-03-20T20-16-18Z
+    environment:
+      MINIO_ACCESS_KEY: minioadmin
+      MINIO_SECRET_KEY: minioadmin
+    ports:
+      - "127.0.0.1:9001:9001"   # 控制台 (仅本机)
+      - "127.0.0.1:9000:9000"   # API
+    volumes:
+      - milvus-minio:/minio_data
+    command: minio server /minio_data --console-address ":9001"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+    restart: unless-stopped
+
+  milvus:
+    container_name: milvus-standalone
+    image: milvusdb/milvus:v2.4.4
+    command: ["milvus", "run", "standalone"]
+    environment:
+      ETCD_ENDPOINTS: etcd:2379
+      MINIO_ADDRESS: minio:9000
+    ports:
+      - "127.0.0.1:19530:19530"   # gRPC
+      - "127.0.0.1:9091:9091"     # 健康检查
+    volumes:
+      - milvus-data:/var/lib/milvus
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9091/healthz"]
+      interval: 30s
+      start_period: 90s
+      timeout: 20s
+      retries: 3
+    depends_on:
+      - etcd
+      - minio
+    restart: unless-stopped
+
+  # ── Neo4j 知识图谱 (阶段三 GraphRAG: 多跳路径推理) ──
+  # 启动: docker compose up -d neo4j  (或完整 up -d)
+  # 连接: bolt://127.0.0.1:7687  neo4j / $NEO4J_PASSWORD (默认 kefu2026neo)
+  neo4j:
+    container_name: fin-neo4j
+    image: neo4j:5.26-community
+    environment:
+      NEO4J_AUTH: "neo4j/${NEO4J_PASSWORD:-kefu2026neo}"
+      NEO4J_server_memory_heap_max__size: 512M
+      NEO4J_server_memory_pagecache_size: 256M
+    ports:
+      - "127.0.0.1:7687:7687"   # Bolt
+      - "127.0.0.1:7474:7474"   # Browser
+    volumes:
+      - neo4j-data:/data
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:7474 >/dev/null 2>&1 || exit 1"]
+      interval: 20s
+      timeout: 10s
+      retries: 6
+    restart: unless-stopped
+
+volumes:
+  redis-data:
+  milvus-etcd:
+  milvus-minio:
+  milvus-data:
+  neo4j-data:

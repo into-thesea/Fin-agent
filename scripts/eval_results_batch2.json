@@ -1,0 +1,648 @@
+{
+  "total": 40,
+  "recall": {
+    "1": 0.525,
+    "2": 0.625,
+    "3": 0.675,
+    "4": 0.675,
+    "5": 0.7
+  },
+  "mrr": 0.5966666666666667,
+  "per_record": [
+    {
+      "id": 41,
+      "question": "公司现任高级管理人员共有几位？",
+      "golden": [
+        "CATL_2024_Annual_Report.pdf_0082"
+      ],
+      "retrieved": [
+        "CATL_2024_Annual_Report.pdf_0082",
+        "CATL_2024_Annual_Report.pdf_0105",
+        "CATL_2024_Annual_Report.pdf_0077",
+        "BYD_2024_Annual_Report.pdf_0085",
+        "BYD_2024_Annual_Report.pdf_0072"
+      ],
+      "hit_rank": 1
+    },
+    {
+      "id": 42,
+      "question": "公司副总经理兼董事会秘书蒋理先生是在哪一年加入公司的？",
+      "golden": [
+        "CATL_2024_Annual_Report.pdf_0082"
+      ],
+      "retrieved": [
+        "CATL_2024_Annual_Report.pdf_0082",
+        "CATL_2024_Annual_Report.pdf_0077",
+        "CATL_2024_Annual_Report.pdf_0178",
+        "CATL_2024_Annual_Report.pdf_0080",
+        "BYD_2024_Annual_Report.pdf_0073"
+      ],
+      "hit_rank": 1
+    },
+    {
+      "id": 43,
+      "question": "公司收购宁普时代电池科技有限公司后，持股比例是多少？",
+      "golden": [
+        "CATL_2024_Annual_Report.pdf_0109",
+        "CATL_2024_Annual_Report.pdf_0110",
+        "CATL_2024_Annual_Report.pdf_0360",
+        "CATL_2024_Annual_Report.pdf_0361"
+      ],
+      "retrieved": [
+        "CATL_2024_Annual_Report.pdf_0110",
+        "CATL_2024_Annual_Report.pdf_0033",
+        "CATL_2024_Annual_Report.pdf_0179",
+        "CATL_2024_Annual_Report.pdf_0364",
+        "CATL_2024_Annual_Report.pdf_0225"
+      ],
+      "hit_rank": 1
+    },
+    {
+      "id": 44,
+      "question": "2024年度内部控制评价报告的披露日期是什么时候？",
+      "golden": [
+        "CATL_2024_Annual_Report.pdf_0110"
+      ],
+      "retrieved": [
+        "BYD_2024_Annual_Report.pdf_0059",
+        "Xiaomi_2024_Annual_Report.pdf_0003",
+        "BYD_2024_Annual_Report.pdf_0436",
+        "CATL_2024_Annual_Report.pdf_0053",
+        "BYD_2024_Annual_Report.pdf_0111"
+      ],
+      "hit_rank": null
+    },
+    {
+      "id": 45,
+      "question": "宁德时代向上海快卜新能源科技有限公司销售储能电池系统的关联交易金额是多少？",
+      "golden": [
+        "CATL_2024_Annual_Report.pdf_0139",
+        "CATL_2024_Annual_Report.pdf_0140"
+      ],
+      "retrieved": [
+        "CATL_2024_Annual_Report.pdf_0139",
+        "CATL_2024_Annual_Report.pdf_0137",
+        "CATL_2024_Annual_Report.pdf_0376",
+        "CATL_2024_Annual_Report.pdf_0140",
+        "CATL_2024_Annual_Report.pdf_0030"
+      ],
+      "hit_rank": 1
+    },
+    {
+      "id": 46,
+      "question": "宁德时代2024年度与关联方发生的关联交易合计实际发生金额是多少？",
+      "golden": [
+        "CATL_2024_Annual_Report.pdf_0139",
+        "CATL_2024_Annual_Report.pdf_0140"
+      ],
+      "retrieved": [
+        "CATL_2024_Annual_Report.pdf_0374",
+        "CATL_2024_Annual_Report.pdf_0137",
+        "CATL_2024_Annual_Report.pdf_0350",
+        "CATL_2024_Annual_Report.pdf_0376",
+        "CATL_2024_Annual_Report.pdf_0302"
+      ],
+      "hit_rank": null
+    },
+    {
+      "id": 47,
+      "question": "本次变动后，有限售条件股份的数量是多少？",
+      "golden": [
+        "CATL_2024_Annual_Report.pdf_0166",
+        "CATL_2024_Annual_Report.pdf_0167",
+        "CATL_2024_Annual_Report.pdf_0169",
+        "CATL_2024_Annual_Report.pdf_0170"
+      ],
+      "retrieved": [
+        "CATL_2024_Annual_Report.pdf_0166",
+        "CATL_2024_Annual_Report.pdf_0167",
+        "CATL_2024_Annual_Report.pdf_0176",
+        "CATL_2024_Annual_Report.pdf_0168",
+        "CATL_2024_Annual_Report.pdf_0170"
+      ],
+      "hit_rank": 1
+    },
+    {
+      "id": 48,
+      "question": "无限售条件股份在本次变动后的持股比例是多少？",
+      "golden": [
+        "CATL_2024_Annual_Report.pdf_0166",
+        "CATL_2024_Annual_Report.pdf_0167"
+      ],
+      "retrieved": [
+        "CATL_2024_Annual_Report.pdf_0167",
+        "CATL_2024_Annual_Report.pdf_0176",
+        "CATL_2024_Annual_Report.pdf_0170",
+        "CATL_2024_Annual_Report.pdf_0182",
+        "CATL_2024_Annual_Report.pdf_0169"
+      ],
+      "hit_rank": 1
+    },
+    {
+      "id": 49,
+      "question": "负责该公司审计的会计师事务所叫什么名字？",
+      "golden": [
+        "CATL_2024_Annual_Report.pdf_0195"
+      ],
+      "retrieved": [
+        "CATL_2024_Annual_Report.pdf_0135",
+        "CATL_2024_Annual_Report.pdf_0195",
+        "BYD_2024_Annual_Report.pdf_0086",
+        "CATL_2024_Annual_Report.pdf_0092",
+        "CATL_2024_Annual_Report.pdf_0191"
+      ],
+      "hit_rank": 2
+    },
+    {
+      "id": 50,
+      "question": "该公司的审计报告签署日期是哪一天？",
+      "golden": [
+        "CATL_2024_Annual_Report.pdf_0195"
+      ],
+      "retrieved": [
+        "BYD_2024_Annual_Report.pdf_0086",
+        "CATL_2024_Annual_Report.pdf_0195",
+        "CATL_2024_Annual_Report.pdf_0198",
+        "BYD_2024_Annual_Report.pdf_0111",
+        "BYD_2024_Annual_Report.pdf_0449"
+      ],
+      "hit_rank": 2
+    },
+    {
+      "id": 51,
+      "question": "宁德时代对于处于第一阶段的金融工具，如何计量其损失准备？",
+      "golden": [
+        "CATL_2024_Annual_Report.pdf_0251"
+      ],
+      "retrieved": [
+        "CATL_2024_Annual_Report.pdf_0251",
+        "CATL_2024_Annual_Report.pdf_0394",
+        "CATL_2024_Annual_Report.pdf_0250",
+        "CATL_2024_Annual_Report.pdf_0249",
+        "CATL_2024_Annual_Report.pdf_0248"
+      ],
+      "hit_rank": 1
+    },
+    {
+      "id": 52,
+      "question": "宁德时代对应收票据、应收账款和合同资产的损失准备是如何计量的？",
+      "golden": [
+        "CATL_2024_Annual_Report.pdf_0251"
+      ],
+      "retrieved": [
+        "CATL_2024_Annual_Report.pdf_0286",
+        "CATL_2024_Annual_Report.pdf_0252",
+        "CATL_2024_Annual_Report.pdf_0251",
+        "CATL_2024_Annual_Report.pdf_0266",
+        "CATL_2024_Annual_Report.pdf_0249"
+      ],
+      "hit_rank": 3
+    },
+    {
+      "id": 53,
+      "question": "时代长安动力电池有限公司的所得税优惠税率是多少，优惠期限到什么时候？",
+      "golden": [
+        "CATL_2024_Annual_Report.pdf_0279"
+      ],
+      "retrieved": [
+        "CATL_2024_Annual_Report.pdf_0278",
+        "CATL_2024_Annual_Report.pdf_0279",
+        "BYD_2024_Annual_Report.pdf_0208",
+        "CATL_2024_Annual_Report.pdf_0274",
+        "CATL_2024_Annual_Report.pdf_0275"
+      ],
+      "hit_rank": 2
+    },
+    {
+      "id": 54,
+      "question": "宜宾创能测试分析技术服务有限公司的税收优惠政策是从哪一年开始执行的？",
+      "golden": [
+        "CATL_2024_Annual_Report.pdf_0279"
+      ],
+      "retrieved": [
+        "CATL_2024_Annual_Report.pdf_0278",
+        "CATL_2024_Annual_Report.pdf_0277",
+        "BYD_2024_Annual_Report.pdf_0235",
+        "CATL_2024_Annual_Report.pdf_0377",
+        "CATL_2024_Annual_Report.pdf_0045"
+      ],
+      "hit_rank": null
+    },
+    {
+      "id": 55,
+      "question": "福鼎时代园区建筑物的账面价值是多少？",
+      "golden": [
+        "CATL_2024_Annual_Report.pdf_0306",
+        "CATL_2024_Annual_Report.pdf_0307"
+      ],
+      "retrieved": [
+        "CATL_2024_Annual_Report.pdf_0306",
+        "CATL_2024_Annual_Report.pdf_0399",
+        "BYD_2024_Annual_Report.pdf_0290",
+        "CATL_2024_Annual_Report.pdf_0292",
+        "CATL_2024_Annual_Report.pdf_0196"
+      ],
+      "hit_rank": 1
+    },
+    {
+      "id": 56,
+      "question": "在建工程的期末余额是多少？",
+      "golden": [
+        "CATL_2024_Annual_Report.pdf_0040",
+        "CATL_2024_Annual_Report.pdf_0041",
+        "CATL_2024_Annual_Report.pdf_0201",
+        "CATL_2024_Annual_Report.pdf_0202",
+        "CATL_2024_Annual_Report.pdf_0306",
+        "CATL_2024_Annual_Report.pdf_0307",
+        "CATL_2024_Annual_Report.pdf_0308",
+        "CATL_2024_Annual_Report.pdf_0309"
+      ],
+      "retrieved": [
+        "CATL_2024_Annual_Report.pdf_0310",
+        "CATL_2024_Annual_Report.pdf_0292",
+        "CATL_2024_Annual_Report.pdf_0315",
+        "CATL_2024_Annual_Report.pdf_0369",
+        "CATL_2024_Annual_Report.pdf_0370"
+      ],
+      "hit_rank": null
+    },
+    {
+      "id": 57,
+      "question": "公司期末的售后综合服务费是多少？其形成原因是什么？",
+      "golden": [
+        "CATL_2024_Annual_Report.pdf_0334",
+        "CATL_2024_Annual_Report.pdf_0335"
+      ],
+      "retrieved": [
+        "CATL_2024_Annual_Report.pdf_0263",
+        "Xiaomi_2024_Annual_Report.pdf_0036",
+        "BYD_2024_Annual_Report.pdf_0045",
+        "CATL_2024_Annual_Report.pdf_0401",
+        "CATL_2024_Annual_Report.pdf_0286"
+      ],
+      "hit_rank": null
+    },
+    {
+      "id": 58,
+      "question": "公司期末的应付合作投资款是多少？",
+      "golden": [
+        "CATL_2024_Annual_Report.pdf_0334",
+        "CATL_2024_Annual_Report.pdf_0335"
+      ],
+      "retrieved": [
+        "CATL_2024_Annual_Report.pdf_0335",
+        "CATL_2024_Annual_Report.pdf_0245",
+        "CATL_2024_Annual_Report.pdf_0382",
+        "CATL_2024_Annual_Report.pdf_0050",
+        "CATL_2024_Annual_Report.pdf_0220"
+      ],
+      "hit_rank": 1
+    },
+    {
+      "id": 59,
+      "question": "时代绿色能源有限公司下属有多少家项目子公司在报告期内设立？",
+      "golden": [
+        "CATL_2024_Annual_Report.pdf_0363"
+      ],
+      "retrieved": [
+        "CATL_2024_Annual_Report.pdf_0363",
+        "CATL_2024_Annual_Report.pdf_0006",
+        "CATL_2024_Annual_Report.pdf_0110",
+        "CATL_2024_Annual_Report.pdf_0377",
+        "CATL_2024_Annual_Report.pdf_0246"
+      ],
+      "hit_rank": 1
+    },
+    {
+      "id": 60,
+      "question": "新加坡邦普时代控股有限公司在报告期内的变动原因是什么？",
+      "golden": [
+        "CATL_2024_Annual_Report.pdf_0363"
+      ],
+      "retrieved": [
+        "CATL_2024_Annual_Report.pdf_0045",
+        "CATL_2024_Annual_Report.pdf_0363",
+        "BYD_2024_Annual_Report.pdf_0043",
+        "CATL_2024_Annual_Report.pdf_0366",
+        "CATL_2024_Annual_Report.pdf_0053"
+      ],
+      "hit_rank": 2
+    },
+    {
+      "id": 61,
+      "question": "期末余额中，1年以内的应收账款账面余额是多少？",
+      "golden": [
+        "CATL_2024_Annual_Report.pdf_0390",
+        "CATL_2024_Annual_Report.pdf_0391"
+      ],
+      "retrieved": [
+        "CATL_2024_Annual_Report.pdf_0282",
+        "CATL_2024_Annual_Report.pdf_0392",
+        "CATL_2024_Annual_Report.pdf_0283",
+        "CATL_2024_Annual_Report.pdf_0298",
+        "CATL_2024_Annual_Report.pdf_0292"
+      ],
+      "hit_rank": null
+    },
+    {
+      "id": 62,
+      "question": "应收账款坏账准备的本期计提金额是多少？",
+      "golden": [
+        "CATL_2024_Annual_Report.pdf_0390",
+        "CATL_2024_Annual_Report.pdf_0391"
+      ],
+      "retrieved": [
+        "CATL_2024_Annual_Report.pdf_0390",
+        "CATL_2024_Annual_Report.pdf_0286",
+        "CATL_2024_Annual_Report.pdf_0394",
+        "BYD_2024_Annual_Report.pdf_0359",
+        "BYD_2024_Annual_Report.pdf_0216"
+      ],
+      "hit_rank": 1
+    },
+    {
+      "id": 63,
+      "question": "该季度的总营收是多少？同比变化情况如何？",
+      "golden": [
+        "TSLA-Q4-2025-Update.pdf_0035"
+      ],
+      "retrieved": [
+        "BYD_2024_Annual_Report.pdf_0043",
+        "CATL_2024_Annual_Report.pdf_0223",
+        "BYD_2024_Annual_Report.pdf_0136",
+        "BYD_2024_Annual_Report.pdf_0204",
+        "BYD_2024_Annual_Report.pdf_0012"
+      ],
+      "hit_rank": null
+    },
+    {
+      "id": 64,
+      "question": "期末的现金、现金等价物及投资总额是多少？",
+      "golden": [
+        "TSLA-Q4-2025-Update.pdf_0003",
+        "TSLA-Q4-2025-Update.pdf_0035"
+      ],
+      "retrieved": [
+        "CATL_2024_Annual_Report.pdf_0221",
+        "CATL_2024_Annual_Report.pdf_0220",
+        "CATL_2024_Annual_Report.pdf_0355",
+        "CATL_2024_Annual_Report.pdf_0051",
+        "CATL_2024_Annual_Report.pdf_0050"
+      ],
+      "hit_rank": null
+    },
+    {
+      "id": 65,
+      "question": "投资人及股东关注的议题主要包括哪些？",
+      "golden": [
+        "Xiaomi_2024_Annual_Report.pdf_0018"
+      ],
+      "retrieved": [
+        "Xiaomi_2024_Annual_Report.pdf_0018",
+        "Xiaomi_2024_Annual_Report.pdf_0021",
+        "CATL_2024_Annual_Report.pdf_0053",
+        "BYD_2024_Annual_Report.pdf_0091",
+        "BYD_2024_Annual_Report.pdf_0073"
+      ],
+      "hit_rank": 1
+    },
+    {
+      "id": 66,
+      "question": "针对投资人及股东，公司主要通过哪些方式进行沟通与回应？",
+      "golden": [
+        "Xiaomi_2024_Annual_Report.pdf_0018"
+      ],
+      "retrieved": [
+        "Xiaomi_2024_Annual_Report.pdf_0017",
+        "BYD_2024_Annual_Report.pdf_0092",
+        "Xiaomi_2024_Annual_Report.pdf_0018",
+        "CATL_2024_Annual_Report.pdf_0165",
+        "BYD_2024_Annual_Report.pdf_0091"
+      ],
+      "hit_rank": 3
+    },
+    {
+      "id": 67,
+      "question": "嘉燃建設在2024年舉辦了第幾屆「嘉燃盃」消防運動會？",
+      "golden": [
+        "Xiaomi_2024_Annual_Report.pdf_0051"
+      ],
+      "retrieved": [
+        "Xiaomi_2024_Annual_Report.pdf_0051",
+        "Xiaomi_2024_Annual_Report.pdf_0050",
+        "Xiaomi_2024_Annual_Report.pdf_0043",
+        "Xiaomi_2024_Annual_Report.pdf_0107",
+        "Xiaomi_2024_Annual_Report.pdf_0021"
+      ],
+      "hit_rank": 1
+    },
+    {
+      "id": 68,
+      "question": "2024年嘉燃建設在安全月活動中開展了哪些應急演練？",
+      "golden": [
+        "Xiaomi_2024_Annual_Report.pdf_0051"
+      ],
+      "retrieved": [
+        "Xiaomi_2024_Annual_Report.pdf_0051",
+        "Xiaomi_2024_Annual_Report.pdf_0050",
+        "Xiaomi_2024_Annual_Report.pdf_0059",
+        "Xiaomi_2024_Annual_Report.pdf_0030",
+        "Xiaomi_2024_Annual_Report.pdf_0058"
+      ],
+      "hit_rank": 1
+    },
+    {
+      "id": 69,
+      "question": "截至二零二四年十二月三十一日止年度，公司的综合收益总额是多少？",
+      "golden": [
+        "BYD_2024_Annual_Report.pdf_0142"
+      ],
+      "retrieved": [
+        "BYD_2024_Annual_Report.pdf_0138",
+        "BYD_2024_Annual_Report.pdf_0043",
+        "BYD_2024_Annual_Report.pdf_0127",
+        "BYD_2024_Annual_Report.pdf_0129",
+        "BYD_2024_Annual_Report.pdf_0128"
+      ],
+      "hit_rank": null
+    },
+    {
+      "id": 70,
+      "question": "截至二零二四年十二月三十一日止年度，归属于母公司股东的权益年末余额是多少？",
+      "golden": [
+        "BYD_2024_Annual_Report.pdf_0142"
+      ],
+      "retrieved": [
+        "BYD_2024_Annual_Report.pdf_0129",
+        "BYD_2024_Annual_Report.pdf_0128",
+        "BYD_2024_Annual_Report.pdf_0138",
+        "BYD_2024_Annual_Report.pdf_0127",
+        "BYD_2024_Annual_Report.pdf_0142"
+      ],
+      "hit_rank": 5
+    },
+    {
+      "id": 71,
+      "question": "宁德时代2024年期初的所有者权益合计是多少？",
+      "golden": [
+        "CATL_2024_Annual_Report.pdf_0203",
+        "CATL_2024_Annual_Report.pdf_0204",
+        "CATL_2024_Annual_Report.pdf_0223",
+        "CATL_2024_Annual_Report.pdf_0224",
+        "CATL_2024_Annual_Report.pdf_0233",
+        "CATL_2024_Annual_Report.pdf_0234"
+      ],
+      "retrieved": [
+        "CATL_2024_Annual_Report.pdf_0223",
+        "CATL_2024_Annual_Report.pdf_0384",
+        "CATL_2024_Annual_Report.pdf_0364",
+        "CATL_2024_Annual_Report.pdf_0366",
+        "CATL_2024_Annual_Report.pdf_0312"
+      ],
+      "hit_rank": 1
+    },
+    {
+      "id": 72,
+      "question": "宁德时代2024年度的综合收益总额是多少？",
+      "golden": [
+        "CATL_2024_Annual_Report.pdf_0211",
+        "CATL_2024_Annual_Report.pdf_0212",
+        "CATL_2024_Annual_Report.pdf_0223",
+        "CATL_2024_Annual_Report.pdf_0224"
+      ],
+      "retrieved": [
+        "CATL_2024_Annual_Report.pdf_0288",
+        "CATL_2024_Annual_Report.pdf_0209",
+        "CATL_2024_Annual_Report.pdf_0237",
+        "CATL_2024_Annual_Report.pdf_0099",
+        "CATL_2024_Annual_Report.pdf_0278"
+      ],
+      "hit_rank": null
+    },
+    {
+      "id": 73,
+      "question": "2024年的总收入是多少？",
+      "golden": [
+        "TSLA-Q4-2025-Update.pdf_0006",
+        "TSLA-Q4-2025-Update.pdf_0007",
+        "TSLA-Q4-2025-Update.pdf_0045"
+      ],
+      "retrieved": [
+        "BYD_2024_Annual_Report.pdf_0050",
+        "BYD_2024_Annual_Report.pdf_0153",
+        "CATL_2024_Annual_Report.pdf_0214",
+        "BYD_2024_Annual_Report.pdf_0512",
+        "BYD_2024_Annual_Report.pdf_0122"
+      ],
+      "hit_rank": null
+    },
+    {
+      "id": 74,
+      "question": "预计2025年的自由现金流是多少？",
+      "golden": [
+        "TSLA-Q4-2025-Update.pdf_0006",
+        "TSLA-Q4-2025-Update.pdf_0007",
+        "TSLA-Q4-2025-Update.pdf_0047",
+        "TSLA-Q4-2025-Update.pdf_0048"
+      ],
+      "retrieved": [
+        "TSLA-Q4-2025-Update.pdf_0003",
+        "TSLA-Q4-2025-Update.pdf_0049",
+        "TSLA-Q4-2025-Update.pdf_0031",
+        "CATL_2024_Annual_Report.pdf_0312",
+        "BYD_2024_Annual_Report.pdf_0249"
+      ],
+      "hit_rank": null
+    },
+    {
+      "id": 75,
+      "question": "嘉興燃氣集團在氣候相關風險方面可能面臨哪些聲譽影響？",
+      "golden": [
+        "Xiaomi_2024_Annual_Report.pdf_0083"
+      ],
+      "retrieved": [
+        "Xiaomi_2024_Annual_Report.pdf_0083",
+        "Xiaomi_2024_Annual_Report.pdf_0077",
+        "Xiaomi_2024_Annual_Report.pdf_0007",
+        "Xiaomi_2024_Annual_Report.pdf_0017",
+        "Xiaomi_2024_Annual_Report.pdf_0059"
+      ],
+      "hit_rank": 1
+    },
+    {
+      "id": 76,
+      "question": "嘉興燃氣集團如何將氣候相關風險管理與其整體戰略框架結合？",
+      "golden": [
+        "Xiaomi_2024_Annual_Report.pdf_0083"
+      ],
+      "retrieved": [
+        "Xiaomi_2024_Annual_Report.pdf_0083",
+        "Xiaomi_2024_Annual_Report.pdf_0074",
+        "Xiaomi_2024_Annual_Report.pdf_0075",
+        "Xiaomi_2024_Annual_Report.pdf_0016",
+        "Xiaomi_2024_Annual_Report.pdf_0007"
+      ],
+      "hit_rank": 1
+    },
+    {
+      "id": 77,
+      "question": "嘉興燃氣內部職務評聘流程的第一步是什麼？",
+      "golden": [
+        "Xiaomi_2024_Annual_Report.pdf_0115"
+      ],
+      "retrieved": [
+        "Xiaomi_2024_Annual_Report.pdf_0115",
+        "Xiaomi_2024_Annual_Report.pdf_0038",
+        "Xiaomi_2024_Annual_Report.pdf_0052",
+        "Xiaomi_2024_Annual_Report.pdf_0091",
+        "Xiaomi_2024_Annual_Report.pdf_0007"
+      ],
+      "hit_rank": 1
+    },
+    {
+      "id": 78,
+      "question": "嘉興燃氣擬聘人選的公示期是多久？",
+      "golden": [
+        "Xiaomi_2024_Annual_Report.pdf_0115"
+      ],
+      "retrieved": [
+        "Xiaomi_2024_Annual_Report.pdf_0115",
+        "Xiaomi_2024_Annual_Report.pdf_0134",
+        "Xiaomi_2024_Annual_Report.pdf_0003",
+        "Xiaomi_2024_Annual_Report.pdf_0007",
+        "Xiaomi_2024_Annual_Report.pdf_0033"
+      ],
+      "hit_rank": 1
+    },
+    {
+      "id": 79,
+      "question": "负责监督气候相关风险和机遇的治理机构在报告中的哪个位置？",
+      "golden": [
+        "Xiaomi_2024_Annual_Report.pdf_0143"
+      ],
+      "retrieved": [
+        "Xiaomi_2024_Annual_Report.pdf_0143",
+        "BYD_2024_Annual_Report.pdf_0088",
+        "Xiaomi_2024_Annual_Report.pdf_0082",
+        "Xiaomi_2024_Annual_Report.pdf_0025",
+        "BYD_2024_Annual_Report.pdf_0087"
+      ],
+      "hit_rank": 1
+    },
+    {
+      "id": 80,
+      "question": "报告中用于识别、评估气候相关风险的流程及相关政策在哪里可以找到？",
+      "golden": [
+        "Xiaomi_2024_Annual_Report.pdf_0143"
+      ],
+      "retrieved": [
+        "Xiaomi_2024_Annual_Report.pdf_0143",
+        "Xiaomi_2024_Annual_Report.pdf_0085",
+        "Xiaomi_2024_Annual_Report.pdf_0082",
+        "Xiaomi_2024_Annual_Report.pdf_0083",
+        "Xiaomi_2024_Annual_Report.pdf_0133"
+      ],
+      "hit_rank": 1
+    }
+  ]
+}

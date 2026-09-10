@@ -1,0 +1,25 @@
+# 智能客服系统 — Celery Worker (异步 ETL)
+# 用法: 复制到 /etc/systemd/system/fin-agent-worker.service, 修改 User/WorkingDirectory 后
+#       systemctl daemon-reload && systemctl enable --now fin-agent-worker
+
+[Unit]
+Description=Fin-Agent Customer Service Celery Worker
+After=network.target redis-server.service
+Wants=network.target
+
+[Service]
+Type=simple
+# ← 改成实际运行用户与项目路径
+User=ubuntu
+WorkingDirectory=/opt/kefu
+EnvironmentFile=/opt/kefu/.env.prod
+ExecStart=/opt/kefu/.venv/bin/python -X utf8 -m celery -A src.celery_app worker --loglevel=info --concurrency=2 --max-tasks-per-child=100
+Restart=always
+RestartSec=5
+
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=fin-agent-worker
+
+[Install]
+WantedBy=multi-user.target

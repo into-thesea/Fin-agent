@@ -1,0 +1,22 @@
+# 排除体积/敏感内容, 控制构建上下文
+.venv
+.venv_cuda
+__pycache__
+*.pyc
+.git
+.gitignore
+.idea
+.pytest_cache
+node_modules
+frontend/node_modules
+frontend/dist
+frontend/src/**/*.bak
+data
+logs
+deploy
+docs
+tests
+*.log
+.env
+.env.dev
+.env.prod

@@ -1,0 +1,11 @@
+{"id": "c001", "question": "京东快递首重运费多少？", "answer": "京东快递首重15元", "golden_chunk_ids": ["kb_客服FAQ_0001"], "intent": "faq"}
+{"id": "c002", "question": "订单实付金额满多少可以包邮？", "answer": "满199元免首重运费", "golden_chunk_ids": ["kb_客服FAQ_0001"], "intent": "faq"}
+{"id": "c003", "question": "现货商品下单后多久发货？", "answer": "48小时内发货", "golden_chunk_ids": ["kb_客服FAQ_0002"], "intent": "faq"}
+{"id": "c004", "question": "怎么申请退货？", "answer": "先联系客服申请退货单", "golden_chunk_ids": ["kb_客服FAQ_0004"], "intent": "faq"}
+{"id": "c005", "question": "商品质量问题可以换货吗？", "answer": "签收后15天内可申请换货", "golden_chunk_ids": ["kb_客服FAQ_0005"], "intent": "faq"}
+{"id": "c006", "question": "退款多久到账？", "answer": "验收后1-3个工作日原路退回", "golden_chunk_ids": ["kb_客服FAQ_0006"], "intent": "faq"}
+{"id": "c007", "question": "数码类商品保修多久？", "answer": "一年全国联保", "golden_chunk_ids": ["kb_客服FAQ_0007"], "intent": "faq"}
+{"id": "c008", "question": "可以开发票吗？", "answer": "支持增值税普通和专用发票", "golden_chunk_ids": ["kb_客服FAQ_0008"], "intent": "faq"}
+{"id": "c009", "question": "支持哪些支付方式？", "answer": "微信、支付宝、银联卡、花呗分期", "golden_chunk_ids": ["kb_客服FAQ_0009"], "intent": "faq"}
+{"id": "c010", "question": "B3耳机单次续航多久？", "answer": "单次6小时，配合充电仓30小时", "golden_chunk_ids": ["kb_客服FAQ_0011"], "intent": "faq"}
+{"id": "c011", "question": "售后电话是多少？", "answer": "400-800-1234", "golden_chunk_ids": ["kb_客服FAQ_0012"], "intent": "faq"}

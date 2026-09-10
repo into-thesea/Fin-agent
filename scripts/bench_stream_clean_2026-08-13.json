@@ -1,0 +1,22 @@
+{
+  "mode": "stream",
+  "rows": [
+    {
+      "query": "宁德时代与比亚迪2024年动力电池出货量对比分析",
+      "ok": true,
+      "latency": 27.597848415374756,
+      "ttfb": 27.59760856628418,
+      "tokens": 63,
+      "answer_len": 2529,
+      "sources": [
+        "BYD_2024_Annual_Report.pdf",
+        "CATL_2024_Annual_Report.pdf"
+      ],
+      "review": {
+        "score": 85,
+        "verdict": "flag",
+        "claims": 11
+      }
+    }
+  ]
+}

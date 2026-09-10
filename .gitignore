@@ -1,0 +1,65 @@
+# ──────────────────────────────────────────────
+# Fin-Agent .gitignore
+# ──────────────────────────────────────────────
+
+# === 密钥与凭证 ===
+.env
+.env.dev
+.env.prod
+.env.test
+.env.encrypted
+.env_key
+*.pem
+*.key
+
+# === Python ===
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg-info/
+dist/
+build/
+.eggs/
+*.egg
+.venv/
+venv/
+env/
+
+# === 模型与数据 ===
+models/
+*.gguf
+*.bin
+*.safetensors
+vector_db/
+output_analysis/faiss_index/
+output_analysis/*.jsonl
+output_analysis/*.json
+data_reports/*.pdf
+
+# === 日志 ===
+logs/
+*.log
+
+# === IDE ===
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# === 系统 ===
+Thumbs.db
+.DS_Store
+
+# ──────────────────────────────────────────────
+# 补充 (2026-09-11) — 初始化版本控制前补漏
+# ──────────────────────────────────────────────
+
+# 依赖目录: 13 GB, 可由 pip/npm 还原, 非项目文件 (原规则只写了 .venv/, 漏了 .venv_cuda/)
+.venv_cuda/
+node_modules/
+
+# 凭证文件: 根目录 默认业务空间-apiKey-6836385.csv
+# 进了 git 历史就删不干净, 上传远端即等同公开
+*.csv

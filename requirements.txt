@@ -1,0 +1,30 @@
+# Fin-Agent 核心依赖清单
+pdfplumber==0.11.0
+langchain==1.2.15
+langchain-text-splitters==1.1.1
+openai==2.31.0
+python-dotenv==1.2.2
+sentence-transformers==5.4.0
+faiss-cpu==1.10.0
+pandas==3.0.2
+numpy==2.4.4
+langgraph==0.3.5
+ragas==0.2.16
+redis==5.3.0
+celery==5.5.2
+fastapi==0.117.0
+python-multipart==0.0.20
+uvicorn[standard]==0.34.0
+websockets==14.1
+alembic==1.18.5
+# 智能客服: 客服文档 (Word/Excel) 解析入库
+python-docx==1.1.2
+openpyxl==3.1.5
+# P0/P7: Milvus 向量库 + FastMCP 服务化
+pymilvus==2.4.9        # 与 docker-compose 的 milvus v2.4.4 服务器匹配; 3.x 客户端连 2.x 服务器会 load() 死锁
+fastmcp==3.4.7
+# pymilvus 2.4.x 兼容约束
+setuptools<81          # pkg_resources 在 setuptools 84 已移除, pymilvus 2.x 仍依赖
+marshmallow<4          # pymilvus 需 marshmallow.__version_info__ (4.x 已移除)
+# 知识图谱 (P3): Neo4j 运行时后端
+neo4j==6.3.0           # src/knowledge_graph/core.py 的 Neo4jGraph / scripts/load_kg_to_neo4j.py 惰性导入

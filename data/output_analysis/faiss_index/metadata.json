@@ -1,0 +1,1018 @@
+[
+  {
+    "chunk_id": "kb_agency_products_0000",
+    "source": "agency_products.md",
+    "page": 1,
+    "section": "",
+    "document_id": "agency_products.md",
+    "content": "【什么是代销产品】\n银行除销售自营理财、吸收存款外，还代理销售其他金融机构的产品，如公募基金、保险产品、信托、贵金属等。这类产品由基金公司、保险公司等发行和管理，银行只作为代销渠道，不是产品发行人。"
+  },
+  {
+    "chunk_id": "kb_agency_products_0001",
+    "source": "agency_products.md",
+    "page": 1,
+    "section": "",
+    "document_id": "agency_products.md",
+    "content": "【自营与代销的关键区别】\n自营理财和存款由本行直接发行或吸收，责任主体是本行；代销产品（如公募基金）的发行与管理方是外部机构，本行只负责销售与后续服务对接，不承担投资损失。基金产品无论叫什么名字，都是非保本浮动收益产品，不受存款保险保障。"
+  },
+  {
+    "chunk_id": "kb_agency_products_0002",
+    "source": "agency_products.md",
+    "page": 1,
+    "section": "",
+    "document_id": "agency_products.md",
+    "content": "【购买代销产品要注意什么】\n购买代销产品前同样要做风险测评、适当性匹配与风险揭示。基金的风险等级（如纯债基金 R2、偏股混合基金 R4）决定了购买门槛。回答\"这是你们银行的产品吗\"时，必须区分自营还是代销，不能含糊其辞让客户误以为银行保本。"
+  },
+  {
+    "chunk_id": "kb_agency_products_0003",
+    "source": "agency_products.md",
+    "page": 1,
+    "section": "",
+    "document_id": "agency_products.md",
+    "content": "【代销不是存款】\n代销的基金、保险、信托等都不属于存款，不受存款保险保障，可能产生本金损失。向客户表述时应明确\"代销产品，非本行存款，非存款保险保障范围，投资须谨慎\"。"
+  },
+  {
+    "chunk_id": "kb_buy_process_0000",
+    "source": "buy_process.md",
+    "page": 1,
+    "section": "",
+    "document_id": "buy_process.md",
+    "content": "【购买前置条件】\n购买理财产品前必须完成：账户实名认证、绑定本人银行卡、完成风险承受能力测评且测评等级不低于产品风险等级。测评未完成或测评过期、测评等级不匹配时，不能直接购买，系统会引导先做测评或选择匹配的产品。"
+  },
+  {
+    "chunk_id": "kb_buy_process_0001",
+    "source": "buy_process.md",
+    "page": 1,
+    "section": "",
+    "document_id": "buy_process.md",
+    "content": "【标准购买流程】\n标准流程是：确认身份与测评等级 → 选择产品并确认产品要素（类型、风险等级、期限、起购金额、费率）→ 进行风险揭示确认（勾选\"我已阅读并理解风险提示\"）→ 输入购买金额并二次确认 → 资金划转与申购确认。涉及资金动账的步骤必须有用户的明确确认，不能仅凭一句话就执行。"
+  },
+  {
+    "chunk_id": "kb_buy_process_0002",
+    "source": "buy_process.md",
+    "page": 1,
+    "section": "",
+    "document_id": "buy_process.md",
+    "content": "【二次确认与验证码】\n购买、赎回、撤单等资金类操作在提交前必须二次确认，并校验手机验证码或交易密码。机器端不得在缺少确认与校验的情况下直接执行资金操作。若客户中途中断，会话状态会被保存，可在恢复后继续，但资金步骤仍需重新确认。"
+  },
+  {
+    "chunk_id": "kb_buy_process_0003",
+    "source": "buy_process.md",
+    "page": 1,
+    "section": "",
+    "document_id": "buy_process.md",
+    "content": "【首次购买与双录】\n首次在线上购买理财（或购买高风险、大额产品）时，需按监管要求进行录音录像（双录），核验客户身份、讲解产品风险、确认客户自愿购买。双录通常需要转人工坐席协助完成；机器可提前收集信息并引导，但不能替代双录。"
+  },
+  {
+    "chunk_id": "kb_buy_process_0004",
+    "source": "buy_process.md",
+    "page": 1,
+    "section": "",
+    "document_id": "buy_process.md",
+    "content": "【申购确认与起息】\n申购提交后一般 T 日或 T+1 日确认份额并开始计息，具体以产品说明书为准。确认前客户可撤单，确认后资金进入产品，按产品规则运作。"
+  },
+  {
+    "chunk_id": "kb_buy_process_0005",
+    "source": "buy_process.md",
+    "page": 1,
+    "section": "",
+    "document_id": "buy_process.md",
+    "content": "【冷静期与撤单】\n本演示场景下，非现金管理类产品在申购确认前提供 24 小时冷静期，客户可在冷静期内无理由撤单且不产生费用；确认后撤单按产品赎回规则处理。现金管理类产品随赎随到、不设冷静期。"
+  },
+  {
+    "chunk_id": "kb_buy_process_0006",
+    "source": "buy_process.md",
+    "page": 1,
+    "section": "",
+    "document_id": "buy_process.md",
+    "content": "【大额与高风险转人工】\n大额申购（如超过 100 万）或高风险（R4 及以上）产品、或适当性不匹配但客户坚持购买时，流程必须转人工坐席：坐席完成风险再揭示、合格投资者核验与双录后，才能继续资金操作。机器只负责收集信息与提示，不负责放行。"
+  },
+  {
+    "chunk_id": "kb_complaints_human_0000",
+    "source": "complaints_human.md",
+    "page": 1,
+    "section": "",
+    "document_id": "complaints_human.md",
+    "content": "【投诉渠道】\n客户可通过本行在线客服、客服热线、营业网点等渠道发起投诉。投诉内容通常包括服务态度、产品收益未达预期、扣费争议、疑似飞单、个人信息问题等。受理后客服会生成投诉工单，全程留痕可追溯。"
+  },
+  {
+    "chunk_id": "kb_complaints_human_0001",
+    "source": "complaints_human.md",
+    "page": 1,
+    "section": "",
+    "document_id": "complaints_human.md",
+    "content": "【哪些情况应转人工坐席】\n以下情况应转人工：适当性不匹配但客户坚持购买高风险产品；大额或高风险产品申购需要双录；疑似诈骗、飞单、资金被盗需紧急处理；复杂业务申请（贷款、账户解冻、争议处理）；客户明确要求人工；智能客服连续多次未能解决问题。转人工时，会话上下文与已收集信息要一并移交，客户无需重复描述。"
+  },
+  {
+    "chunk_id": "kb_complaints_human_0002",
+    "source": "complaints_human.md",
+    "page": 1,
+    "section": "",
+    "document_id": "complaints_human.md",
+    "content": "【工单处理时效（演示）】\n本演示场景下，投诉工单受理后 1 个工作日内响应、一般 3 个工作日内给出处理意见；紧急风险类诉求（如疑似盗刷）即时转人工处理。以上时效为演示数据。"
+  },
+  {
+    "chunk_id": "kb_complaints_human_0003",
+    "source": "complaints_human.md",
+    "page": 1,
+    "section": "",
+    "document_id": "complaints_human.md",
+    "content": "【机器人能做到与不能做到】\n机器人能完成产品咨询、比较、口径解释、信息收集、简单查询与引导；机器人不能替代双录、不能决定放行高风险/大额资金操作、不能就复杂争议做最终承诺。涉及上述事项一律交给人工并留痕。"
+  },
+  {
+    "chunk_id": "kb_complaints_human_0004",
+    "source": "complaints_human.md",
+    "page": 1,
+    "section": "",
+    "document_id": "complaints_human.md",
+    "content": "【客服回答的边界】\n涉及收益、费率、政策的具体数字，客服只能引用知识库与产品说明书内容；知识库没有的依据，要如实说明\"不确定/以产品说明书与监管文件为准\"，不得编造。"
+  },
+  {
+    "chunk_id": "kb_deposit_insurance_0000",
+    "source": "deposit_insurance.md",
+    "page": 1,
+    "section": "",
+    "document_id": "deposit_insurance.md",
+    "content": "【存款保险制度是什么】\n存款保险是国家通过立法设立的一项保障制度，由投保机构（吸收存款的银行业金融机构）向存款保险基金管理机构缴纳保费，形成存款保险基金。当投保机构发生经营问题无法偿付存款时，存款保险基金依法对存款人的存款进行偿付。客户在银行网点或电子渠道均可见到\"存款保险\"标识。"
+  },
+  {
+    "chunk_id": "kb_deposit_insurance_0001",
+    "source": "deposit_insurance.md",
+    "page": 1,
+    "section": "",
+    "document_id": "deposit_insurance.md",
+    "content": "【保障范围（保什么）】\n存款保险保障的是存款类产品，包括活期存款、定期存款、大额存单、结构性存款等。同一存款人在同一家投保机构，被保险存款的本金和利息合计在人民币50万元以内的，全额偿付；超出50万元的部分，依法从该机构清算财产中受偿。客户名下多家银行分开计算，每家在50万元限额内都有保障。"
+  },
+  {
+    "chunk_id": "kb_deposit_insurance_0002",
+    "source": "deposit_insurance.md",
+    "page": 1,
+    "section": "",
+    "document_id": "deposit_insurance.md",
+    "content": "【不保什么】\n银行理财、公募基金、保险产品、信托、私募等都不属于存款，不受存款保险保障。即便这些产品由银行渠道销售或代销，本金和收益也不在存款保险偿付范围内，投资损失由客户自行承担。"
+  },
+  {
+    "chunk_id": "kb_deposit_insurance_0003",
+    "source": "deposit_insurance.md",
+    "page": 1,
+    "section": "",
+    "document_id": "deposit_insurance.md",
+    "content": "【识别存款还是理财】\n最简单的判断方法：看产品页面是否标注\"存款产品\"及\"存款保险\"标识。结构性存款虽然收益浮动，但属于存款，本息在限额内受保障；而理财产品无论名字里是否带\"稳\"\"保\"字样，只要标注为理财产品，就一律不受存款保险保障。"
+  },
+  {
+    "chunk_id": "kb_deposit_insurance_0004",
+    "source": "deposit_insurance.md",
+    "page": 1,
+    "section": "",
+    "document_id": "deposit_insurance.md",
+    "content": "【常见的误解场景】\n客户问\"银行理财亏了，存款保险赔吗\"，答案是不赔：存款保险只保存款，不保理财。客户问\"大额存单受不受保护\"，答案是受保护，和普通定期存款一样计入50万元限额。"
+  },
+  {
+    "chunk_id": "kb_fraud_report_0000",
+    "source": "fraud_report.md",
+    "page": 1,
+    "section": "",
+    "document_id": "fraud_report.md",
+    "content": "【什么是飞单与假理财】\n飞单指销售人员私自销售非本机构发行或代销的、未经审批的产品；假理财指以理财为名吸收资金的不法行为。客户被\"高收益、内部渠道、名额有限\"等话术诱导，很可能遭遇飞单或非法集资。"
+  },
+  {
+    "chunk_id": "kb_fraud_report_0001",
+    "source": "fraud_report.md",
+    "page": 1,
+    "section": "",
+    "document_id": "fraud_report.md",
+    "content": "【高收益陷阱的常见信号】\n宣称收益率远高于市场同类（如承诺年化超过 8% 且保本）、强调内部名额与限时抢购、资金转入个人账户或非本行对公账户、不出具正式合同与产品编码、引导私下转账或使用非官方渠道，以上都是危险信号。任何\"稳赚不赔的高收益\"都值得警惕。"
+  },
+  {
+    "chunk_id": "kb_fraud_report_0002",
+    "source": "fraud_report.md",
+    "page": 1,
+    "section": "",
+    "document_id": "fraud_report.md",
+    "content": "【如何核实产品真伪】\n正规理财产品可通过产品登记编码在监管指定的理财登记系统查询真伪；公募基金可通过基金业协会官网查询；销售人员应能出示合规资质。核实产品真实性后可判断是否为飞单。"
+  },
+  {
+    "chunk_id": "kb_fraud_report_0003",
+    "source": "fraud_report.md",
+    "page": 1,
+    "section": "",
+    "document_id": "fraud_report.md",
+    "content": "【疑似被骗怎么办】\n客户疑似遭遇诈骗或飞单时，应第一时间止损（不继续转账、不泄露验证码）、保存聊天与转账证据、联系银行官方客服核实并申请冻结或止付，必要时报警。对资金风险类诉求，客服应引导走人工坐席并协助留痕，不要随意承诺一定能追回。"
+  },
+  {
+    "chunk_id": "kb_fraud_report_0004",
+    "source": "fraud_report.md",
+    "page": 1,
+    "section": "",
+    "document_id": "fraud_report.md",
+    "content": "【客服端处理口径】\n客户提到\"朋友介绍的高收益理财\"\"内部渠道\"\"扫码转账购买理财\"等表述时，客服应主动提示诈骗风险、核实产品真实性，并引导转人工处理，全程记录留痕。"
+  },
+  {
+    "chunk_id": "kb_income_and_interest_0000",
+    "source": "income_and_interest.md",
+    "page": 1,
+    "section": "",
+    "document_id": "income_and_interest.md",
+    "content": "【业绩比较基准不是收益承诺】\n业绩比较基准是产品管理人根据历史业绩与投资策略测算的参考指标，用于衡量产品运作表现，不代表产品实际收益，更不是收益承诺。任何把业绩比较基准说成\"保证年化收益\"的表述都是违规的。回答收益类问题时，必须同时说明\"业绩比较基准仅为参考，实际收益以到期为准，且不构成收益承诺\"。"
+  },
+  {
+    "chunk_id": "kb_income_and_interest_0001",
+    "source": "income_and_interest.md",
+    "page": 1,
+    "section": "",
+    "document_id": "income_and_interest.md",
+    "content": "【七日年化与万份收益（现金管理类）】\n现金管理类产品常用\"七日年化收益率\"和\"每万份收益\"两个指标。七日年化收益率是把最近七日的平均收益年化后得到的参考值，会随市场波动每天变化；万份收益指每持有1万份当日实际获得的收益金额。两者都是历史或短期参考，不代表未来。"
+  },
+  {
+    "chunk_id": "kb_income_and_interest_0002",
+    "source": "income_and_interest.md",
+    "page": 1,
+    "section": "",
+    "document_id": "income_and_interest.md",
+    "content": "【净值型产品的收益】\n净值型理财产品按单位净值计算收益，收益等于持有份额乘以净值变化。净值有涨有跌，披露频率越高（如日频）透明度越高。客户看到的\"成立以来年化\"\"近一年收益率\"都是历史业绩的统计口径，不预示未来。"
+  },
+  {
+    "chunk_id": "kb_income_and_interest_0003",
+    "source": "income_and_interest.md",
+    "page": 1,
+    "section": "",
+    "document_id": "income_and_interest.md",
+    "content": "【保本与非保本】\n当前资管新规下，除存款类产品（含结构性存款的本金部分）外，自营理财均为非保本浮动收益，不得承诺保本保收益。回答\"这款保本吗\"时，要先判断产品类型：存款类说明保障情况与限额，理财/基金类必须明确\"不保本、不保收益、非存款\"。"
+  },
+  {
+    "chunk_id": "kb_income_and_interest_0004",
+    "source": "income_and_interest.md",
+    "page": 1,
+    "section": "",
+    "document_id": "income_and_interest.md",
+    "content": "【计息与到账规则示例】\n计息一般从申购确认日（T日）开始，产品说明书会标注确认时间与起息时间。赎回到账时间按产品类型区分：现金管理类一般 T+1 到账，固定期限产品到期后 1 到 3 个工作日到账。以上时间为示例，具体以产品说明书为准。"
+  },
+  {
+    "chunk_id": "kb_income_and_interest_0005",
+    "source": "income_and_interest.md",
+    "page": 1,
+    "section": "",
+    "document_id": "income_and_interest.md",
+    "content": "【演示口径提示】\n本知识库涉及的一切收益数字（业绩比较基准、七日年化、执行利率等）均为虚构演示数据，用于测试回答口径，不构成任何投资建议或销售要约。"
+  },
+  {
+    "chunk_id": "kb_insurance_products_0000",
+    "source": "insurance_products.md",
+    "page": 1,
+    "section": "",
+    "document_id": "insurance_products.md",
+    "content": "【保险产品在本行的定位】\n本行通过代销渠道销售保险公司产品，常见与理财相关的有增额终身寿险、养老年金保险、两全保险等储蓄型保险，以及分红险、万能险等（演示口径）。它们由保险公司承保，本行是代销渠道，不是存款、也不是银行理财。"
+  },
+  {
+    "chunk_id": "kb_insurance_products_0001",
+    "source": "insurance_products.md",
+    "page": 1,
+    "section": "",
+    "document_id": "insurance_products.md",
+    "content": "【储蓄型保险的核心特点】\n储蓄型保险兼顾保障与长期储蓄功能，收益以保险合同载明的预定利率/保额增长方式为准（演示口径预定利率 2.5%），白纸黑字写入合同，比演示利率更刚性。但资金长期锁定，前期现金价值低，需要长期持有（建议 5 年以上）才划算。"
+  },
+  {
+    "chunk_id": "kb_insurance_products_0002",
+    "source": "insurance_products.md",
+    "page": 1,
+    "section": "",
+    "document_id": "insurance_products.md",
+    "content": "【犹豫期与退保损失（重点口径）】\n投保后有一段犹豫期（演示口径为签收保单后 15 天），犹豫期内退保可全额退还已交保费（扣除少量工本费）。超过犹豫期退保，按保单现金价值退还，早期现金价值可能低于已交保费，客户会损失本金。回答\"能不能退/会不会亏\"必须讲清犹豫期与现金价值。"
+  },
+  {
+    "chunk_id": "kb_insurance_products_0003",
+    "source": "insurance_products.md",
+    "page": 1,
+    "section": "",
+    "document_id": "insurance_products.md",
+    "content": "【分红与万能（简）】\n分红险的分红水平不确定，取决于保险公司经营成果，可能为零；万能险有保底利率（演示口径 1.5% 起）加上不确定的结算利率。两者都不是存款、不受存款保险保障，收益演示中的\"高档/中档\"不代表保证收益。"
+  },
+  {
+    "chunk_id": "kb_insurance_products_0004",
+    "source": "insurance_products.md",
+    "page": 1,
+    "section": "",
+    "document_id": "insurance_products.md",
+    "content": "【与存款、理财的对比口径】\n存款保本保息、受存款保险保障，期限灵活；银行理财参考收益可能更高但不保本；保险提供长期确定的合同利益与保障功能，但资金锁定长、早期退保有损失。给客户对比时用\"资金使用时间 + 能否接受波动/锁定\"两个维度判断，不做绝对推荐。"
+  },
+  {
+    "chunk_id": "kb_insurance_products_0005",
+    "source": "insurance_products.md",
+    "page": 1,
+    "section": "",
+    "document_id": "insurance_products.md",
+    "content": "【保险销售合规】\n向客户销售保险同样需适当性匹配与风险揭示，涉及分红/万能等需讲清不确定收益；犹豫期权利要告知。投保年龄、健康告知等以保险公司核保为准。回答\"这是理财吗\"必须区分：保险不是理财，两者受不同规则约束。"
+  },
+  {
+    "chunk_id": "kb_privacy_security_0000",
+    "source": "privacy_security.md",
+    "page": 1,
+    "section": "",
+    "document_id": "privacy_security.md",
+    "content": "【客服会用到哪些信息】\n为核实身份与办理业务，客服可能需要确认客户姓名、身份证号后四位、预留手机号、卡号后四位等。核实身份只需部分信息（如后四位），不会索要完整卡号、完整身份证号、交易密码或短信验证码。"
+  },
+  {
+    "chunk_id": "kb_privacy_security_0001",
+    "source": "privacy_security.md",
+    "page": 1,
+    "section": "",
+    "document_id": "privacy_security.md",
+    "content": "【客服绝不会索要什么】\n本行客服在任何情况下都不会索要：银行卡完整密码、短信验证码、CVV 码、银行卡背面三位安全码、一次性动态口令。凡是索要这些内容的，一律是诈骗。验证码是资金操作的最后一道防线，绝不向任何人提供。"
+  },
+  {
+    "chunk_id": "kb_privacy_security_0002",
+    "source": "privacy_security.md",
+    "page": 1,
+    "section": "",
+    "document_id": "privacy_security.md",
+    "content": "【验证码与二次确认】\n资金类操作（购买、赎回、转账、改密）会要求短信验证码或交易密码，验证码仅在本次操作对应的银行官方页面/App 输入，任何其他渠道索要都不可信。"
+  },
+  {
+    "chunk_id": "kb_privacy_security_0003",
+    "source": "privacy_security.md",
+    "page": 1,
+    "section": "",
+    "document_id": "privacy_security.md",
+    "content": "【个人信息处理原则】\n客户信息仅用于所办业务，系统会对敏感信息脱敏展示与存储（身份证、卡号仅保留掩码或后四位），后台留痕仅用于合规审计，不外泄、不用于营销以外用途。"
+  },
+  {
+    "chunk_id": "kb_privacy_security_0004",
+    "source": "privacy_security.md",
+    "page": 1,
+    "section": "",
+    "document_id": "privacy_security.md",
+    "content": "【发现信息泄露怎么办】\n客户发现疑似信息泄露或账户异常，应立即修改密码、暂停非柜面交易、联系客服核实并申请挂失，必要时报警。客服收到此类诉求应优先转人工并全程留痕。"
+  },
+  {
+    "chunk_id": "kb_prod_p001_0000",
+    "source": "prod_p001.md",
+    "page": 1,
+    "section": "",
+    "document_id": "prod_p001.md",
+    "content": "【产品要素】\n日日盈现金管理类产品（P001）为本行自营理财产品，产品类型为现金管理类（货币类），风险等级 R1（低风险）。起购金额 0.01 万元，支持 T+0 申赎，无固定期限。产品要素与收益口径以《产品说明书》与发行公告为准。"
+  },
+  {
+    "chunk_id": "kb_prod_p001_0001",
+    "source": "prod_p001.md",
+    "page": 1,
+    "section": "",
+    "document_id": "prod_p001.md",
+    "content": "【收益口径】\n本产品披露七日年化收益率与万份收益。演示口径下七日年化收益率为 2.10%（示例数据）。七日年化是把最近七天平均收益年化后的参考值，每日随市场波动，不代表未来收益，也不构成收益承诺。"
+  },
+  {
+    "chunk_id": "kb_prod_p001_0002",
+    "source": "prod_p001.md",
+    "page": 1,
+    "section": "",
+    "document_id": "prod_p001.md",
+    "content": "【保本说明】\n现金管理类产品属于理财产品，非存款，不受存款保险保障，不承诺保本保收益。但其投资范围主要为货币市场工具与高等级债券，风险较低，净值波动极小。回答\"保本吗\"须先说明\"理财非存款\"。"
+  },
+  {
+    "chunk_id": "kb_prod_p001_0003",
+    "source": "prod_p001.md",
+    "page": 1,
+    "section": "",
+    "document_id": "prod_p001.md",
+    "content": "【申赎与到账】\n交易日 15:00 前申购当日确认并开始计息；随时可赎回，资金 T+1 到账。现金管理类确认速度快，不设冷静期，不支持撤单（确认即持有）。"
+  },
+  {
+    "chunk_id": "kb_prod_p001_0004",
+    "source": "prod_p001.md",
+    "page": 1,
+    "section": "",
+    "document_id": "prod_p001.md",
+    "content": "【费用】\n本产品从产品净值中计提销售服务费、管理费、托管费，客户无需另行支付申购与赎回费用（演示口径）。"
+  },
+  {
+    "chunk_id": "kb_prod_p001_0005",
+    "source": "prod_p001.md",
+    "page": 1,
+    "section": "",
+    "document_id": "prod_p001.md",
+    "content": "【适合谁买】\n适合风险承受能力为 R1 及以上、追求流动性与低波动、随时可能要用的闲置资金。回答客户\"这笔钱下个月要用，放哪\"时可说明现金管理类适合短期灵活资金。"
+  },
+  {
+    "chunk_id": "kb_prod_p002_0000",
+    "source": "prod_p002.md",
+    "page": 1,
+    "section": "",
+    "document_id": "prod_p002.md",
+    "content": "【产品要素】\n稳盈添利30天（P002）为本行自营固定收益类理财产品，风险等级 R2（中低风险）。起购金额 1 万元，期限 30 天，封闭期结束后到期自动赎回或按约定续投。产品要素与收益口径以《产品说明书》为准。"
+  },
+  {
+    "chunk_id": "kb_prod_p002_0001",
+    "source": "prod_p002.md",
+    "page": 1,
+    "section": "",
+    "document_id": "prod_p002.md",
+    "content": "【收益口径】\n本产品业绩比较基准 3.00%（演示数据）。业绩比较基准是产品管理人根据历史与投资策略测算的参考指标，不代表实际收益，不构成收益承诺。回答客户\"是不是保证 3 个点\"时明确：不是，仅为参考。"
+  },
+  {
+    "chunk_id": "kb_prod_p002_0002",
+    "source": "prod_p002.md",
+    "page": 1,
+    "section": "",
+    "document_id": "prod_p002.md",
+    "content": "【保本说明】\n本产品为净值型非保本理财，非存款，不受存款保险保障，不承诺保本保收益。主要投资债券等固定收益类资产，净值波动较小但非零。"
+  },
+  {
+    "chunk_id": "kb_prod_p002_0003",
+    "source": "prod_p002.md",
+    "page": 1,
+    "section": "",
+    "document_id": "prod_p002.md",
+    "content": "【申赎与冷静期】\n封闭 30 天，封闭期内不可赎回；到期后自动赎回，资金 1 到 3 个工作日到账（演示口径）。申购确认前提供 24 小时冷静期，冷静期内可无理由撤单。"
+  },
+  {
+    "chunk_id": "kb_prod_p002_0004",
+    "source": "prod_p002.md",
+    "page": 1,
+    "section": "",
+    "document_id": "prod_p002.md",
+    "content": "【费用】\n本产品从净值中计提销售服务费、管理费、托管费，客户无需另行支付申赎费用（演示口径）。"
+  },
+  {
+    "chunk_id": "kb_prod_p002_0005",
+    "source": "prod_p002.md",
+    "page": 1,
+    "section": "",
+    "document_id": "prod_p002.md",
+    "content": "【适合谁买】\n适合风险承受能力为 R2 及以上、有一到数月闲置资金、追求稳健收益的客户。若客户测评等级低于 R2，需先完成测评或选择更低风险产品。"
+  },
+  {
+    "chunk_id": "kb_prod_p003_0000",
+    "source": "prod_p003.md",
+    "page": 1,
+    "section": "",
+    "document_id": "prod_p003.md",
+    "content": "【产品要素】\n安心固收90天（P003）为本行自营固定收益类理财产品，风险等级 R2（中低风险）。起购金额 1 万元，期限 90 天，封闭期内不可赎回。产品要素与收益口径以《产品说明书》为准。"
+  },
+  {
+    "chunk_id": "kb_prod_p003_0001",
+    "source": "prod_p003.md",
+    "page": 1,
+    "section": "",
+    "document_id": "prod_p003.md",
+    "content": "【收益口径】\n本产品业绩比较基准 3.30%（演示数据）。业绩比较基准仅为参考指标，不代表实际收益，不构成收益承诺。与期限更短的稳盈添利30天相比，通常对应略高的基准，但同时占用资金更久，需向客户说明\"长封闭换略高基准\"的取舍。"
+  },
+  {
+    "chunk_id": "kb_prod_p003_0002",
+    "source": "prod_p003.md",
+    "page": 1,
+    "section": "",
+    "document_id": "prod_p003.md",
+    "content": "【保本说明】\n本产品为净值型非保本理财，非存款，不受存款保险保障，不承诺保本保收益。底层以债券等固定收益资产为主，净值波动较小。"
+  },
+  {
+    "chunk_id": "kb_prod_p003_0003",
+    "source": "prod_p003.md",
+    "page": 1,
+    "section": "",
+    "document_id": "prod_p003.md",
+    "content": "【申赎与冷静期】\n封闭 90 天，封闭期内不可赎回；到期自动赎回，资金 1 到 3 个工作日到账。申购确认前提供 24 小时冷静期，冷静期内可无理由撤单。"
+  },
+  {
+    "chunk_id": "kb_prod_p003_0004",
+    "source": "prod_p003.md",
+    "page": 1,
+    "section": "",
+    "document_id": "prod_p003.md",
+    "content": "【费用】\n从净值中计提销售服务费、管理费、托管费，客户无需另行支付申赎费用（演示口径）。"
+  },
+  {
+    "chunk_id": "kb_prod_p003_0005",
+    "source": "prod_p003.md",
+    "page": 1,
+    "section": "",
+    "document_id": "prod_p003.md",
+    "content": "【适合谁买】\n适合风险承受能力为 R2 及以上、有三个月左右闲置资金、追求稳健的客户。比较话术：若客户纠结 30 天还是 90 天，用\"资金使用时间\"和\"基准差异\"两个维度帮其判断，不做绝对推荐。"
+  },
+  {
+    "chunk_id": "kb_prod_p004_0000",
+    "source": "prod_p004.md",
+    "page": 1,
+    "section": "",
+    "document_id": "prod_p004.md",
+    "content": "【产品要素】\n平衡增利180天（P004）为本行自营固收增强类理财产品，风险等级 R3（中风险）。起购金额 5 万元，期限 180 天，封闭 180 天，支持预约部分提前赎回。产品要素与收益口径以《产品说明书》为准。"
+  },
+  {
+    "chunk_id": "kb_prod_p004_0001",
+    "source": "prod_p004.md",
+    "page": 1,
+    "section": "",
+    "document_id": "prod_p004.md",
+    "content": "【收益口径】\n本产品业绩比较基准 4.00%（演示数据）。业绩比较基准仅为参考，不代表实际收益，不构成收益承诺。本产品可少量配置权益类资产，净值波动较纯固收产品明显，需向客户如实说明。"
+  },
+  {
+    "chunk_id": "kb_prod_p004_0002",
+    "source": "prod_p004.md",
+    "page": 1,
+    "section": "",
+    "document_id": "prod_p004.md",
+    "content": "【保本说明】\n固收增强类理财为净值型非保本产品，非存款，不受存款保险保障，不承诺保本保收益，可能出现阶段性净值回撤。"
+  },
+  {
+    "chunk_id": "kb_prod_p004_0003",
+    "source": "prod_p004.md",
+    "page": 1,
+    "section": "",
+    "document_id": "prod_p004.md",
+    "content": "【适当性（重点口径）】\n本产品风险等级为 R3。客户风险测评等级为 R2 及以下时，不匹配，不能直接购买：应提示风险、引导客户重新测评或选择 R2 及以下产品；若客户仍坚持购买，必须转人工坐席做风险揭示与双录确认，机器不得放行。这是\"适当性匹配\"的核心示例。"
+  },
+  {
+    "chunk_id": "kb_prod_p004_0004",
+    "source": "prod_p004.md",
+    "page": 1,
+    "section": "",
+    "document_id": "prod_p004.md",
+    "content": "【申赎与费用】\n封闭 180 天，封闭期内原则上不可赎回；支持预约的部分提前赎回可能产生手续费或按活期计息，需按产品说明书执行。从净值中计提管理费、托管费等（演示口径）。"
+  },
+  {
+    "chunk_id": "kb_prod_p004_0005",
+    "source": "prod_p004.md",
+    "page": 1,
+    "section": "",
+    "document_id": "prod_p004.md",
+    "content": "【适合谁买】\n适合风险承受能力达到 R3、有半年左右闲置资金、能接受净值一定波动以换取更高参考收益的客户。向客户比较 R2 固收与 R3 固收增强时，重点讲清\"收益参考更高、波动也更大\"。"
+  },
+  {
+    "chunk_id": "kb_prod_p005_0000",
+    "source": "prod_p005.md",
+    "page": 1,
+    "section": "",
+    "document_id": "prod_p005.md",
+    "content": "【产品要素】\n私银聚享混合策略（P005）为本行面向私人银行客户发行的混合类（含权益）理财产品，风险等级 R4（中高风险）。起购金额 100 万元，期限 365 天，封闭期内不可赎回。产品要素与收益口径以《产品说明书》为准。"
+  },
+  {
+    "chunk_id": "kb_prod_p005_0001",
+    "source": "prod_p005.md",
+    "page": 1,
+    "section": "",
+    "document_id": "prod_p005.md",
+    "content": "【合格投资者与适当性（重点口径）】\n本产品仅面向符合合格投资者标准的私银客户开放，且客户风险测评等级须达到 R4 及以上。测评等级不足、或非合格投资者的客户不能购买。这是高风险大额产品的典型场景：不匹配必须转人工坐席，由坐席完成合格投资者核验、风险揭示与双录后，方可继续流程。"
+  },
+  {
+    "chunk_id": "kb_prod_p005_0002",
+    "source": "prod_p005.md",
+    "page": 1,
+    "section": "",
+    "document_id": "prod_p005.md",
+    "content": "【收益口径与风险】\n本产品业绩比较基准 5.50%（演示数据），权益类仓位较高，净值波动大，可能出现明显回撤甚至本金损失。业绩比较基准仅为参考，不构成收益承诺。向客户讲解必须同时讲清\"高参考收益对应高波动高风险\"。"
+  },
+  {
+    "chunk_id": "kb_prod_p005_0003",
+    "source": "prod_p005.md",
+    "page": 1,
+    "section": "",
+    "document_id": "prod_p005.md",
+    "content": "【保本说明】\n本产品为净值型非保本理财，非存款，不受存款保险保障，不承诺保本保收益，可能出现本金较大损失。"
+  },
+  {
+    "chunk_id": "kb_prod_p005_0004",
+    "source": "prod_p005.md",
+    "page": 1,
+    "section": "",
+    "document_id": "prod_p005.md",
+    "content": "【申赎与费用】\n封闭 365 天，封闭期内不可赎回；到期自动赎回。大额申购需二次确认并校验验证码，资金划转后进入产品。从净值中计提管理费、托管费等（演示口径）。"
+  },
+  {
+    "chunk_id": "kb_prod_p005_0005",
+    "source": "prod_p005.md",
+    "page": 1,
+    "section": "",
+    "document_id": "prod_p005.md",
+    "content": "【适合谁买】\n适合风险承受能力达 R4 的合格投资者、具备较大可投资资产、能承受净值大幅波动。向普通客户主动介绍此产品前，应先核实其测评等级与合格投资者身份。"
+  },
+  {
+    "chunk_id": "kb_prod_p006_0000",
+    "source": "prod_p006.md",
+    "page": 1,
+    "section": "",
+    "document_id": "prod_p006.md",
+    "content": "【产品要素】\n大额存单3年期（P006）为本行发行的存款类产品，风险等级 R1，执行利率 3.00%（演示数据，到期一次性还本付息）。起存金额 20 万元，期限 3 年，可转让或提前支取。产品要素以本行发行公告为准。"
+  },
+  {
+    "chunk_id": "kb_prod_p006_0001",
+    "source": "prod_p006.md",
+    "page": 1,
+    "section": "",
+    "document_id": "prod_p006.md",
+    "content": "【存款属性与保障（重点口径）】\n大额存单属于一般性存款，受存款保险保障：同一存款人在本行的存款（含本产品）本息合计 50 万元以内全额偿付。回答\"大额存单安全吗\"应讲清它与其他理财的本质区别：这是存款，本息有存款保险托底。"
+  },
+  {
+    "chunk_id": "kb_prod_p006_0002",
+    "source": "prod_p006.md",
+    "page": 1,
+    "section": "",
+    "document_id": "prod_p006.md",
+    "content": "【收益口径】\n执行利率为到期还本付息利率。提前支取一般按活期利率计息，利息损失明显。向客户提示：能持有到期才享受 3.00% 的执行利率，提前支取不划算，可考虑转让给他人以减少损失。"
+  },
+  {
+    "chunk_id": "kb_prod_p006_0003",
+    "source": "prod_p006.md",
+    "page": 1,
+    "section": "",
+    "document_id": "prod_p006.md",
+    "content": "【申赎与转让】\n大额存单支持转让与提前支取。转让可在本行平台挂牌由其他客户接手，通常比提前支取更划算。提前支取按活期计息。具体规则以发行公告为准。"
+  },
+  {
+    "chunk_id": "kb_prod_p006_0004",
+    "source": "prod_p006.md",
+    "page": 1,
+    "section": "",
+    "document_id": "prod_p006.md",
+    "content": "【适当性】\n存款类产品风险极低（R1），但起存 20 万元，需向客户说明门槛与流动性取舍：若 3 年内可能要用钱，建议不要把全部资金投入，或选择期限更短/可转让的品种。"
+  },
+  {
+    "chunk_id": "kb_prod_p006_0005",
+    "source": "prod_p006.md",
+    "page": 1,
+    "section": "",
+    "document_id": "prod_p006.md",
+    "content": "【对比口径】\n客户纠结\"大额存单还是理财\"时：存款保本保息、受存款保险保障但利率固定；理财参考收益可能更高但不保本、不受存款保险保障。帮客户用\"能否接受本金波动\"判断，不做绝对推荐。"
+  },
+  {
+    "chunk_id": "kb_prod_p007_0000",
+    "source": "prod_p007.md",
+    "page": 1,
+    "section": "",
+    "document_id": "prod_p007.md",
+    "content": "【产品要素】\n结构性存款·挂钩黄金3个月（P007）为本行发行的存款类产品，风险等级 R1（本金保本、收益浮动）。起存金额 1 万元，期限 3 个月，持有到期，不可提前支取。产品要素以发行公告为准。"
+  },
+  {
+    "chunk_id": "kb_prod_p007_0001",
+    "source": "prod_p007.md",
+    "page": 1,
+    "section": "",
+    "document_id": "prod_p007.md",
+    "content": "【保障与收益结构（重点口径）】\n结构性存款属于存款，本金受存款保险保障（同一存款人本息合计 50 万元限额内）。演示口径下收益挂钩黄金价格区间表现：观察期内金价落在设定区间内可获得较高年化（2.60% 至 3.40%），区间外为保底收益 0.50%（演示）。即\"本金保本、收益浮动\"。"
+  },
+  {
+    "chunk_id": "kb_prod_p007_0002",
+    "source": "prod_p007.md",
+    "page": 1,
+    "section": "",
+    "document_id": "prod_p007.md",
+    "content": "【收益口径】\n结构性存款的收益取决于挂钩标的（此处为黄金）是否落在观察区间，客户可能只拿到保底收益。回答\"是不是保证 3 个点\"时：本金保证，收益不保证，最坏情形为保底 0.50%（演示）。"
+  },
+  {
+    "chunk_id": "kb_prod_p007_0003",
+    "source": "prod_p007.md",
+    "page": 1,
+    "section": "",
+    "document_id": "prod_p007.md",
+    "content": "【申赎】\n持有到期自动还本付息，不可提前支取。因收益挂钩行情波动，不保证能达到较高档收益，需向客户如实说明。"
+  },
+  {
+    "chunk_id": "kb_prod_p007_0004",
+    "source": "prod_p007.md",
+    "page": 1,
+    "section": "",
+    "document_id": "prod_p007.md",
+    "content": "【与理财的区别】\n结构性存款名字带\"存款\"，且确属存款、受存款保险保障；普通理财不受存款保险保障。这常用于纠正\"名字像理财就不保本\"的误解，也要防止把结构性存款包装成保本高收益来误导。"
+  },
+  {
+    "chunk_id": "kb_prod_p007_0005",
+    "source": "prod_p007.md",
+    "page": 1,
+    "section": "",
+    "document_id": "prod_p007.md",
+    "content": "【适合谁买】\n适合风险承受能力为 R1 及以上、可接受收益浮动但要求本金安全、资金 3 个月内不用的客户。"
+  },
+  {
+    "chunk_id": "kb_prod_p008_0000",
+    "source": "prod_p008.md",
+    "page": 1,
+    "section": "",
+    "document_id": "prod_p008.md",
+    "content": "【产品要素】\n安鑫纯债基金（P008）为本行**代销**的公募基金，风险等级 R2。1 元起购，开放日可申赎。基金管理人为外部基金公司，本行仅作为代销渠道。产品要素以基金合同与招募说明书为准。"
+  },
+  {
+    "chunk_id": "kb_prod_p008_0001",
+    "source": "prod_p008.md",
+    "page": 1,
+    "section": "",
+    "document_id": "prod_p008.md",
+    "content": "【代销与保本口径（重点口径）】\n本产品为代销公募基金，非本行存款、非本行自营理财，不受存款保险保障，不承诺保本保收益。演示口径下近 1 年净值增长率 3.20%（历史业绩），历史业绩不代表未来表现。回答\"这是你们银行的产品吗\"必须明确\"代销，发行与管理方是基金公司，本行不承担投资损失\"。"
+  },
+  {
+    "chunk_id": "kb_prod_p008_0002",
+    "source": "prod_p008.md",
+    "page": 1,
+    "section": "",
+    "document_id": "prod_p008.md",
+    "content": "【收益口径】\n纯债基金主要投资债券，净值波动小于权益类，但仍有净值回撤可能（如利率上行期）。近 1 年收益率、成立以来年化等均为历史口径，不预示未来。"
+  },
+  {
+    "chunk_id": "kb_prod_p008_0003",
+    "source": "prod_p008.md",
+    "page": 1,
+    "section": "",
+    "document_id": "prod_p008.md",
+    "content": "【申赎与费用】\n开放日可申购赎回，赎回到账一般 T+1 到 T+2。按基金合同收取申购费、赎回费（持有时间越短赎回费越高）与管理费，费率以基金合同为准。购买同样需做风险测评与适当性匹配。"
+  },
+  {
+    "chunk_id": "kb_prod_p008_0004",
+    "source": "prod_p008.md",
+    "page": 1,
+    "section": "",
+    "document_id": "prod_p008.md",
+    "content": "【适合谁买】\n适合风险承受能力为 R2 及以上、希望比存款略高一点参考收益、能接受净值小幅波动的客户。与固收理财比较时：底层相似，但基金是代销、费率结构与理财不同，需看具体合同。"
+  },
+  {
+    "chunk_id": "kb_prod_p009_0000",
+    "source": "prod_p009.md",
+    "page": 1,
+    "section": "",
+    "document_id": "prod_p009.md",
+    "content": "【产品要素】\n远见成长混合基金（P009）为本行**代销**的偏股混合型公募基金，风险等级 R4。1 元起购，开放日可申赎。基金管理人为外部基金公司，本行仅作为代销渠道。产品要素以基金合同与招募说明书为准。"
+  },
+  {
+    "chunk_id": "kb_prod_p009_0001",
+    "source": "prod_p009.md",
+    "page": 1,
+    "section": "",
+    "document_id": "prod_p009.md",
+    "content": "【风险与适当性（重点口径）】\n本产品权益仓位较高、净值波动大、可能大幅回撤，无收益保障。风险测评等级不足 R4 的客户不能购买，不匹配时需转人工坐席做风险揭示与适当性确认。向客户介绍必须突出\"高波动高风险\"，不能只讲历史高收益。"
+  },
+  {
+    "chunk_id": "kb_prod_p009_0002",
+    "source": "prod_p009.md",
+    "page": 1,
+    "section": "",
+    "document_id": "prod_p009.md",
+    "content": "【代销口径】\n本产品为代销公募基金，非本行存款、非本行自营理财，不受存款保险保障，不承诺保本保收益，投资损失由客户自行承担。"
+  },
+  {
+    "chunk_id": "kb_prod_p009_0003",
+    "source": "prod_p009.md",
+    "page": 1,
+    "section": "",
+    "document_id": "prod_p009.md",
+    "content": "【收益口径】\n基金无业绩比较基准可作承诺，只有历史净值与业绩走势。历史表现不代表未来，权益市场波动可能造成本金较大损失。回答\"稳不稳\"时如实说明其为高波动品种。"
+  },
+  {
+    "chunk_id": "kb_prod_p009_0004",
+    "source": "prod_p009.md",
+    "page": 1,
+    "section": "",
+    "document_id": "prod_p009.md",
+    "content": "【申赎与费用】\n开放日可申赎，赎回到账一般 T+1 至 T+2。按基金合同收取申购费、赎回费（持有越短赎回费越高）与管理费。费率以基金合同为准。"
+  },
+  {
+    "chunk_id": "kb_prod_p009_0005",
+    "source": "prod_p009.md",
+    "page": 1,
+    "section": "",
+    "document_id": "prod_p009.md",
+    "content": "【适合谁买】\n适合风险承受能力达 R4、能承受净值大幅波动、有一定投资经验的客户。这是典型的\"高风险代销产品\"示例，用于演示适当性门控与转人工流程。"
+  },
+  {
+    "chunk_id": "kb_prod_p010_0000",
+    "source": "prod_p010.md",
+    "page": 1,
+    "section": "",
+    "document_id": "prod_p010.md",
+    "content": "【产品要素】\n盛世稳赢增额终身寿（P010）为本行**代销**的保险产品（增额终身寿险），由合作保险公司承保。演示口径：一次性交费 1 万元起，保险期间终身，保额按合同载明预定利率 2.5%（演示）逐年增长。产品要素以保险合同与投保提示书为准。"
+  },
+  {
+    "chunk_id": "kb_prod_p010_0001",
+    "source": "prod_p010.md",
+    "page": 1,
+    "section": "",
+    "document_id": "prod_p010.md",
+    "content": "【产品属性（重点口径）】\n本产品是保险，不是存款、也不是银行理财：不受存款保险保障，不承诺短期\"收益\"。其价值体现为合同载明的保额/现金价值按预定利率长期增长，属于长期锁定型资金安排。回答\"这是理财吗\"必须明确区分。"
+  },
+  {
+    "chunk_id": "kb_prod_p010_0002",
+    "source": "prod_p010.md",
+    "page": 1,
+    "section": "",
+    "document_id": "prod_p010.md",
+    "content": "【现金价值与退保】\n现金价值随持有年限增长，前期（前 3~5 年）现金价值通常低于已交保费。投保后有 15 天犹豫期（演示口径），犹豫期内退保全额退还已交保费；超过犹豫期退保按现金价值退，早期会有本金损失。因此适合长期持有、5 年内不用的资金。"
+  },
+  {
+    "chunk_id": "kb_prod_p010_0003",
+    "source": "prod_p010.md",
+    "page": 1,
+    "section": "",
+    "document_id": "prod_p010.md",
+    "content": "【收益口径】\n预定利率 2.5%（演示）写入合同，是长期确定利益，与业绩比较基准不同——它不是\"参考\"，而是合同约定。但提前退保会导致实际收益为负，需向客户讲清\"长期持有才体现价值\"。"
+  },
+  {
+    "chunk_id": "kb_prod_p010_0004",
+    "source": "prod_p010.md",
+    "page": 1,
+    "section": "",
+    "document_id": "prod_p010.md",
+    "content": "【代销与合规】\n本产品由保险公司承保，本行代销，不承担投资/赔付责任。销售需做适当性说明并告知犹豫期权利。投保年龄与健康要求以核保为准。"
+  },
+  {
+    "chunk_id": "kb_prod_p010_0005",
+    "source": "prod_p010.md",
+    "page": 1,
+    "section": "",
+    "document_id": "prod_p010.md",
+    "content": "【适合谁买】\n适合有长期（5 年以上）闲置资金、追求确定性的客户，常作为养老或资产传承配置。不适合短期要用钱、或期望每年分红式\"收益\"的客户。"
+  },
+  {
+    "chunk_id": "kb_prod_p011_0000",
+    "source": "prod_p011.md",
+    "page": 1,
+    "section": "",
+    "document_id": "prod_p011.md",
+    "content": "【产品要素】\n安享颐年养老年金（P011）为本行**代销**的养老年金保险，由合作保险公司承保。演示口径：分期或一次性交费（1 万元起），按合同约定在约定领取年龄开始按年/按月领取年金，可领取至终身。产品要素以保险合同为准。"
+  },
+  {
+    "chunk_id": "kb_prod_p011_0001",
+    "source": "prod_p011.md",
+    "page": 1,
+    "section": "",
+    "document_id": "prod_p011.md",
+    "content": "【产品属性（重点口径）】\n本产品是养老年金保险，不是存款、也不是银行理财，不受存款保险保障。它的作用是提供与生命等长的确定现金流，作为养老补充。收益以合同载明的年金领取金额为准（演示口径预定利率 2.5%），写入合同。"
+  },
+  {
+    "chunk_id": "kb_prod_p011_0002",
+    "source": "prod_p011.md",
+    "page": 1,
+    "section": "",
+    "document_id": "prod_p011.md",
+    "content": "【现金价值与退保】\n投保后有 15 天犹豫期（演示口径），犹豫期内退保全额退还已交保费。超过犹豫期退保按现金价值退，领取前提前退保一般会有本金损失。养老年金通常更不宜提前动用。"
+  },
+  {
+    "chunk_id": "kb_prod_p011_0003",
+    "source": "prod_p011.md",
+    "page": 1,
+    "section": "",
+    "document_id": "prod_p011.md",
+    "content": "【领取与灵活性】\n按合同约定年龄开始领取，可年领或月领，保证领取期条款以合同为准（演示口径保证领取 20 年）。领取方式中途调整需按保险合同办理。资金锁定性强，适合专款专用的养老规划。"
+  },
+  {
+    "chunk_id": "kb_prod_p011_0004",
+    "source": "prod_p011.md",
+    "page": 1,
+    "section": "",
+    "document_id": "prod_p011.md",
+    "content": "【代销与合规】\n本产品由保险公司承保，本行代销。销售需说明保险责任、犹豫期与退保损失。投保年龄与健康告知以核保为准。"
+  },
+  {
+    "chunk_id": "kb_prod_p011_0005",
+    "source": "prod_p011.md",
+    "page": 1,
+    "section": "",
+    "document_id": "prod_p011.md",
+    "content": "【适合谁买】\n适合已有养老规划需求、能长期锁定资金的中青年及临近退休客户。向客户讲清它和理财的区别：理财看参考收益与净值，养老年金看合同保证的领取现金流，两者用途不同，不做绝对推荐。"
+  },
+  {
+    "chunk_id": "kb_redeem_and_fee_0000",
+    "source": "redeem_and_fee.md",
+    "page": 1,
+    "section": "",
+    "document_id": "redeem_and_fee.md",
+    "content": "【赎回的一般规则】\n赎回规则按产品类型区分。现金管理类产品支持随时赎回，资金一般 T+1 到账；固定期限产品持有到期后自动赎回或按约定续投，到期后资金 1 到 3 个工作日到账；支持提前赎回的产品（如部分固收增强产品）需提前预约，并可能产生费用。具体以产品说明书为准。"
+  },
+  {
+    "chunk_id": "kb_redeem_and_fee_0001",
+    "source": "redeem_and_fee.md",
+    "page": 1,
+    "section": "",
+    "document_id": "redeem_and_fee.md",
+    "content": "【撤单】\n申购在确认前可撤单。演示场景下，非现金管理类产品在申购确认前提供 24 小时冷静期，冷静期内撤单无费用、资金原路退回；现金管理类产品确认速度快，一般不设冷静期。确认后的份额要退出只能走赎回，不能再撤单。"
+  },
+  {
+    "chunk_id": "kb_redeem_and_fee_0002",
+    "source": "redeem_and_fee.md",
+    "page": 1,
+    "section": "",
+    "document_id": "redeem_and_fee.md",
+    "content": "【提前赎回与惩罚性费用】\n对封闭期产品，封闭期内原则上不能赎回。部分产品支持封闭期后部分提前赎回，提前赎回可能按持有天数收取手续费或降低计息档次。回答客户\"没到期能不能取出来\"时，要说明封闭期限制、提前支取是否允许、是否有利息损失。"
+  },
+  {
+    "chunk_id": "kb_redeem_and_fee_0003",
+    "source": "redeem_and_fee.md",
+    "page": 1,
+    "section": "",
+    "document_id": "redeem_and_fee.md",
+    "content": "【大额存单的提前支取】\n大额存单虽可转让或提前支取，但提前支取一般按活期利率计息，利息损失明显。回答时要提示客户比较\"持有到期利息\"与\"提前支取利息\"再决定。"
+  },
+  {
+    "chunk_id": "kb_redeem_and_fee_0004",
+    "source": "redeem_and_fee.md",
+    "page": 1,
+    "section": "",
+    "document_id": "redeem_and_fee.md",
+    "content": "【主要费用项】\n理财产品常见的费用包括：申购费（自营理财一般无）、赎回费（提前赎回或有）、销售服务费、托管费、管理费（后两者多从产品净值中每日计提，客户不需另行支付）。代销的公募基金会按基金合同收取申购/赎回费和管理费。回答费率问题要区分\"客户另行支付\"与\"净值内扣除\"两类。"
+  },
+  {
+    "chunk_id": "kb_redeem_and_fee_0005",
+    "source": "redeem_and_fee.md",
+    "page": 1,
+    "section": "",
+    "document_id": "redeem_and_fee.md",
+    "content": "【演示口径】\n本知识库的费率与到账时间均为虚构演示数据，仅用于测试话术，不构成任何要约。"
+  },
+  {
+    "chunk_id": "kb_risk_level_0000",
+    "source": "risk_level.md",
+    "page": 1,
+    "section": "",
+    "document_id": "risk_level.md",
+    "content": "【产品风险等级 R1 到 R5】\n理财产品按风险由低到高分为 R1（低风险）到 R5（高风险）五个等级。R1 主要投向货币市场工具与高等级债券，本金损失概率极低；R2 为中低风险，主要投资债券等固定收益类资产，净值波动较小；R3 为中风险，可少量配置权益类或衍生品资产，净值会有波动；R4 为中高风险，权益类仓位较高，净值波动明显；R5 为高风险，可大比例投资权益、衍生品等高波动资产，可能出现本金较大损失。客户购买前必须清楚自己买的产品属于哪一级。"
+  },
+  {
+    "chunk_id": "kb_risk_level_0001",
+    "source": "risk_level.md",
+    "page": 1,
+    "section": "",
+    "document_id": "risk_level.md",
+    "content": "【投资者风险测评等级】\n首次购买理财产品前，客户需完成风险承受能力测评，结果分为保守型、稳健型、平衡型、成长型、进取型五档，分别对应 R1 到 R5 的可承受等级。测评结果有效期为一年，过期后需重新测评才能继续购买。客户在购买产品时的风险测评等级低于产品风险等级时，系统会进行拦截。"
+  },
+  {
+    "chunk_id": "kb_risk_level_0002",
+    "source": "risk_level.md",
+    "page": 1,
+    "section": "",
+    "document_id": "risk_level.md",
+    "content": "【适当性匹配规则（红线）】\n适当性匹配是监管红线：客户的风险承受能力等级必须不低于所购产品的风险等级。例如测评结果为稳健型（对应 R2）的客户，不能直接购买 R3 及以上产品。遇到不匹配时，客服必须提示风险，可建议客户先重新测评或选择低一档产品；若客户仍坚持购买，须转人工坐席做进一步风险揭示与双录确认，机器不得代为放行。"
+  },
+  {
+    "chunk_id": "kb_risk_level_0003",
+    "source": "risk_level.md",
+    "page": 1,
+    "section": "",
+    "document_id": "risk_level.md",
+    "content": "【风险揭示义务】\n向客户推荐或解释产品时，必须说明产品类型、风险等级、是否保本、主要投向、业绩比较基准仅为参考、可能出现的最大不利情形等，不得只讲收益不讲风险。任何\"稳赚\"\"保本高收益\"\"无风险\"的表述都违规。"
+  },
+  {
+    "chunk_id": "kb_risk_level_0004",
+    "source": "risk_level.md",
+    "page": 1,
+    "section": "",
+    "document_id": "risk_level.md",
+    "content": "【测评信息仅作演示】\n本知识库中的风险测评等级为演示数据，仅用于展示适当性匹配与转人工流程，不代表任何真实测评结果。"
+  },
+  {
+    "chunk_id": "kb_terms_faq_0000",
+    "source": "terms_faq.md",
+    "page": 1,
+    "section": "",
+    "document_id": "terms_faq.md",
+    "content": "【标准风险提示语】\n涉及理财、基金等非存款产品的回答，必须能联想到并给出标准提示语：\"理财非存款、产品有风险、投资须谨慎\"。涉及收益表述时追加\"业绩比较基准/历史收益不代表实际收益，不构成收益承诺\"。"
+  },
+  {
+    "chunk_id": "kb_terms_faq_0001",
+    "source": "terms_faq.md",
+    "page": 1,
+    "section": "",
+    "document_id": "terms_faq.md",
+    "content": "【业绩比较基准】\n产品管理人参考同类资产历史表现设定的收益参照指标，用于衡量产品运作是否达到预期，不是承诺收益，也不是产品实际收益率。客户问\"基准 4% 是不是就有 4%\"时，答案是否定的，只是参考。"
+  },
+  {
+    "chunk_id": "kb_terms_faq_0002",
+    "source": "terms_faq.md",
+    "page": 1,
+    "section": "",
+    "document_id": "terms_faq.md",
+    "content": "【净值与净值型产品】\n净值型产品按份额净值计价，收益 = 持有份额 × 净值变化。净值涨跌反映底层资产表现，透明但波动真实可见。"
+  },
+  {
+    "chunk_id": "kb_terms_faq_0003",
+    "source": "terms_faq.md",
+    "page": 1,
+    "section": "",
+    "document_id": "terms_faq.md",
+    "content": "【七日年化与万份收益】\n七日年化是把最近七天平均收益年化得到的参考值，每日变动；万份收益是每持有 1 万份当日实际到手的收益。多用于现金管理类产品。"
+  },
+  {
+    "chunk_id": "kb_terms_faq_0004",
+    "source": "terms_faq.md",
+    "page": 1,
+    "section": "",
+    "document_id": "terms_faq.md",
+    "content": "【冷静期】\n非现金管理类产品申购确认前的一段可无理由撤单的期限（演示场景为 24 小时），确认后不再适用。"
+  },
+  {
+    "chunk_id": "kb_terms_faq_0005",
+    "source": "terms_faq.md",
+    "page": 1,
+    "section": "",
+    "document_id": "terms_faq.md",
+    "content": "【双录（录音录像）】\n对首次线上购买理财、高风险或大额购买等情形，监管要求对销售过程录音录像，用于销售适当性举证。双录需人工坐席参与，机器无法替代。"
+  },
+  {
+    "chunk_id": "kb_terms_faq_0006",
+    "source": "terms_faq.md",
+    "page": 1,
+    "section": "",
+    "document_id": "terms_faq.md",
+    "content": "【存款保险】\n国家设立的存款保障制度，保存款类产品本息，单家银行同一存款人限额内 50 万元全额偿付；不保理财、基金、保险等非存款产品。"
+  },
+  {
+    "chunk_id": "kb_terms_faq_0007",
+    "source": "terms_faq.md",
+    "page": 1,
+    "section": "",
+    "document_id": "terms_faq.md",
+    "content": "【二次确认与验证码】\n资金类操作执行前需用户明确确认并校验验证码/交易密码，机器不得绕过。这是\"人工环节\"在线上流程里的体现，即使没有真人在线，也必须有明确的用户确认动作。"
+  }
+]
