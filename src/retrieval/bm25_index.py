@@ -32,6 +32,8 @@ class BM25Index:
     def __init__(self) -> None:
         self.doc_ids: List[str] = []
         self.doc_texts: List[str] = []
+        self.doc_sources: List[str] = []
+        self.doc_sections: List[str] = []
         self.avgdl = 0.0
         self.k1 = 1.5
         self.b = 0.75
@@ -41,10 +43,23 @@ class BM25Index:
         self.nd = 0  # 文档总数
 
     def _tokenize(self, text: str) -> List[str]:
-        """中文 + 英文 tokenization (简单按非字母数字字符分割)"""
+        """中英混合分词: 中文按字符 bigram, 英文/数字按整词
+
+        原实现用 re.findall(r'[一-鿿\\w]+'), 它把一整串连续中文当成**一个** token:
+          "存款保险"        → ['存款保险']       (碰巧能命中)
+          "存款保险怎么赔"   → ['存款保险怎么赔']  (永远命中不了)
+        而自然中文问句没有空格, 于是 BM25 对绝大多数真实问句直接返回 0 条 ——
+        所谓"向量+BM25 混合检索"实际只有向量一路在工作。
+
+        中文按 bigram 切是中文检索的标准免依赖做法 (jieba 未安装, 也不值得为此加依赖)。
+        """
         import re
-        # 保留中文、英文、数字
-        tokens = re.findall(r'[一-鿿\w]+', text.lower())
+        tokens: List[str] = []
+        for run in re.findall(r'[一-鿿]+|[a-zA-Z0-9_]+', text.lower()):
+            if run[0].isascii() or len(run) == 1:
+                tokens.append(run)
+            else:
+                tokens.extend(run[i:i + 2] for i in range(len(run) - 1))
         return tokens
 
     def build(self, documents: List[dict]) -> None:
@@ -57,6 +72,8 @@ class BM25Index:
         # 优先取 chunk_id (jsonl 唯一标识), 兼容旧版 "id" 字段
         self.doc_ids = [d.get("chunk_id") or d.get("id") or str(i) for i, d in enumerate(documents)]
         self.doc_texts = [d.get("content", d.get("text", "")) for d in documents]
+        self.doc_sources = [d.get("source", "") for d in documents]
+        self.doc_sections = [d.get("section", "") for d in documents]
         self.nd = len(self.doc_texts)
 
         # 分词并统计词频
@@ -109,14 +126,17 @@ class BM25Index:
 
         results = []
         for doc_idx, score in scores:
-            # 从原始文档结构中提取信息
-            source = self.doc_ids[doc_idx]
-            # 尝试从 doc_id 反推 source 文件名
-            chunk_id = self.doc_ids[doc_idx]
+            # source 必须是真实文件名, 不能拿 chunk_id 顶替:
+            # 下游 (RRF 融合 / 证据覆盖评测 / 前端来源标注) 都按 source 文件名对齐,
+            # 之前这里返回 chunk_id, 导致 BM25 的结果在融合与评测里全部对不上。
+            source = (self.doc_sources[doc_idx] if doc_idx < len(self.doc_sources)
+                      else self.doc_ids[doc_idx])
             results.append({
-                "chunk_id": chunk_id,
+                "chunk_id": self.doc_ids[doc_idx],
                 "content": self.doc_texts[doc_idx],
                 "source": source,
+                "section": (self.doc_sections[doc_idx]
+                            if doc_idx < len(self.doc_sections) else ""),
                 "score": float(score),
             })
 
@@ -150,9 +170,11 @@ class BM25Index:
         doc_freqs_list = [dict(freq) for freq in self.doc_freqs] if self.doc_freqs else []
 
         data = {
-            "version": "2.0",
+            "version": "3.1",
             "doc_ids": self.doc_ids,
             "doc_texts": self.doc_texts,
+            "doc_sources": self.doc_sources,
+            "doc_sections": self.doc_sections,
             "avgdl": self.avgdl,
             "avg_doc_length": self.avgdl,
             "k1": self.k1,
@@ -202,6 +224,8 @@ class BM25Index:
                 logger.warning("BM25 索引加载失败: %s", e)
                 self.doc_ids = []
                 self.doc_texts = []
+                self.doc_sources = []
+                self.doc_sections = []
                 self.doc_freqs = []
                 self.idf = {}
                 self.nd = 0
@@ -212,6 +236,8 @@ class BM25Index:
 
         self.doc_ids = data.get("doc_ids", [])
         self.doc_texts = data.get("doc_texts", [])
+        self.doc_sources = data.get("doc_sources", [])     # v3.0 起才有
+        self.doc_sections = data.get("doc_sections", [])   # v3.1 起才有
         self.avgdl = data.get("avgdl", data.get("avg_doc_length", 0.0))
         self.k1 = data.get("k1", 1.5)
         self.b = data.get("b", 0.75)

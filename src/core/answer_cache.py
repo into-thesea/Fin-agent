@@ -39,12 +39,19 @@ logger = logging.getLogger(__name__)
 CACHE_TTL = 3600            # 1 小时
 MAX_ENTRIES = 500           # LRU 最大条目数
 L2_THRESHOLD = 0.50         # L2 相似度阈值 (配合年份守卫; 0.28 曾导致同公司不同问题串答)
-L3_THRESHOLD = 0.92         # L3 (BGE) 相似度阈值
+L3_THRESHOLD = 0.90         # L3 (BGE) 阈值。实测: 真同义 0.947~0.951, 误命中最高 0.771,
+                            # 0.90 落在安全区中间 (原先 0.92 会漏掉"存款保险赔多少"vs"赔付额度是多少"=0.911)
 AUTO_CLEAN_INTERVAL = 300   # 后台清理间隔 (秒)
 
 # ── 项目根 ──────────────────────────────────────
-PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-CACHE_DB_DIR = os.path.join(PROJECT_ROOT, "data")
+# 项目根路径统一走 src.infra.paths。
+# 原先这里自己算, 但少了一层 —— 根被算成 src/, 缓存库落到 src/data/semantic_cache.db,
+# 而 scripts/clear_cache.py 清的是 data/semantic_cache.db, 于是"清缓存"从未真正生效。
+try:
+    from src.infra.paths import DATA_DIR as CACHE_DB_DIR
+except Exception:  # 兜底: 从 src/core/ 往上三级
+    CACHE_DB_DIR = os.path.join(
+        os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "data")
 CACHE_DB_PATH = os.path.join(CACHE_DB_DIR, "semantic_cache.db")
 
 # 确保 data 目录存在
@@ -322,6 +329,57 @@ def _has_multiple_companies(q: str) -> bool:
     return False
 
 
+# ── 理财域守卫 ──────────────────────────────────
+# 原有守卫 (公司名/年份) 是为年报问答建的, 在理财产品域全部空转:
+# _extract_company 对"稳盈添利30天""天天利货币基金"一律返回 None。
+# 实测裸相似度下"理财产品怎么赎回" vs "怎么申购" = 0.518 > 阈值 0.50 → 会串答。
+# 下面补两道理财域守卫。
+
+_PRODUCT_CACHE = {"mtime": 0.0, "names": []}
+
+
+def _known_products() -> list:
+    """从 catalog.jsonl 读产品名 (按 mtime 缓存)"""
+    path = os.path.join(CACHE_DB_DIR, "finance_kb", "catalog.jsonl")
+    try:
+        mt = os.path.getmtime(path)
+    except OSError:
+        return []
+    if mt != _PRODUCT_CACHE["mtime"]:
+        names = []
+        try:
+            with open(path, "r", encoding="utf-8") as f:
+                for line in f:
+                    if line.strip():
+                        n = json.loads(line).get("name", "")
+                        if n:
+                            names.append(n)
+        except Exception as e:
+            logger.debug("产品名读取失败: %s", e)
+        _PRODUCT_CACHE["names"] = sorted(names, key=len, reverse=True)  # 长名优先, 防子串误配
+        _PRODUCT_CACHE["mtime"] = mt
+    return _PRODUCT_CACHE["names"]
+
+
+def _extract_product(q: str) -> Optional[str]:
+    for name in _known_products():
+        if name in q:
+            return name
+    return None
+
+
+# 动作词分组: 跨组即视为不同意图 (申购 ≠ 赎回, 这是最容易串答的一对)
+_ACTION_GROUPS = {
+    "买入": ("申购", "购买", "买入", "认购", "追加", "下单", "买"),
+    "卖出": ("赎回", "卖出", "取出", "变现", "撤单", "退出"),
+    "查询": ("查询", "查看", "查一下", "看看", "查"),
+}
+
+
+def _action_groups(q: str) -> set:
+    return {g for g, kws in _ACTION_GROUPS.items() if any(k in q for k in kws)}
+
+
 def _l2_similarity(q1: str, q2: str) -> float:
     """
     L2 混合相似度: 关键词 Jaccard (0.6) + 字 n-gram (0.4)
@@ -360,6 +418,20 @@ def _l2_similarity(q1: str, q2: str) -> float:
         _b2 = set(_c2[i:i+2] for i in range(len(_c2)-1))
         if not (_b1 & _b2):
             return 0.0
+
+    # ── 理财域守卫 (上面几道是为年报域建的, 此处基本空转) ──
+
+    # 产品名守卫: 两边都点了具体产品且不是同一个 → 不同问题
+    _p1 = _extract_product(q1)
+    _p2 = _extract_product(q2)
+    if _p1 and _p2 and _p1 != _p2:
+        return 0.0
+
+    # 动作守卫: 一边申购一边赎回 → 不同意图 (实测"怎么赎回"vs"怎么申购"=0.518, 会被串答)
+    _g1 = _action_groups(q1)
+    _g2 = _action_groups(q2)
+    if _g1 and _g2 and not (_g1 & _g2):
+        return 0.0
 
     kw_sim = _keyword_jaccard(q1, q2)
     ng_sim = _char_ngram_jaccard(q1, q2, n=3)
@@ -494,6 +566,51 @@ def _exact_key(query: str) -> str:
 
 
 # ──────────────────────────────────────────────
+# 知识库版本守卫
+# ──────────────────────────────────────────────
+# 版本号由 scripts/sync_kb.py 写进 data/.kb_manifest.json。
+# 没有这道守卫时, 知识库更新后旧答案会在 TTL(1h) 内继续被返回 —— 内容已经改了,
+# 但缓存没有依据知道该作废。
+
+_MANIFEST_PATH = os.path.join(CACHE_DB_DIR, ".kb_manifest.json")
+_kb_guard = {"mtime": 0.0, "file_version": None, "seen": None}
+
+
+def _current_kb_version() -> str:
+    """读知识库版本 (按 mtime 缓存, 每次 lookup 只多一次 stat)"""
+    try:
+        mt = os.path.getmtime(_MANIFEST_PATH)
+    except OSError:
+        return "unknown"
+    if mt != _kb_guard["mtime"]:
+        try:
+            with open(_MANIFEST_PATH, "r", encoding="utf-8") as f:
+                _kb_guard["file_version"] = json.load(f).get("version", "unknown")
+        except Exception as e:
+            logger.debug("知识库版本读取失败: %s", e)
+            _kb_guard["file_version"] = "unknown"
+        _kb_guard["mtime"] = mt
+    return _kb_guard["file_version"] or "unknown"
+
+
+def _invalidate_on_kb_change() -> None:
+    """知识库版本变了 → 作废全部回答缓存
+
+    ponytail: 粗粒度全清。知识库一变, 所有缓存答案都不可信, 全清最简单也最安全;
+    若将来缓存热到全清代价明显, 再按受影响的 chunk 做精确失效。
+    """
+    version = _current_kb_version()
+    if _kb_guard["seen"] is None:      # 进程内首次: 只记基线, 不清
+        _kb_guard["seen"] = version
+        return
+    if version != _kb_guard["seen"]:
+        logger.warning("知识库版本变化 %s → %s, 作废全部回答缓存",
+                       _kb_guard["seen"], version)
+        _kb_guard["seen"] = version
+        invalidate(None)
+
+
+# ──────────────────────────────────────────────
 # 主接口
 # ──────────────────────────────────────────────
 
@@ -506,6 +623,9 @@ def get_cached(query: str) -> Optional[dict]:
     """
     if not query or not query.strip():
         return None
+
+    # 知识库版本守卫: 知识库更新过就作废旧答案 (在取锁之前调用, invalidate 内部要加锁)
+    _invalidate_on_kb_change()
 
     # 隐私守卫: 用户私有/资金动账类不读共享缓存 (防跨用户串答)
     from src.cache.privacy import is_private_or_money_query
@@ -605,6 +725,9 @@ def set_cache(query: str, data: dict, embedding: Optional[list] = None):
     """
     if not query or not data:
         return
+
+    # 知识库版本守卫: 别把旧版本下算出来的答案写进缓存
+    _invalidate_on_kb_change()
 
     # 隐私守卫: 用户私有/资金动账类不写共享缓存
     from src.cache.privacy import is_private_or_money_query

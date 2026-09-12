@@ -108,6 +108,9 @@ class MilvusManager:
             FieldSchema(name="document_id", dtype=DataType.VARCHAR, max_length=256),
             FieldSchema(name="page", dtype=DataType.INT64),
             FieldSchema(name="chunk_id", dtype=DataType.VARCHAR, max_length=256),
+            # 小节标题: FAISS 侧 metadata.json 一直有, Milvus 侧原先漏了,
+            # 导致走 Milvus 检索时 section 恒为空、前端来源标注缺一截。
+            FieldSchema(name="section", dtype=DataType.VARCHAR, max_length=512),
         ]
         schema = CollectionSchema(fields, description="智能客服知识库 chunk (P0)")
         self._collection = Collection(self._collection_name, schema)
@@ -160,7 +163,7 @@ class MilvusManager:
                 anns_field="embedding",
                 param={"metric_type": "COSINE", "params": {"nprobe": 10}},
                 limit=top_k,
-                output_fields=["content", "source", "document_id", "page", "chunk_id"],
+                output_fields=["content", "source", "document_id", "page", "chunk_id", "section"],
             )
             results = []
             for hit in res[0]:
@@ -171,6 +174,7 @@ class MilvusManager:
                     "document_id": entity.get("document_id") or "",
                     "page": entity.get("page") or 1,
                     "chunk_id": entity.get("chunk_id") or "",
+                    "section": entity.get("section") or "",
                     "id": int(hit.id),
                     "score": float(hit.score),
                 })
@@ -215,7 +219,7 @@ class MilvusManager:
     def add_embeddings(self, embeddings: np.ndarray, metadata_list: list) -> None:
         """
         增量写入。metadata 字段与 collection schema 对齐
-        （content/source/document_id/page/chunk_id/deleted）。
+        （content/source/document_id/page/chunk_id/section）。
         """
         if len(embeddings) != len(metadata_list):
             raise ValueError(
@@ -234,6 +238,7 @@ class MilvusManager:
                     "document_id": meta.get("document_id", ""),
                     "page": int(meta.get("page", 1)),
                     "chunk_id": meta.get("chunk_id", ""),
+                    "section": meta.get("section", ""),
                 }
                 rows.append(row)
             col = Collection(self._collection_name)

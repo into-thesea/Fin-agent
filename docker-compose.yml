@@ -88,7 +88,7 @@ services:
       interval: 30s
       timeout: 20s
       retries: 3
-    restart: unless-stopped
+    restart: always
 
   minio:
     container_name: milvus-minio
@@ -107,7 +107,7 @@ services:
       interval: 30s
       timeout: 20s
       retries: 3
-    restart: unless-stopped
+    restart: always
 
   milvus:
     container_name: milvus-standalone
@@ -128,9 +128,11 @@ services:
       timeout: 20s
       retries: 3
     depends_on:
-      - etcd
-      - minio
-    restart: unless-stopped
+      etcd:
+        condition: service_healthy     # 只等"启动"不够; milvus 起来时 etcd 可能还没能服务, 会直接挂
+      minio:
+        condition: service_healthy
+    restart: always
 
   # ── Neo4j 知识图谱 (阶段三 GraphRAG: 多跳路径推理) ──
   # 启动: docker compose up -d neo4j  (或完整 up -d)
@@ -152,7 +154,7 @@ services:
       interval: 20s
       timeout: 10s
       retries: 6
-    restart: unless-stopped
+    restart: always
 
 volumes:
   redis-data:

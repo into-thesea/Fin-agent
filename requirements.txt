@@ -15,7 +15,7 @@ celery==5.5.2
 fastapi==0.117.0
 python-multipart==0.0.20
 uvicorn[standard]==0.34.0
-websockets==14.1
+websockets==16.1.1     # 下限受 google-genai 约束 (14.1 时 pip 会与之冲突)
 alembic==1.18.5
 # 智能客服: 客服文档 (Word/Excel) 解析入库
 python-docx==1.1.2
@@ -28,3 +28,6 @@ setuptools<81          # pkg_resources 在 setuptools 84 已移除, pymilvus 2.x
 marshmallow<4          # pymilvus 需 marshmallow.__version_info__ (4.x 已移除)
 # 知识图谱 (P3): Neo4j 运行时后端
 neo4j==6.3.0           # src/knowledge_graph/core.py 的 Neo4jGraph / scripts/load_kg_to_neo4j.py 惰性导入
+# LLM 可选分支: LLM_PROVIDER=gemini 时需要 (src/llm/llm_client.py 惰性 import google.genai)
+# 默认走 deepseek/百炼国内直连, 不装也能跑; 但 tests/test_llm_client_tools.py 会失败
+google-genai==2.23.0

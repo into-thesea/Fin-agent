@@ -1,8 +1,9 @@
 {
   "golden_n": 40,
+  "version": "50a7dacc06e7",
   "offline": {
     "n": 40,
-    "evidence_coverage": 0.949,
+    "evidence_coverage": 1.0,
     "path_structure_consistency": 1.0,
     "graph_trigger_ratio": 0.5,
     "rows": [
@@ -366,7 +367,7 @@
         "id": "g033",
         "question": "信用卡逾期会影响房贷申请吗？",
         "intent": "deposit_insurance",
-        "evidence_covered": false,
+        "evidence_covered": true,
         "path_consistent": true,
         "graph_hit": true,
         "entities": [
@@ -416,7 +417,7 @@
         "id": "g038",
         "question": "理财到期后钱多久到账？",
         "intent": "hold_redeem",
-        "evidence_covered": false,
+        "evidence_covered": true,
         "path_consistent": null,
         "graph_hit": false,
         "entities": [
