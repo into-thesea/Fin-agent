@@ -15,7 +15,17 @@ const { Text } = Typography;
 
 const menuItems = [
   { key: '/chat', icon: <RobotOutlined />, label: '理财咨询' },
-  { key: '/knowledge', icon: <FolderOpenOutlined />, label: '知识库管理' },
+  {
+    key: '/knowledge',
+    icon: <FolderOpenOutlined />,
+    label: '知识库管理',
+    children: [
+      { key: '/knowledge/docs', label: '文档管理' },
+      { key: '/knowledge/chunks', label: '片段管理' },
+      { key: '/knowledge/strategy', label: '策略配置' },
+      { key: '/knowledge/retrieval-test', label: '检索调试台' },
+    ],
+  },
   { key: '/dashboard', icon: <DashboardOutlined />, label: '数据看板' },
   { key: '/llmops', icon: <BugOutlined />, label: '服务监控' },
   { key: '/eval', icon: <ExperimentOutlined />, label: '评测看板' },
@@ -47,15 +57,28 @@ export const MainLayout: React.FC = () => {
     },
   };
 
-  // 双端菜单: admin=全部 / analyst=客服+监控+坐席 / user=仅客服
-  const visibleMenu = user.role === 'admin' ? menuItems
-    : user.role === 'analyst'
-      ? menuItems.filter((m) => ['/chat', '/llmops', '/handoff', '/eval'].includes(m.key))
-      : [menuItems[0]];
+  // 双端菜单: admin=全部 / analyst=客服+监控+坐席+评测 / user=仅客服
+  const roleAllowed = (key: string) =>
+    user.role === 'admin' ||
+    (user.role === 'analyst'
+      ? ['/chat', '/llmops', '/handoff', '/eval'].includes(key)
+      : key === '/chat');
 
-  // 路由守卫: 当前路径不在本角色允许范围内 → 强制回 /chat
-  const allowedPaths = new Set(visibleMenu.map((m) => m.key));
-  if (!allowedPaths.has(location.pathname)) {
+  // 带子项的分组: 子项全被过滤掉时父项也必须隐藏 —— 否则留一个点了没反应的死菜单
+  const visibleMenu = menuItems
+    .map((m: any) => (m.children
+      ? { ...m, children: m.children.filter((c: any) => roleAllowed(c.key)) }
+      : m))
+    .filter((m: any) => (m.children ? m.children.length > 0 : roleAllowed(m.key)));
+
+  // 守卫用前缀匹配: /knowledge/chunks 属于 /knowledge 组。
+  // 精确匹配会把所有二级路由判成越权、直接踢回 /chat。
+  const allowedPrefixes = visibleMenu.flatMap((m: any) =>
+    m.children ? m.children.map((c: any) => c.key) : [m.key]);
+  const allowed =
+    allowedPrefixes.some((p) => location.pathname === p || location.pathname.startsWith(p + '/')) ||
+    allowedPrefixes.includes('/knowledge/docs');   // /knowledge 重定向后的落点
+  if (!allowed) {
     return <Navigate to="/chat" replace />;
   }
 
@@ -74,6 +97,7 @@ export const MainLayout: React.FC = () => {
           mode="inline"
           theme="dark"
           selectedKeys={[location.pathname]}
+          defaultOpenKeys={location.pathname.startsWith('/knowledge') ? ['/knowledge'] : []}
           items={visibleMenu}
           onClick={({ key }) => navigate(key)}
           style={{ borderRight: 0, marginTop: 8 }}
