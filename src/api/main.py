@@ -182,6 +182,7 @@ from src.api.routes.tasks import router as tasks_router
 from src.api.routes.monitor import router as monitor_router
 from src.api.routes.monitor import health_router
 from src.api.routes.handoff import router as handoff_router
+from src.api.routes.kb_console import router as kb_console_router
 
 app.include_router(chat_router)
 app.include_router(auth_router)
@@ -190,6 +191,7 @@ app.include_router(tasks_router)
 app.include_router(monitor_router)
 app.include_router(health_router)  # /health, /health/ready
 app.include_router(handoff_router)  # 转人工工单闭环
+app.include_router(kb_console_router)  # 知识库管理台 (策略配置)
 
 # 注: ETL 进度曾有一条 WebSocket 通道(/ws/task/{id})，2026-09-14 移除 ——
 # ETL 只有 4~5 个阶段点, 3 秒轮询完全够用; 而 WS 每条上传任务要建一条连接

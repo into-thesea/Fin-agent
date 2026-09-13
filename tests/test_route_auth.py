@@ -41,6 +41,7 @@ PROTECTED_GROUPS = {
     "/api/v1/knowledge": "知识库读写",
     "/api/v1/handoff": "转人工工单",
     "/api/v1/eval": "评测数据",
+    "/api/v1/kb": "知识库管理台 (策略配置读写)",
 }
 
 # 允许匿名访问的路由 (必须保持公开)
@@ -57,6 +58,7 @@ PROBE_PATHS = [
     "/api/v1/knowledge/documents",
     "/api/v1/knowledge/stats",
     "/api/v1/handoff/queue",
+    "/api/v1/kb/strategy",
 ]
 
 
