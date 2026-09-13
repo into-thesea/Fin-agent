@@ -6,6 +6,7 @@
 """
 from __future__ import annotations
 
+import asyncio
 import logging
 
 from fastapi import APIRouter, Depends, HTTPException, Query
@@ -141,3 +142,41 @@ async def rebuild_kb(user=Depends(require_roles("admin"))):
         logger.error("task_logs 写入失败 (%s): %s", task.id, e)
     logger.info("知识库重建任务已提交: task_id=%s", task.id)
     return {"task_id": task.id, "status": "accepted"}
+
+
+class RetrievalTestIn(BaseModel):
+    query: str
+    top_k: int = 5
+    only_single_path: bool = False
+
+
+@router.post("/retrieval-test")
+async def retrieval_test(body: RetrievalTestIn):
+    """跑一次检索并返回各通路明细 —— 用于排查"为什么这条没搜到" """
+    query = (body.query or "").strip()
+    if not query:
+        raise HTTPException(status_code=400, detail="查询内容不能为空")
+    # 越界值会原样透给 Milvus/BM25, 在入口拦下比让它变成 500 好定位
+    if not (1 <= body.top_k <= 20):
+        raise HTTPException(status_code=400, detail="返回条数必须在 1~20 之间")
+
+    from src.retrieval.retriever import HybridRetriever
+    try:
+        # HybridRetriever 是全局单例(__new__ 接管), 构造无重复开销;
+        # 但它是同步的且要打 Milvus/BM25, 必须挪出事件循环, 否则一次调试就卡住全服务
+        out = await asyncio.to_thread(
+            HybridRetriever().retrieve_debug, query, body.top_k
+        )
+    except Exception as e:
+        logger.error("检索调试失败: %s", e, exc_info=True)
+        raise HTTPException(status_code=504, detail=f"检索执行失败：{e}")
+
+    single = [i for i in out["fused"] if len(i.get("found_by") or []) == 1]
+    if body.only_single_path:
+        out["fused"] = single
+    out["single_path_count"] = len(single)
+    # 稀疏路为空时 retrieve_debug 会静默退化成 dense[:top_k], found_by 全读成 ["dense"],
+    # 会被误读成"关键词检索没命中"。这是唯一能看出二者的地方, 故从响应派生后透出
+    out["sparse_empty"] = len(out.get("sparse") or []) == 0
+    # graph.error (若图谱检索失败) 原样透传, 不吞 —— 调试台要显示失败原因
+    return out

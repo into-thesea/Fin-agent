@@ -203,3 +203,106 @@ def test_rebuild_submits_task_and_returns_id(client, admin_headers, monkeypatch)
 
 def test_rebuild_anonymous_rejected(client):
     assert client.post("/api/v1/kb/rebuild").status_code == 401
+
+
+# --- 检索调试 (/api/v1/kb/retrieval-test) ---
+
+def _fake_debug(**over):
+    """一份最小的 retrieve_debug 返回; 默认三路都有, 单通路两条"""
+    out = {
+        "dense": [{"chunk_id": "c1", "source": "a.md", "rank": 1, "score": 0.9}],
+        "sparse": [{"chunk_id": "c2", "source": "b.md", "rank": 1, "score": 3.1}],
+        "fused": [
+            {"chunk_id": "both", "source": "a.md", "section": "产品要素", "rank": 1,
+             "rrf_score": 0.03, "dense_rank": 1, "sparse_rank": 1,
+             "rerank_score": None, "found_by": ["dense", "sparse"]},
+            {"chunk_id": "only_dense", "source": "a.md", "section": "收益口径", "rank": 2,
+             "rrf_score": 0.01, "dense_rank": 2, "sparse_rank": None,
+             "rerank_score": None, "found_by": ["dense"]},
+            {"chunk_id": "only_sparse", "source": "b.md", "section": "费率", "rank": 3,
+             "rrf_score": 0.01, "dense_rank": None, "sparse_rank": 2,
+             "rerank_score": None, "found_by": ["sparse"]},
+        ],
+        "graph": {"entries": [], "entities": []},
+        "config_used": {"top_k": 5},
+        "elapsed_ms": 1.0,
+    }
+    out.update(over)
+    return out
+
+
+def test_retrieval_test_filters_single_path(client, admin_headers, monkeypatch):
+    """only_single_path 只留"靠单条通路召回"的项 —— 调试时最值得看的就是这些"""
+    from src.retrieval.retriever import HybridRetriever
+
+    monkeypatch.setattr(HybridRetriever, "retrieve_debug",
+                        lambda self, q, top_k=5: _fake_debug(dense=[], sparse=[]))
+    r = client.post("/api/v1/kb/retrieval-test", headers=admin_headers,
+                    json={"query": "稳盈添利30天风险等级", "top_k": 5, "only_single_path": True})
+    assert r.status_code == 200
+    ids = [i["chunk_id"] for i in r.json()["fused"]]
+    assert ids == ["only_dense", "only_sparse"]
+    assert r.json()["single_path_count"] == 2
+
+
+def test_retrieval_test_rejects_empty_query(client, admin_headers):
+    r = client.post("/api/v1/kb/retrieval-test", headers=admin_headers,
+                    json={"query": "   ", "top_k": 5})
+    assert r.status_code == 400
+
+
+def test_retrieval_test_rejects_top_k_out_of_range(client, admin_headers):
+    """越界 top_k 会直接把参数透给 Milvus —— 在入口拦下, 别让它变成 500"""
+    for bad in (0, 21):
+        r = client.post("/api/v1/kb/retrieval-test", headers=admin_headers,
+                        json={"query": "稳盈添利", "top_k": bad})
+        assert r.status_code == 400, bad
+
+
+def test_retrieval_test_reports_sparse_empty(client, admin_headers, monkeypatch):
+    """稀疏路为空时 retrieve_debug 会退化成 dense[:top_k], found_by 全读成 ["dense"],
+    会被误读成"关键词检索没命中" —— 调试台必须能区分这两件事"""
+    from src.retrieval.retriever import HybridRetriever
+
+    monkeypatch.setattr(HybridRetriever, "retrieve_debug",
+                        lambda self, q, top_k=5: _fake_debug(sparse=[]))
+    body = client.post("/api/v1/kb/retrieval-test", headers=admin_headers,
+                       json={"query": "稳盈添利", "top_k": 5}).json()
+    assert body["sparse_empty"] is True
+
+    monkeypatch.setattr(HybridRetriever, "retrieve_debug",
+                        lambda self, q, top_k=5: _fake_debug())
+    body = client.post("/api/v1/kb/retrieval-test", headers=admin_headers,
+                       json={"query": "稳盈添利", "top_k": 5}).json()
+    assert body["sparse_empty"] is False
+
+
+def test_retrieval_test_keeps_graph_error(client, admin_headers, monkeypatch):
+    """图谱挂了要如实显示, 不能吞掉 error 键假装图谱没命中"""
+    from src.retrieval.retriever import HybridRetriever
+
+    monkeypatch.setattr(HybridRetriever, "retrieve_debug",
+                        lambda self, q, top_k=5: _fake_debug(
+                            graph={"entries": [], "entities": [], "error": "Neo4j 连接失败"}))
+    body = client.post("/api/v1/kb/retrieval-test", headers=admin_headers,
+                       json={"query": "稳盈添利", "top_k": 5}).json()
+    assert body["graph"]["error"] == "Neo4j 连接失败"
+
+
+def test_retrieval_test_failure_returns_504(client, admin_headers, monkeypatch):
+    """Milvus 挂了要报 504 并带出原因 —— 调试台显示"检索执行失败, 原因是 X", 不是空结果"""
+    from src.retrieval.retriever import HybridRetriever
+
+    def boom(self, q, top_k=5):
+        raise RuntimeError("Milvus 不可用")
+
+    monkeypatch.setattr(HybridRetriever, "retrieve_debug", boom)
+    r = client.post("/api/v1/kb/retrieval-test", headers=admin_headers,
+                    json={"query": "稳盈添利", "top_k": 5})
+    assert r.status_code == 504
+    assert "Milvus 不可用" in r.json()["detail"]
+
+
+def test_retrieval_test_anonymous_rejected(client):
+    assert client.post("/api/v1/kb/retrieval-test",
+                       json={"query": "稳盈添利"}).status_code == 401
