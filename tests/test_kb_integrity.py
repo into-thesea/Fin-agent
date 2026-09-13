@@ -15,6 +15,7 @@ import sys
 import os
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(__file__))))
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(__file__)), "scripts"))
 
 import numpy as np
 import pytest
@@ -137,6 +138,70 @@ class TestPurgeChunks:
         assert knowledge._remove_chunks_of("drop.pdf") == 0
         # 不存在的文档不影响文件
         assert knowledge._remove_chunks_of("nope.pdf") == 0
+
+    def test_rebuild_keeps_uploaded_chunks(self, tmp_path, monkeypatch):
+        """重建必须保留上传文档的分块 —— 只刷新内置知识库。
+
+        collect_chunks 只认 data/finance_kb/*.md, 而 rebuild_local 覆盖写分块文件:
+        改之前重建一次, 上传的 PDF 就从索引里没了, 而 documents 表原样不动 ——
+        管理台显示正常(status=done, chunks_count=N), 实际搜不到。
+        """
+        import build_finance_kb as b
+        from src.database import db_manager
+
+        store = tmp_path / "chunks_processed.jsonl"
+        old = [
+            {"chunk_id": "kb_buy_1", "source": "buy_process.md", "content": "内置旧版"},
+            {"chunk_id": "up_1", "source": "uploaded.pdf", "content": "上传件第 1 块"},
+            # 同一块被追加过两次 (重复入库): 合并后只该留一份
+            {"chunk_id": "up_2", "source": "uploaded.pdf", "content": "上传件第 2 块"},
+            {"chunk_id": "up_2", "source": "uploaded.pdf", "content": "上传件第 2 块"},
+            # 已删除的文档: documents 表里没有, 不许被重建复活
+            {"chunk_id": "gone_1", "source": "deleted.pdf", "content": "已删文档"},
+        ]
+        store.write_text("".join(json.dumps(r, ensure_ascii=False) + "\n" for r in old),
+                         encoding="utf-8")
+        monkeypatch.setattr("src.infra.paths.CHUNKS_PROCESSED_PATH", str(store))
+        monkeypatch.setattr("src.infra.paths.BM25_INDEX_PATH", str(tmp_path / "bm25.pkl"))
+        monkeypatch.setattr(db_manager, "get_all_documents",
+                            lambda: [{"filename": "uploaded.pdf"}])
+        # BM25 重建与本用例无关, 换掉以免依赖分词器与真实索引文件
+        from src.retrieval import bm25_index
+        monkeypatch.setattr(bm25_index, "rebuild_bm25_index", lambda *a, **k: None)
+
+        new = [{"chunk_id": "kb_buy_1", "source": "buy_process.md", "content": "内置改版"},
+               {"chunk_id": "kb_buy_2", "source": "buy_process.md", "content": "内置新增"}]
+        n = b.rebuild_local(new)
+
+        rows = [json.loads(l) for l in store.read_text(encoding="utf-8").splitlines() if l.strip()]
+        assert n == len(rows) == 4, f"返回值要与落盘条数一致, 实际 n={n} rows={len(rows)}"
+        ids = [c["chunk_id"] for c in rows]
+        assert len(ids) == len(set(ids)), f"同一块被写了多遍: {ids}"
+        # 内置: 刷新成新版 (旧内容被覆盖, 不是追加)
+        assert [c["content"] for c in rows if c["chunk_id"] == "kb_buy_1"] == ["内置改版"]
+        # 上传: 原样保留
+        assert {c["chunk_id"] for c in rows if c["source"] == "uploaded.pdf"} == {"up_1", "up_2"}
+        # 已删文档: 不复活
+        assert "gone_1" not in ids
+
+    def test_rebuild_keeps_nothing_when_document_table_is_empty(self, tmp_path, monkeypatch):
+        """documents 表里没有的文档, 重建时一律丢弃 —— 判据是表, 不是后缀。"""
+        import build_finance_kb as b
+        from src.database import db_manager
+
+        store = tmp_path / "chunks_processed.jsonl"
+        store.write_text(json.dumps({"chunk_id": "x", "source": "some.pdf"}, ensure_ascii=False) + "\n",
+                         encoding="utf-8")
+        monkeypatch.setattr("src.infra.paths.CHUNKS_PROCESSED_PATH", str(store))
+        monkeypatch.setattr("src.infra.paths.BM25_INDEX_PATH", str(tmp_path / "bm25.pkl"))
+        monkeypatch.setattr(db_manager, "get_all_documents", lambda: [])
+        from src.retrieval import bm25_index
+        monkeypatch.setattr(bm25_index, "rebuild_bm25_index", lambda *a, **k: None)
+
+        n = b.rebuild_local([{"chunk_id": "kb_1", "source": "buy_process.md", "content": "内置"}])
+
+        rows = [json.loads(l) for l in store.read_text(encoding="utf-8").splitlines() if l.strip()]
+        assert n == 1 and [c["chunk_id"] for c in rows] == ["kb_1"]
 
     def test_delete_uses_filename_as_vector_key(self):
         """删除向量时必须用 filename —— 索引里 document_id 存的就是文件名。

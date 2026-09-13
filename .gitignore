@@ -83,3 +83,9 @@ data/semantic_cache.db
 .fin-agent.pid
 .fin-celery.pid
 frontend/tsconfig.tsbuildinfo
+
+# 管理台运行时配置 (跑过 /kb/strategy 就会生成, 内容是默认值, 各机器可能不同)
+data/kb_settings.json
+
+# SDD 工作区(临时)
+.superpowers/

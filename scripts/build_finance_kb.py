@@ -248,21 +248,56 @@ def collect_chunks() -> list:
     return deduped
 
 
-def rebuild_local(chunks: list) -> None:
-    """写 chunks_processed.jsonl + 重建 BM25
+def preserved_upload_chunks() -> list:
+    """从现有分块文件里捞出「属于已入库上传文档」的行 —— 重建要接着保留它们
+
+    collect_chunks 只认内置 data/finance_kb/*.md, 而这里原先直接覆盖写:
+    重建一次, 上传文档的分块就从索引里消失, 而 documents 表原样不动 ——
+    管理台上看着正常(status=done, chunks_count=N), 实际搜不到。
+
+    判据是 documents 表里已入库的文件名, 不按后缀猜: 上传件不一定叫 .pdf。
+    表里没有的文件(已删除的、或从没上传过的)不予保留, 否则删除会被重建复活。
+    """
+    from src.infra.paths import CHUNKS_PROCESSED_PATH
+    from src.infra.jsonl_io import read_lines
+    from src.database import db_manager
+
+    uploaded = {d["filename"] for d in db_manager.get_all_documents() if d.get("filename")}
+    if not uploaded:
+        return []
+    kept = [c for c in read_lines(CHUNKS_PROCESSED_PATH) if c.get("source") in uploaded]
+    return kept
+
+
+def rebuild_local(chunks: list) -> int:
+    """写 chunks_processed.jsonl + 重建 BM25, 返回写入的总块数
+
+    内置知识库是**刷新**(整份重切), 上传文档是**保留**(分块文件是它们唯一的载体,
+    重切不了也不该丢)。合并时按 chunk_id 去重, 同一块不写两遍。
 
     向量部分不在这里做 —— 由 load_vector_index 直接编码灌 Milvus, 不经 FAISS 中转。
     """
     from src.infra.paths import CHUNKS_PROCESSED_PATH, BM25_INDEX_PATH
+
+    kept = preserved_upload_chunks()
+    merged, seen = list(chunks), {c.get("chunk_id") for c in chunks}
+    for c in kept:
+        if c.get("chunk_id") in seen:
+            continue
+        seen.add(c.get("chunk_id"))
+        merged.append(c)
+
     os.makedirs(os.path.dirname(CHUNKS_PROCESSED_PATH), exist_ok=True)
     with open(CHUNKS_PROCESSED_PATH, "w", encoding="utf-8") as f:
-        for c in chunks:
+        for c in merged:
             f.write(json.dumps(c, ensure_ascii=False) + "\n")
-    logger.info("chunks 写入: %s (%d)", CHUNKS_PROCESSED_PATH, len(chunks))
+    logger.info("chunks 写入: %s (内置 %d + 保留上传 %d = %d)",
+                CHUNKS_PROCESSED_PATH, len(chunks), len(merged) - len(chunks), len(merged))
 
     from src.retrieval.bm25_index import rebuild_bm25_index
     rebuild_bm25_index(CHUNKS_PROCESSED_PATH, BM25_INDEX_PATH)
     logger.info("分块文件 + BM25 重建完成")
+    return len(merged)
 
 
 def load_vector_index() -> int:
@@ -279,15 +314,18 @@ def build_all(skip_milvus: bool = False) -> int:
     """完整构建: chunks → FAISS/BM25 → Milvus → 知识图谱三元组
 
     sync_kb.py 也走这个入口, 保证流水线只有一处定义 (漏了图谱那次就是因为
-    步骤散在各处、靠人记)。返回 chunk 数。
+    步骤散在各处、靠人记)。
+
+    返回**索引里的实际块数**(内置 + 保留的上传文档) —— sync_kb 的 verify 拿它
+    跟分块文件/Milvus/BM25 三路核对, 只报内置数会误判成不一致。
     """
     chunks = collect_chunks()
-    rebuild_local(chunks)
+    n_total = rebuild_local(chunks)
     render_kg_triples()
     if not skip_milvus:
         load_vector_index()
-    logger.info("金融知识库构建完成")
-    return len(chunks)
+    logger.info("金融知识库构建完成: %d 块", n_total)
+    return n_total
 
 
 def main():

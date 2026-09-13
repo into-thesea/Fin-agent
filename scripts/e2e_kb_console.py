@@ -1,9 +1,10 @@
 """知识库管理台端到端验收
 
-覆盖三件事 (按 spec 第八章):
+覆盖四件事 (按 spec 第八章):
   1. 检索参数保存后**免重启**立即生效
   2. 切分参数只影响**之后新上传**的文档
   3. 索引维护重建后向量库与分块数仍一致
+  4. 重建只刷新内置知识库 —— 上传文档的分块保留下来, 重建后仍可检索到
 
 前提:
   docker compose up -d             # redis + milvus + neo4j 都要健康
@@ -35,6 +36,8 @@ from src.config import settings                           # noqa: E402
 PDF_A = "e2e_kb_console_default.pdf"   # 改参数**之前**上传的对照组文档
 PDF_B = "e2e_kb_console_custom.pdf"    # 改参数**之后**上传的实验组文档
 QUERY = "稳盈添利30天风险等级是多少"
+# 探针文档正文里的固定短语, 用来验证"重建后还能搜到它"
+PROBE_QUERY = "knowledge base console acceptance run filler sentence"
 CUSTOM_CHUNKING = {"chunk_size": 200, "overlap": 40, "max_chunk_content": 150}
 JSON_H = {"Content-Type": "application/json"}
 
@@ -244,8 +247,13 @@ def check_chunking_scope(token: str, before: dict) -> tuple:
     return n_a, max_a
 
 
-def check_rebuild(token: str) -> None:
-    """3. 索引维护重建"""
+def check_rebuild(token: str, probe: str, n_before: int) -> None:
+    """3. 索引维护重建
+
+    probe / n_before: 第 2 段上传的探针文档及其重建前块数 —— 用来验证重建
+    「只刷新内置知识库, 上传的文档原样保留」(覆盖写分块文件的那一版会把上传件抹掉,
+    而 documents 表原样不动: 列表看着正常、实际搜不到)。
+    """
     print("\n[3] 索引维护重建")
     st, r = _req("POST", "/api/v1/kb/rebuild", token)
     if not check("重建任务已受理", st == 200 and r.get("task_id"),
@@ -261,6 +269,20 @@ def check_rebuild(token: str) -> None:
     _, chunks = _req("GET", "/api/v1/kb/chunks?page=1&size=1", token=token)
     total = chunks.get("total", 0)
     check("重建后分块数 > 0", total > 0, f"{total} 条")
+
+    if n_before <= 0:
+        # 探针没传上去时这两项必然是假失败, 上传失败本身已经在第 2 段报过了
+        print("  ⚠️  探针文档未入库, 跳过「上传文档是否被重建抹掉」两项")
+    else:
+        n_after, _ = doc_chunk_stats(token, probe)
+        check("重建后上传文档的分块仍在", n_after == n_before,
+              f"{probe}: {n_before} → {n_after} 块")
+        _, hit = _req("POST", "/api/v1/kb/retrieval-test", token,
+                      json.dumps({"query": PROBE_QUERY, "top_k": 10}).encode(), JSON_H)
+        sources = [i.get("source") for i in (hit.get("fused") or [])]
+        check("重建后上传文档仍可被检索到", probe in sources,
+              f"命中来源: {sorted(s for s in set(sources) if s)[:5]}")
+
 
     from src.vectorstore.milvus_manager import MilvusManager
     # 必须在重建**之后**才实例化: 它是进程内单例, 重建会把 collection drop 重建,
@@ -338,8 +360,8 @@ def main() -> int:
 
     try:
         check_retrieval_hot_reload(token, before)
-        check_chunking_scope(token, before)
-        check_rebuild(token)
+        n_probe, _ = check_chunking_scope(token, before)
+        check_rebuild(token, PDF_A, n_probe)
     finally:
         try:
             cleanup(token, before)

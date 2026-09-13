@@ -264,9 +264,13 @@ export const StrategyPage: React.FC = () => {
       <Card title="🔧 索引维护" size="small">
         <Space direction="vertical" style={{ width: '100%' }}>
           <Text type="secondary" style={{ fontSize: 12 }}>
-            从知识库源文件全量重建索引（分块文件 / 向量库 / 关键词索引 / 知识图谱）。
+            从内置知识库的源文件全量重建索引（检索内容 / 向量库 / 关键词索引 / 知识图谱）。
             这是维护操作，与切分参数无关 —— 不会把新的切分参数应用到已有内容。
-            用于怀疑索引与分块文件不一致时。
+            用于怀疑索引与资料本身对不上时。
+          </Text>
+          <Text type="secondary" style={{ fontSize: 12 }}>
+            重建的是<Text strong>内置知识库</Text>；已经上传的文档不受影响 —— 它们会被原样保留、不会丢失，
+            但也不会按新的切分参数重新切一遍。要让某份上传文档按新参数重切，请删除后重新上传。
           </Text>
           <Space>
             <Popconfirm title="确定全量重建？期间检索结果可能短暂不完整" onConfirm={doRebuild}>

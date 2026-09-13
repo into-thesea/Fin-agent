@@ -35,15 +35,32 @@ export const RetrievalTestPage: React.FC = () => {
   const [result, setResult] = useState<RetrievalTestResult | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // 返回条数跟随「策略配置」里的设置; 读不到就用默认值并在页面上说明(不静默)
+  const [topK, setTopK] = useState(5);
+  const [topKNote, setTopKNote] = useState<string | null>(null);
   // 开关一改就重查, 连点两下会连发两个请求; 先发的后到就会拿旧结果盖掉新结果 —— 只认最后一次
   const seqRef = useRef(0);
+
+  useEffect(() => {
+    api.getKbStrategy()
+      .then((s) => {
+        const v = s?.retrieval?.current?.top_k;
+        if (typeof v === 'number' && v >= 1 && v <= 20) {
+          setTopK(v);
+          setTopKNote(null);
+        } else {
+          setTopKNote('策略配置里的返回条数不可用，本次按默认 5 条检索');
+        }
+      })
+      .catch(() => setTopKNote('暂时读不到策略配置，本次按默认 5 条检索'));
+  }, []);
 
   const run = async () => {
     if (!query.trim()) return;
     const seq = ++seqRef.current;
     setLoading(true);
     try {
-      const res = await api.retrievalTest({ query: query.trim(), top_k: 5, only_single_path: onlySingle });
+      const res = await api.retrievalTest({ query: query.trim(), top_k: topK, only_single_path: onlySingle });
       if (seq !== seqRef.current) return;  // 过期响应: 丢弃, loading 交给新请求收尾
       setResult(res);
       setError(null);
@@ -118,6 +135,10 @@ export const RetrievalTestPage: React.FC = () => {
                action={<Button size="small" onClick={run}>重试</Button>} />
       )}
 
+      {topKNote && (
+        <Alert type="warning" showIcon message={topKNote} style={{ marginBottom: 16 }} />
+      )}
+
       {!result && !error && (
         <Card><Empty description="输入一个问题开始调试" /></Card>
       )}
@@ -149,7 +170,8 @@ export const RetrievalTestPage: React.FC = () => {
                     {fmtConfig(v)}
                   </Descriptions.Item>
                 ))}
-              <Descriptions.Item label="返回条数">{result.config_used.top_k}</Descriptions.Item>
+              {/* 显示的是**实际请求**的条数: 后端会把 config_used.top_k 覆盖成请求值 */}
+              <Descriptions.Item label="返回条数">{result.config_used.top_k ?? topK}</Descriptions.Item>
               <Descriptions.Item label="耗时">{result.elapsed_ms} ms</Descriptions.Item>
             </Descriptions>
           </Card>
