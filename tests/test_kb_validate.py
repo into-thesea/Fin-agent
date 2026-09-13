@@ -29,6 +29,8 @@ def test_defaults_pass():
     (_retr(mmr_lambda=1.5), "mmr_lambda"),
     (_retr(rrf_k=0), "rrf_k"),
     (_retr(rerank_model="gpt-4"), "rerank_model"),   # 不在白名单
+    (_retr(top_k=float("inf")), "top_k"),            # JSON 的 1e400 会被解析成 inf
+    (_chunk(max_chunk_content=float("inf")), "max_chunk_content"),
 ])
 def test_rejects_out_of_range(values, field):
     section = "chunking" if field in DEFAULTS["chunking"] else "retrieval"
@@ -70,12 +72,25 @@ def test_rerank_model_non_string_rejected(bad):
     assert ei.value.field == "rerank_model" and ei.value.rule
 
 
-@pytest.mark.parametrize("field", ["top_k", "rrf_k", "rerank_pool"])
-def test_bool_is_not_a_number(field):
-    """True 会被 int() 悄悄变成 1 —— 拒掉, 别让它伪装成合法值"""
+@pytest.mark.parametrize("section,field", [
+    ("chunking", "chunk_size"),
+    ("chunking", "overlap"),
+    ("chunking", "max_chunk_content"),
+    ("retrieval", "top_k"),
+    ("retrieval", "rrf_k"),
+    ("retrieval", "rerank_pool"),
+])
+def test_bool_is_not_a_number(section, field):
+    """True 会被 int() 悄悄变成 1 —— 拒掉, 别让它伪装成合法值。
+
+    断言 reason 里带"布尔": 否则 chunk_size=True 会因为 1 < 150 被范围检查顺带拒掉,
+    用例就是绿的了却完全没碰到这个守卫。
+    """
+    base = _chunk if section == "chunking" else _retr
     with pytest.raises(ValidationError) as ei:
-        validate("retrieval", _retr(**{field: True}))
+        validate(section, base(**{field: True}))
     assert ei.value.field == field
+    assert "布尔" in ei.value.rule
 
 
 def test_values_must_be_object():

@@ -43,7 +43,9 @@ def _num(field, value, lo, hi, integral):
         raise ValidationError(field, value, f"必须是{'整数' if integral else '数字'}, 不能是布尔值")
     try:
         v = int(value) if integral else float(value)
-    except (TypeError, ValueError):
+    except (TypeError, ValueError, OverflowError):
+        # OverflowError: int(float('inf')) —— JSON 的 1e400 / Infinity 会被 json.loads 解析成 inf,
+        # 不接住它就会以未捕获异常逃出本模块, 而拦截非法输入正是本模块存在的理由
         raise ValidationError(field, value, f"必须是{'整数' if integral else '数字'}")
     if not (lo <= v <= hi):
         raise ValidationError(field, value, f"必须在 {lo}~{hi} 之间")
