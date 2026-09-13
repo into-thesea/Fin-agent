@@ -6,7 +6,7 @@ import axios, { AxiosInstance, AxiosError } from 'axios';
 import type {
   HealthStatus, UploadResponse, BatchUploadResponse, TaskStatus, QueryResponse,
   KnowledgeStats, Document, Metrics, AuditLog, SystemStatus, SLI,
-  HandoffTicket, HandoffMessage, EvalSummary, ChunkPage,
+  HandoffTicket, HandoffMessage, EvalSummary, ChunkPage, KbStrategy,
 } from '../types/api';
 
 const BASE_URL = import.meta.env.VITE_API_BASE || '';
@@ -325,6 +325,23 @@ class ApiClient {
     page?: number; size?: number; source?: string; section?: string; q?: string;
   }): Promise<ChunkPage> {
     const { data } = await this.client.get('/api/v1/kb/chunks', { params });
+    return data;
+  }
+
+  /** 知识库可编辑策略 (当前值 / 默认值 / 偏离项) */
+  async getKbStrategy(): Promise<KbStrategy> {
+    const { data } = await this.client.get('/api/v1/kb/strategy');
+    return data;
+  }
+
+  async putKbStrategy(section: 'chunking' | 'retrieval', values: Record<string, any>) {
+    const { data } = await this.client.put('/api/v1/kb/strategy', { section, values });
+    return data as { saved: boolean; changed: string[]; applies_to: 'next_request' | 'next_upload' };
+  }
+
+  /** 手动触发全量重建 (索引维护); 进度走 getTaskStatus 轮询 */
+  async rebuildKb(): Promise<{ task_id: string; status: string }> {
+    const { data } = await this.client.post('/api/v1/kb/rebuild');
     return data;
   }
 

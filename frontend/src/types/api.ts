@@ -212,3 +212,22 @@ export interface ChunkPage {
   size: number;
   items: ChunkItem[];
 }
+
+// ── 策略配置 ──
+
+export interface KbStrategySection {
+  /** 当前生效值 */
+  current: Record<string, any>;
+  /** 代码里的默认值(「恢复默认」用) */
+  default: Record<string, any>;
+  /** 偏离默认值的字段名 */
+  changed: string[];
+}
+
+export interface KbStrategy {
+  chunking: KbStrategySection;
+  retrieval: KbStrategySection;
+  source: 'file' | 'default';
+  updated_at: string;
+  updated_by: string;
+}
