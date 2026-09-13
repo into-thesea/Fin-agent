@@ -14,6 +14,7 @@ from pydantic import BaseModel
 from src.api.routes.auth import require_roles
 # 模块级 import: 测试靠 patch 这个名字模拟 worker 不在线, 放函数里 patch 不生效
 from src.celery_app import is_celery_worker_running
+from src.config import settings
 from src.core import kb_settings
 from src.core.kb_validate import validate, ValidationError
 # 模块级 import: 测试靠 patch 这个名字把分块文件指到 tmp, 放函数里 patch 不生效
@@ -58,6 +59,16 @@ async def put_strategy(body: StrategyPut, user=Depends(require_roles("admin"))):
     except ValidationError as e:
         # 前端直接读 detail.field / detail.rule 定位输入框, 故原样返回
         raise HTTPException(status_code=400, detail=e.as_dict())
+
+    # 缺 key 时开重排会让**整轮检索**失败(重排器构造在精排的 try 之外, 那是有意的:
+    # 运行时故障要响亮)。但这不该由管理页上勾一个框触发 —— 在保存这一刻就拦下来。
+    # 这道校验看不见 env, 属于运行时依赖, 所以放路由层, 不塞进纯函数的 kb_validate。
+    if body.section == "retrieval" and values.get("rerank_enabled") and not settings.dashscope_api_key:
+        raise HTTPException(status_code=400, detail={
+            "field": "rerank_enabled",
+            "value": True,
+            "rule": "缺少 DASHSCOPE_API_KEY，启用重排后检索会失败；请先在 .env 配好",
+        })
 
     before, _ = kb_settings.get_all()
     cfg = kb_settings.save(body.section, values, user=user.get("user_id", "admin"))

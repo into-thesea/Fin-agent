@@ -81,3 +81,27 @@ class TestRetrievalConfigWiring:
         src = _i.getsource(mod.HybridRetriever.vector_search)
         assert "lambd=0.5" not in src, "λ 仍是硬编码, 配置改了不生效"
         assert "lambd=" in src and ("cfg" in src or "get_retrieval" in src)
+
+    def test_top_k_comes_from_config_but_explicit_arg_wins(self, monkeypatch):
+        """不传 top_k 的调用方跟随配置; 显式传的调用方行为不变"""
+        from src.retrieval import retriever as mod
+        from src.core import kb_settings
+
+        seen = {}
+        monkeypatch.setattr(mod, "rrf_fusion",
+                            lambda d, s, top_k=5, k=60: seen.update(top_k=top_k) or [])
+        monkeypatch.setattr(mod.HybridRetriever, "vector_search",
+                            lambda self, *a, **kw: [{"chunk_id": "a", "content": "x"}])
+        monkeypatch.setattr(mod.HybridRetriever, "bm25_search",
+                            lambda self, *a, **kw: [{"chunk_id": "a", "content": "x"}])
+        monkeypatch.setattr(mod.HybridRetriever, "_graph_retrieve",
+                            lambda self, q: {"entries": [], "entities": []})
+        monkeypatch.setattr(kb_settings, "get_retrieval",
+                            lambda: {**kb_settings.DEFAULTS["retrieval"], "top_k": 7})
+
+        r = mod.HybridRetriever()
+        r.hybrid_retrieve("测试")                    # 不传 → 跟随配置
+        assert seen.get("top_k") == 7, "top_k 没有从配置生效"
+
+        r.hybrid_retrieve("测试", top_k=3)           # 显式传 → 不变
+        assert seen.get("top_k") == 3, "显式 top_k 被配置覆盖了"

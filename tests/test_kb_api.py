@@ -79,6 +79,26 @@ def test_put_invalid_returns_field_level_detail(client, admin_headers):
     assert "chunk_size" in detail["rule"]
 
 
+def test_put_enabling_rerank_without_api_key_rejected(client, admin_headers, monkeypatch):
+    """勾一个框就能让每条问答都检索失败 —— 必须在保存时拦下, 而不是运行时优雅降级"""
+    from src.config import settings
+    monkeypatch.setattr(settings, "dashscope_api_key", "")
+    r = client.put("/api/v1/kb/strategy", headers=admin_headers,
+                   json={"section": "retrieval", "values": {"rerank_enabled": True}})
+    assert r.status_code == 400
+    detail = r.json()["detail"]
+    assert detail["field"] == "rerank_enabled" and "DASHSCOPE_API_KEY" in detail["rule"]
+
+
+def test_put_enabling_rerank_with_api_key_ok(client, admin_headers, monkeypatch):
+    from src.config import settings
+    monkeypatch.setattr(settings, "dashscope_api_key", "test-key")
+    r = client.put("/api/v1/kb/strategy", headers=admin_headers,
+                   json={"section": "retrieval", "values": {"rerank_enabled": True}})
+    assert r.status_code == 200
+    assert kb_settings.get_retrieval()["rerank_enabled"] is True
+
+
 # --- 片段查询 (/api/v1/kb/chunks) ---
 
 @pytest.fixture

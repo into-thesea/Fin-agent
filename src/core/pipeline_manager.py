@@ -143,11 +143,12 @@ def ingest_document(
         _report("parsing", 1)
         # 切分参数来自可编辑配置(data/kb_settings.json); 只影响本次上传,
         # 不回溯已入库内容 —— 内置知识库走 build_finance_kb.parse_faq_markdown,
-        # 按 '## ' 标题切分, 不读这两个参数。
+        # 按 '## ' 标题切分, 不读这几个参数。
         from src.core.kb_settings import get_chunking
         _ck = get_chunking()
         chunks = extract_chunks_from_pdf(
             target_path, chunk_size=_ck["chunk_size"], overlap=_ck["overlap"],
+            max_chunk_content=_ck["max_chunk_content"],
         )
         if not chunks:
             db_manager.update_document_status(doc_id, "failed")

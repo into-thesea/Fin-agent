@@ -243,6 +243,7 @@ def _chaptered_chunk(
     file_name: str,
     chunk_size: int,
     overlap: int,
+    max_chunk_content: int = MAX_CHUNK_CONTENT,
 ) -> list[dict]:
     """
     章节感知语义分块.
@@ -252,6 +253,10 @@ def _chaptered_chunk(
       2. 逐章节提取独占内容
       3. 短章节 → 完整保留, 长章节 → RecursiveCharacterTextSplitter 细切
       4. 每块注入 "[章节路径]" 前缀
+
+    Args:
+        max_chunk_content: 单块纯内容字符上限 (不含 "[章节路径]" 前缀)。
+            由可编辑配置传入; 不传时用模块常量, 与加这个形参之前的行为一致。
     """
     full_text, page_breaks = _build_page_index(pages)
 
@@ -270,7 +275,7 @@ def _chaptered_chunk(
 
     chunks: list[dict] = []
     chunk_counter = 0
-    content_size = min(MAX_CHUNK_CONTENT, chunk_size - 50)  # 留 ~50 给前缀
+    content_size = min(max_chunk_content, chunk_size - 50)  # 留 ~50 给前缀
 
     def _process_range(sec: Section, start: int, end: int) -> None:
         """对 [start, end) 范围内的文本做分块."""
@@ -409,6 +414,7 @@ def smart_chunk_pdf(
     pdf_path: str,
     chunk_size: int = DEFAULT_CHUNK_SIZE,
     overlap: int = DEFAULT_OVERLAP,
+    max_chunk_content: int = MAX_CHUNK_CONTENT,
 ) -> list[dict]:
     """
     智能 PDF 分块 — 章节感知语义分块 + 滑动窗口回退.
@@ -418,10 +424,14 @@ def smart_chunk_pdf(
       - 长章节按句/段细切到 ~300 字
     检测不到标题时自动回退到跨页滑动窗口.
 
+    三个参数都来自可编辑配置(data/kb_settings.json 的 chunking 段),
+    由 pipeline_manager 传入; 不传时用模块常量, 行为与加形参之前一致。
+
     Args:
         pdf_path: PDF 文件路径
         chunk_size: 每块总字符数上限 (含前缀, 默认 350)
         overlap: 块间重叠字符数 (默认 70)
+        max_chunk_content: 单块纯内容字符上限 (不含前缀, 默认 300)
 
     Returns:
         [{"chunk_id", "source", "page", "content"[, "section"]}, ...]
@@ -434,7 +444,7 @@ def smart_chunk_pdf(
         return []
 
     # 1) 先试章节感知分块
-    chunks = _chaptered_chunk(pages, file_name, chunk_size, overlap)
+    chunks = _chaptered_chunk(pages, file_name, chunk_size, overlap, max_chunk_content)
 
     # 2) 检测不到章节 → 回退到滑动窗口
     if not chunks:
@@ -442,8 +452,8 @@ def smart_chunk_pdf(
         chunks = _sliding_window_chunks(pages, file_name, chunk_size, overlap)
 
     logger.info(
-        "智能分块完成: %s -> %d 块 (size=%d, overlap=%d)",
-        file_name, len(chunks), chunk_size, overlap,
+        "智能分块完成: %s -> %d 块 (size=%d, overlap=%d, content<=%d)",
+        file_name, len(chunks), chunk_size, overlap, max_chunk_content,
     )
     return chunks
 

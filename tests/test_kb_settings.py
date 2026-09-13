@@ -94,3 +94,24 @@ def test_pipeline_passes_configured_chunk_params():
     src = inspect.getsource(pipeline_manager.ingest_document)
     assert "get_chunking" in src
     assert "chunk_size=" in src and "overlap=" in src
+    assert "max_chunk_content=" in src
+
+
+def _header_pages():
+    """两节长文本 —— 章节检测到手, 且每节都长到需要细切"""
+    return [{"page": 1, "text": "一、产品要素\n" + "甲" * 1000 + "\n二、收益口径\n" + "乙" * 1000}]
+
+
+def test_max_chunk_content_is_a_real_parameter():
+    """content_size 上限必须可传入 —— 它原先只是模块常量, 页面上改了不起作用"""
+    from src.core.smart_chunk import _chaptered_chunk, MAX_CHUNK_CONTENT
+
+    pages = _header_pages()
+    # 默认(不传) == 显式传常量值, 保证默认行为不变
+    assert _chaptered_chunk(pages, "x.pdf", 350, 70) == \
+        _chaptered_chunk(pages, "x.pdf", 350, 70, max_chunk_content=MAX_CHUNK_CONTENT)
+
+    wide = _chaptered_chunk(pages, "x.pdf", 350, 70, max_chunk_content=300)
+    narrow = _chaptered_chunk(pages, "x.pdf", 350, 70, max_chunk_content=80)
+    assert max(len(c["content"]) for c in narrow) < max(len(c["content"]) for c in wide)
+    assert len(narrow) > len(wide)

@@ -333,7 +333,7 @@ class HybridRetriever:
         return gr.retrieve(query)
 
     def hybrid_retrieve(
-        self, query: str, entity_hint: Optional[str] = None, top_k: int = 5
+        self, query: str, entity_hint: Optional[str] = None, top_k: Optional[int] = None
     ) -> dict:
         """
         两路混合检索: 向量 + BM25 → RRF 融合 (+ 可选精排 + 图谱补充)
@@ -342,6 +342,9 @@ class HybridRetriever:
             entity_hint: **接受但当前不使用**。原打算用它做「按产品收敛检索范围」的
                 元数据过滤, 2026-09-14 实测后放弃, 原因见下 —— 保留参数只为不改动
                 6 处调用方签名。
+            top_k: 不传(None)时取可编辑配置(data/kb_settings.json)的 top_k。
+                默认值不能在函数签名里求值 —— 那是定义时求一次, 配置改了不生效。
+                显式传参的调用方(工具/评测脚本)行为不变。
 
         为什么不做「按产品过滤」的元数据过滤(实测数据, 别再重做一遍):
           1. 触发源是死的: RouterAgent.get_entity_hint() 恒返回 None, 该参数永远是 None。
@@ -363,6 +366,8 @@ class HybridRetriever:
 
         from src.core.kb_settings import get_retrieval
         cfg = get_retrieval()
+        if top_k is None:
+            top_k = int(cfg.get("top_k", 5))
         reranker = self._reranker_for(cfg)
         # 候选池: 启用重排时先多取, 精排后再收敛到 top_k
         # max(...,1): 配置文件是手工可改的, 校验只在 API 那一侧 —— 池子为 0 会让
