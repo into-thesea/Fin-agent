@@ -28,7 +28,6 @@ from fastmcp import FastMCP
 # 顶部导入工具实现：重型原生库 (numpy/scipy/sklearn/torch/transformers) 必须在主线程
 # 启动时初始化——fastmcp 在工作线程执行工具，惰性首次导入 C 扩展会死锁。
 import torch  # noqa: F401
-import faiss  # noqa: F401
 from sentence_transformers import SentenceTransformer, CrossEncoder  # noqa: F401
 
 from src.business.context import set_current_user

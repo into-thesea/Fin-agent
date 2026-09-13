@@ -58,21 +58,6 @@ async def lifespan(app: FastAPI):
     """应用启动/关闭事件"""
     logger.info("Fin-Agent API 服务启动中...")
 
-    # 尝试启动 Redis Pub/Sub 监听器 (非阻塞，失败则跳过)
-    from src.core.ws_manager import listener
-    ws_task = None
-    try:
-        await asyncio.wait_for(listener.start(), timeout=3)
-        if listener._running:
-            ws_task = asyncio.create_task(listener.listen())
-            logger.info("WebSocket 进度推送后台任务已启动")
-        else:
-            logger.info("Redis 不可用，WebSocket 推送降级 (仅轮询)")
-    except asyncio.TimeoutError:
-        logger.warning("Redis 连接超时，WebSocket 推送降级")
-    except Exception as e:
-        logger.warning("Redis 监听器启动失败: %s (WebSocket 降级)", e)
-
     # 预热 bge-base-zh-v1.5 (约 3-5s, 轻量不 OOM)
     asyncio.create_task(_warmup_model())
 
@@ -80,18 +65,6 @@ async def lifespan(app: FastAPI):
 
     # 关闭
     logger.info("Fin-Agent API 服务关闭中...")
-    if ws_task:
-        ws_task.cancel()
-    try:
-        await listener.stop()
-    except Exception as e:
-        logger.warning("监听器关闭异常 (可忽略): %s", e)
-    # 清理嵌入模型引用, 释放内存
-    try:
-        from src.cache.faiss_manager import faiss_manager
-        faiss_manager.reset()
-    except Exception as e:
-        logger.debug("faiss_manager 清理失败 (可忽略): %s", e)
     logger.info("Fin-Agent API 服务已完全关闭")
 
 
@@ -218,10 +191,10 @@ app.include_router(monitor_router)
 app.include_router(health_router)  # /health, /health/ready
 app.include_router(handoff_router)  # 转人工工单闭环
 
-# WebSocket 路由
-from src.core.ws_manager import ws_router
-if ws_router:
-    app.include_router(ws_router, prefix="")
+# 注: ETL 进度曾有一条 WebSocket 通道(/ws/task/{id})，2026-09-14 移除 ——
+# ETL 只有 4~5 个阶段点, 3 秒轮询完全够用; 而 WS 每条上传任务要建一条连接
+# (批量 20 个文件就是 20 条)、依赖 API 进程内的 Redis pub/sub 监听线程、
+# 端点还缺鉴权。现在进度只走 GET /api/v1/tasks/{task_id}。
 
 
 # ──────────────────────────────────────────────

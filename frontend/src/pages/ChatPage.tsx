@@ -4,6 +4,7 @@ import { SendOutlined, DeleteOutlined, PlusOutlined, RobotOutlined, ReloadOutlin
 import ReactMarkdown from 'react-markdown';
 import { useChatStore } from '../stores/chatStore';
 import { api } from '../services/api';
+import { PALETTE } from '../styles/theme';
 
 const { TextArea } = Input;
 const { Text, Title } = Typography;
@@ -343,7 +344,7 @@ export const ChatPage: React.FC = () => {
       {/* ─── 会话侧边栏 ─────────────────────────── */}
       <div style={{
         width: 240, flexShrink: 0,
-        borderRight: '1px solid #f0f0f0', paddingRight: 16,
+        borderRight: `1px solid ${PALETTE.borderSoft}`, paddingRight: 16,
         display: 'flex', flexDirection: 'column',
       }}>
         <Button
@@ -369,7 +370,7 @@ export const ChatPage: React.FC = () => {
                   onClick={() => switchSession(item.id)}
                   style={{
                     cursor: 'pointer',
-                    background: item.id === currentSessionId ? '#e6f4ff' : undefined,
+                    background: item.id === currentSessionId ? PALETTE.primarySoft : undefined,
                     borderRadius: 4, padding: '4px 8px',
                     transition: 'background 0.2s',
                   }}
@@ -395,7 +396,7 @@ export const ChatPage: React.FC = () => {
         <div style={{ flex: 1, overflow: 'auto', padding: '0 16px' }}>
           {messages.length === 0 ? (
             <div style={{ textAlign: 'center', marginTop: 120 }}>
-              <RobotOutlined style={{ fontSize: 64, color: '#1677ff' }} />
+              <RobotOutlined style={{ fontSize: 64, color: PALETTE.primary }} />
               <Title level={4} style={{ marginTop: 16 }}>理财智能客服</Title>
               <Text type="secondary">理财咨询 · 存款保险 · 收益口径 · 基金保险 · 适当性</Text>
               <div style={{ marginTop: 32, textAlign: 'left', maxWidth: 440, margin: '32px auto 0' }}>
@@ -430,7 +431,7 @@ export const ChatPage: React.FC = () => {
                     {/* 溯源证据链 */}
                     {msg.sources && msg.sources.length > 0 && (
                       <details style={{ marginTop: 8 }}>
-                        <summary style={{ cursor: 'pointer', color: '#1677ff', fontSize: 13 }}>
+                        <summary style={{ cursor: 'pointer', color: PALETTE.primary, fontSize: 13 }}>
                           溯源证据链 ({msg.sources.length})
                           {msg.sources.some((s) => String(s).startsWith('知识图谱')) ? ' · 🕸️ 含图谱推理路径' : ''}
                         </summary>
@@ -483,13 +484,13 @@ export const ChatPage: React.FC = () => {
           <div style={{
             padding: '6px 16px 0',
             fontSize: 12,
-            color: '#888',
+            color: PALETTE.textSecondary,
             textAlign: 'center',
           }}>
             <Space size={[4, 4]} wrap style={{ justifyContent: 'center' }}>
               {agentFlow.map((s, i) => (
                 <React.Fragment key={s.key}>
-                  {i > 0 && <span style={{ color: '#ccc' }}>→</span>}
+                  {i > 0 && <span style={{ color: PALETTE.textMuted }}>→</span>}
                   <Tag color="blue" style={{ marginInlineEnd: 0 }}>{s.label}</Tag>
                 </React.Fragment>
               ))}
@@ -501,10 +502,10 @@ export const ChatPage: React.FC = () => {
         {stageMessage && (
           <div style={{
             padding: '6px 16px',
-            background: '#f6f8fa',
-            borderTop: '1px solid #f0f0f0',
+            background: PALETTE.mutedBg,
+            borderTop: `1px solid ${PALETTE.borderSoft}`,
             fontSize: 13,
-            color: '#666',
+            color: PALETTE.textSecondary,
             textAlign: 'center',
             display: 'flex',
             alignItems: 'center',
@@ -517,7 +518,7 @@ export const ChatPage: React.FC = () => {
         )}
 
         {/* 输入区域 */}
-        <div style={{ borderTop: stageMessage ? undefined : '1px solid #f0f0f0', padding: '12px 0' }}>
+        <div style={{ borderTop: stageMessage ? undefined : `1px solid ${PALETTE.borderSoft}`, padding: '12px 0' }}>
           <TextArea
             ref={inputRef}
             rows={3}

@@ -12,3 +12,5 @@
 {"at": "2026-09-13T04:09:07", "version": "45b3d889c8e3", "n": 40, "evidence_coverage": 1.0, "path_structure_consistency": 1.0, "graph_trigger_ratio": 0.5}
 {"at": "2026-09-13T04:17:16", "version": "50a7dacc06e7", "n": 40, "evidence_coverage": 1.0, "path_structure_consistency": 1.0, "graph_trigger_ratio": 0.5}
 {"at": "2026-09-13T04:19:14", "version": "50a7dacc06e7", "n": 40, "evidence_coverage": 1.0, "path_structure_consistency": 1.0, "graph_trigger_ratio": 0.5}
+{"at": "2026-09-13T23:49:43", "version": "50a7dacc06e7", "n": 40, "evidence_coverage": 1.0, "path_structure_consistency": 1.0, "graph_trigger_ratio": 0.5}
+{"at": "2026-09-14T01:23:19", "version": "ec9ae8cc570b", "n": 40, "evidence_coverage": 1.0, "path_structure_consistency": 1.0, "graph_trigger_ratio": 0.5}

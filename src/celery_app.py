@@ -11,7 +11,9 @@ docker-compose 中已定义 worker 服务，自动启动。
 """
 
 import os
+import time
 import logging
+import threading
 
 from celery import Celery
 from dotenv import load_dotenv
@@ -79,81 +81,95 @@ app = celery_app
 # Worker 健康检测
 # ──────────────────────────────────────────────
 
-# Celery Worker 心跳标记文件 (Windows 上 control.ping 不可靠)
+# Celery Worker 心跳标记文件 (Windows 上 control.ping 因 solo pool 不可靠)
 _CELERY_WORKER_HEARTBEAT = os.path.join(
     os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
     "logs", ".celery_worker_heartbeat"
 )
 
+_HEARTBEAT_INTERVAL = 30   # worker 每 30s 刷新一次
+# 超过这个时长未刷新判定离线。取 3 倍刷新间隔: 足够容忍抖动, 又不至于让死掉的
+# worker 装活太久(实测 180s 时, 进程已死但文件还"够新", 判定照样返回 True)。
+_HEARTBEAT_MAX_AGE = 90
 
-def _touch_heartbeat(**kwargs):
-    """创建/更新心跳文件 (在 worker 就绪时自动调用)"""
+
+def _touch_heartbeat():
+    """创建/更新心跳文件"""
     try:
         os.makedirs(os.path.dirname(_CELERY_WORKER_HEARTBEAT), exist_ok=True)
         with open(_CELERY_WORKER_HEARTBEAT, "w") as f:
             f.write(str(time.time()))
-    except Exception as e:
-        logger.debug("心跳文件写入失败 (可忽略): %s", e)
+    except OSError as e:
+        # 这里原来只记 debug 且函数体内用了未 import 的 time.time() → NameError 被
+        # 静默吞掉, 心跳文件从未更新, worker 在线检测一直靠 spawn PowerShell 扫进程。
+        logger.error("心跳文件写入失败 (Worker 在线检测会失准): %s", e)
 
 
-# Worker 就绪时自动创建心跳文件
-from celery.signals import worker_ready
-worker_ready.connect(_touch_heartbeat)
+_heartbeat_started = False
 
 
-def is_celery_worker_running(timeout: float = 2.0) -> bool:
+def _start_heartbeat(**kwargs):
+    """启动后台刷新线程 (由 worker 启动信号触发, 幂等)。
+
+    原来只在 worker_ready 里写一次 —— 而判定逻辑要求 120s 内刷新过,
+    于是跑够两分钟的 worker 会被判成离线。
     """
-    检测是否有 Celery Worker 正在消费队列
+    global _heartbeat_started
+    if _heartbeat_started:
+        return
+    _heartbeat_started = True
+    logger.info("Celery Worker 心跳已启动: %s", _CELERY_WORKER_HEARTBEAT)
+    _touch_heartbeat()
 
-    Windows 上 `control.ping()` 因 solo pool 限制会挂起，
-    改用进程检测 + 心跳文件双重保障。
+    def _loop():
+        while True:
+            time.sleep(_HEARTBEAT_INTERVAL)
+            _touch_heartbeat()
 
-    Returns:
-        True — 至少一个 Worker 在线
-        False — 无 Worker
+    threading.Thread(target=_loop, daemon=True, name="celery-heartbeat").start()
+
+
+def _stop_heartbeat(**kwargs):
+    """worker 正常退出时立刻删掉心跳文件。
+
+    不删的话它会一直躺在磁盘上, 在 `_HEARTBEAT_MAX_AGE` 窗口内让已死的 worker
+    继续被判为在线 —— 用户点上传, 任务投进队列却永远没人消费。
+    (进程被强杀时收不到这个信号, 那种情况由 max_age 兜底。)
     """
-    # 方式一: 心跳文件检测 (Worker 启动时创建)
-    if os.path.exists(_CELERY_WORKER_HEARTBEAT):
-        try:
-            mtime = os.path.getmtime(_CELERY_WORKER_HEARTBEAT)
-            import time
-            if time.time() - mtime < 120:
-                return True
-        except OSError as e:
-            logger.debug("心跳文件时间戳读取失败 (可忽略): %s", e)
-
-    # 方式二: 进程命令行检测 (Windows 兜底)
-    # 注意: worker 以 pythonw.exe 运行, tasklist 按 IMAGENAME 过滤匹配不到;
-    # 需用 PowerShell 按命令行匹配 (含 celery + celery_app + worker 的唯一进程)
     try:
-        import subprocess
-        ps_cmd = (
-            "Get-CimInstance Win32_Process -Filter \"name like 'python%'\" "
-            "| Where-Object { $_.CommandLine -match 'celery' -and "
-            "$_.CommandLine -match 'celery_app' -and $_.CommandLine -match 'worker' } "
-            "| Measure-Object | Select-Object -ExpandProperty Count"
-        )
-        kwargs = {}
-        if hasattr(subprocess, 'CREATE_NO_WINDOW'):
-            kwargs['creationflags'] = subprocess.CREATE_NO_WINDOW
-        result = subprocess.run(
-            ['powershell', '-NoProfile', '-Command', ps_cmd],
-            capture_output=True, encoding='utf-8', errors='replace',
-            timeout=5, **kwargs,
-        )
-        count = result.stdout.strip()
-        if result.returncode == 0 and count.isdigit() and int(count) > 0:
-            return True
-    except Exception as e:
-        logger.debug("进程命令行检测异常 (可忽略): %s", e)
+        os.remove(_CELERY_WORKER_HEARTBEAT)
+        logger.info("Celery Worker 心跳文件已清理")
+    except FileNotFoundError:
+        pass
+    except OSError as e:
+        logger.error("心跳文件清理失败: %s", e)
 
-    # 方式三: control.ping (Linux/macOS 上有效)
+
+from celery.signals import worker_ready, worker_init, worker_shutdown
+# worker_init 在 worker 进程一开始就发, worker_ready 在就绪后发。
+# 两个都接: 只依赖 worker_ready 时实测没触发(心跳文件长期不更新)。
+worker_init.connect(_start_heartbeat)
+worker_ready.connect(_start_heartbeat)
+worker_shutdown.connect(_stop_heartbeat)
+
+
+def is_celery_worker_running() -> bool:
+    """
+    检测是否有 Celery Worker 在线。
+
+    只认心跳文件 —— 它由 worker 自己每 30s 刷新, 是「worker 进程活着」最直接的证据。
+    原先还会 spawn 一次 PowerShell 扫进程命令行: 每次上传跑一次、批量上传 N 个文件
+    就并发 N 次, 且按命令行正则匹配本身带误报风险。
+    """
     try:
-        import platform
-        if platform.system() != "Windows":
-            result = celery_app.control.ping(timeout=timeout)
-            return len(result) > 0
-    except Exception as e:
-        logger.debug("control.ping 失败 (可忽略): %s", e)
+        mtime = os.path.getmtime(_CELERY_WORKER_HEARTBEAT)
+    except OSError:
+        logger.error("Celery Worker 心跳文件不存在: %s", _CELERY_WORKER_HEARTBEAT)
+        return False
 
+    age = time.time() - mtime
+    if age < _HEARTBEAT_MAX_AGE:
+        return True
+    logger.error("Celery Worker 心跳已过期 %.0fs (阈值 %ds), 判定为离线",
+                 age, _HEARTBEAT_MAX_AGE)
     return False

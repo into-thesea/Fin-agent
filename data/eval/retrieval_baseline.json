@@ -1,0 +1,629 @@
+{
+  "total": 40,
+  "recall": {
+    "1": 0.825,
+    "2": 0.95,
+    "3": 0.95,
+    "4": 0.975,
+    "5": 0.975
+  },
+  "mrr": 0.89375,
+  "per_record": [
+    {
+      "id": "g001",
+      "question": "稳盈添利30天风险等级是多少？",
+      "golden": [
+        "prod_p002.md"
+      ],
+      "retrieved": [
+        "prod_p002.md",
+        "prod_p003.md",
+        "risk_level.md",
+        "prod_p013.md",
+        "prod_p003.md"
+      ],
+      "hit_rank": 1
+    },
+    {
+      "id": "g002",
+      "question": "日日盈现金管理类是存款吗？",
+      "golden": [
+        "prod_p001.md"
+      ],
+      "retrieved": [
+        "prod_p001.md",
+        "income_and_interest.md",
+        "prod_p001.md",
+        "prod_p001.md",
+        "prod_p011.md"
+      ],
+      "hit_rank": 1
+    },
+    {
+      "id": "g003",
+      "question": "大额存单受存款保险保障吗？",
+      "golden": [
+        "deposit_insurance.md",
+        "prod_p006.md"
+      ],
+      "retrieved": [
+        "deposit_insurance.md",
+        "prod_p006.md",
+        "prod_p006.md",
+        "prod_p006.md",
+        "prod_p016.md"
+      ],
+      "hit_rank": 1
+    },
+    {
+      "id": "g004",
+      "question": "银行理财是存款吗？存款保险赔吗？",
+      "golden": [
+        "deposit_insurance.md"
+      ],
+      "retrieved": [
+        "deposit_insurance.md",
+        "deposit_insurance.md",
+        "prod_p010.md",
+        "insurance_products.md",
+        "deposit_insurance.md"
+      ],
+      "hit_rank": 1
+    },
+    {
+      "id": "g005",
+      "question": "我测评是R2，能买平衡增利180天吗？",
+      "golden": [
+        "prod_p004.md",
+        "risk_level.md"
+      ],
+      "retrieved": [
+        "prod_p004.md",
+        "prod_p004.md",
+        "prod_p013.md",
+        "risk_level.md",
+        "prod_p015.md"
+      ],
+      "hit_rank": 1
+    },
+    {
+      "id": "g006",
+      "question": "结构性存款的收益是保证的吗？",
+      "golden": [
+        "prod_p007.md"
+      ],
+      "retrieved": [
+        "prod_p007.md",
+        "prod_p007.md",
+        "prod_p010.md",
+        "prod_p007.md",
+        "insurance_products.md"
+      ],
+      "hit_rank": 1
+    },
+    {
+      "id": "g007",
+      "question": "业绩比较基准是什么意思？",
+      "golden": [
+        "income_and_interest.md",
+        "terms_faq.md"
+      ],
+      "retrieved": [
+        "income_and_interest.md",
+        "terms_faq.md",
+        "prod_p003.md",
+        "prod_p002.md",
+        "prod_p010.md"
+      ],
+      "hit_rank": 1
+    },
+    {
+      "id": "g008",
+      "question": "安鑫纯债基金是你们银行发行的吗？",
+      "golden": [
+        "agency_products.md",
+        "prod_p008.md"
+      ],
+      "retrieved": [
+        "prod_p008.md",
+        "agency_products.md",
+        "prod_p008.md",
+        "prod_p008.md",
+        "prod_p006.md"
+      ],
+      "hit_rank": 1
+    },
+    {
+      "id": "g009",
+      "question": "盛世稳赢增额终身寿是理财吗？",
+      "golden": [
+        "insurance_products.md",
+        "prod_p010.md"
+      ],
+      "retrieved": [
+        "prod_p010.md",
+        "insurance_knowledge.md",
+        "prod_p010.md",
+        "insurance_products.md",
+        "prod_p019.md"
+      ],
+      "hit_rank": 1
+    },
+    {
+      "id": "g010",
+      "question": "增额终身寿买了能退吗？",
+      "golden": [
+        "insurance_products.md",
+        "prod_p010.md"
+      ],
+      "retrieved": [
+        "prod_p019.md",
+        "prod_p010.md",
+        "insurance_knowledge.md",
+        "insurance_products.md",
+        "insurance_products.md"
+      ],
+      "hit_rank": 2
+    },
+    {
+      "id": "g011",
+      "question": "犹豫期内退保能全退吗？",
+      "golden": [
+        "insurance_products.md"
+      ],
+      "retrieved": [
+        "insurance_products.md",
+        "prod_p019.md",
+        "prod_p011.md",
+        "prod_p016.md",
+        "prod_p010.md"
+      ],
+      "hit_rank": 1
+    },
+    {
+      "id": "g012",
+      "question": "保险退保超了犹豫期会亏吗？",
+      "golden": [
+        "insurance_products.md",
+        "prod_p010.md"
+      ],
+      "retrieved": [
+        "insurance_products.md",
+        "prod_p016.md",
+        "prod_p010.md",
+        "prod_p011.md",
+        "insurance_products.md"
+      ],
+      "hit_rank": 1
+    },
+    {
+      "id": "g013",
+      "question": "理财产品能承诺保本保收益吗？",
+      "golden": [
+        "income_and_interest.md"
+      ],
+      "retrieved": [
+        "income_and_interest.md",
+        "prod_p004.md",
+        "prod_p023.md",
+        "prod_p006.md",
+        "prod_p005.md"
+      ],
+      "hit_rank": 1
+    },
+    {
+      "id": "g014",
+      "question": "首次线上买理财要办什么？",
+      "golden": [
+        "buy_process.md"
+      ],
+      "retrieved": [
+        "buy_process.md",
+        "buy_process.md",
+        "fraud_report.md",
+        "agency_products.md",
+        "terms_faq.md"
+      ],
+      "hit_rank": 1
+    },
+    {
+      "id": "g015",
+      "question": "买理财为什么要双录？",
+      "golden": [
+        "buy_process.md"
+      ],
+      "retrieved": [
+        "buy_process.md",
+        "fraud_report.md",
+        "terms_faq.md",
+        "buy_process.md",
+        "fraud_report.md"
+      ],
+      "hit_rank": 1
+    },
+    {
+      "id": "g016",
+      "question": "申购后没到确认前能不能撤单？",
+      "golden": [
+        "buy_process.md",
+        "redeem_and_fee.md"
+      ],
+      "retrieved": [
+        "redeem_and_fee.md",
+        "buy_process.md",
+        "redeem_and_fee.md",
+        "insurance_products.md",
+        "terms_faq.md"
+      ],
+      "hit_rank": 1
+    },
+    {
+      "id": "g017",
+      "question": "固定期限理财没到期能取出来吗？",
+      "golden": [
+        "prod_p004.md",
+        "redeem_and_fee.md"
+      ],
+      "retrieved": [
+        "redeem_and_fee.md",
+        "deposit_insurance.md",
+        "prod_p012.md",
+        "redeem_and_fee.md",
+        "redeem_and_fee.md"
+      ],
+      "hit_rank": 1
+    },
+    {
+      "id": "g018",
+      "question": "大额存单提前支取按什么利率？",
+      "golden": [
+        "prod_p006.md"
+      ],
+      "retrieved": [
+        "redeem_and_fee.md",
+        "prod_p006.md",
+        "prod_p006.md",
+        "prod_p006.md",
+        "prod_p020.md"
+      ],
+      "hit_rank": 2
+    },
+    {
+      "id": "g019",
+      "question": "提前赎回会收费吗？",
+      "golden": [
+        "redeem_and_fee.md"
+      ],
+      "retrieved": [
+        "redeem_and_fee.md",
+        "prod_p015.md",
+        "redeem_and_fee.md",
+        "prod_p004.md",
+        "prod_p020.md"
+      ],
+      "hit_rank": 1
+    },
+    {
+      "id": "g020",
+      "question": "理财产品的管理费谁出？",
+      "golden": [
+        "redeem_and_fee.md"
+      ],
+      "retrieved": [
+        "redeem_and_fee.md",
+        "income_and_interest.md",
+        "prod_p001.md",
+        "prod_p015.md",
+        "prod_p002.md"
+      ],
+      "hit_rank": 1
+    },
+    {
+      "id": "g021",
+      "question": "存款保险赔付限额是多少？",
+      "golden": [
+        "deposit_insurance.md"
+      ],
+      "retrieved": [
+        "deposit_insurance.md",
+        "deposit_insurance.md",
+        "deposit_insurance.md",
+        "prod_p007.md",
+        "terms_faq.md"
+      ],
+      "hit_rank": 1
+    },
+    {
+      "id": "g022",
+      "question": "我在两家银行各存50万，都受保障吗？",
+      "golden": [
+        "deposit_insurance.md"
+      ],
+      "retrieved": [
+        "terms_faq.md",
+        "deposit_insurance.md",
+        "prod_p007.md",
+        "prod_p016.md",
+        "insurance_products.md"
+      ],
+      "hit_rank": 2
+    },
+    {
+      "id": "g023",
+      "question": "保本高收益的内部理财靠谱吗？",
+      "golden": [
+        "fraud_report.md"
+      ],
+      "retrieved": [
+        "fraud_report.md",
+        "income_and_interest.md",
+        "risk_level.md",
+        "fraud_report.md",
+        "prod_p004.md"
+      ],
+      "hit_rank": 1
+    },
+    {
+      "id": "g024",
+      "question": "疑似被骗转了钱怎么办？",
+      "golden": [
+        "fraud_report.md",
+        "privacy_security.md"
+      ],
+      "retrieved": [
+        "fraud_report.md",
+        "complaints_human.md",
+        "privacy_security.md",
+        "complaints_human.md",
+        "prod_p021.md"
+      ],
+      "hit_rank": 1
+    },
+    {
+      "id": "g025",
+      "question": "正规理财怎么核实真伪？",
+      "golden": [
+        "fraud_report.md"
+      ],
+      "retrieved": [
+        "fraud_report.md",
+        "fraud_report.md",
+        "deposit_insurance.md",
+        "fraud_report.md",
+        "terms_faq.md"
+      ],
+      "hit_rank": 1
+    },
+    {
+      "id": "g026",
+      "question": "大额存单和固收理财哪个适合我？",
+      "golden": [
+        "income_and_interest.md",
+        "prod_p002.md",
+        "prod_p006.md"
+      ],
+      "retrieved": [
+        "prod_p006.md",
+        "prod_p006.md",
+        "prod_p006.md",
+        "prod_p006.md",
+        "prod_p004.md"
+      ],
+      "hit_rank": 1
+    },
+    {
+      "id": "g027",
+      "question": "有哪些R2的30天理财？",
+      "golden": [
+        "prod_p002.md",
+        "prod_p003.md"
+      ],
+      "retrieved": [
+        "prod_p003.md",
+        "prod_p002.md",
+        "asset_allocation.md",
+        "prod_p003.md",
+        "bond_knowledge.md"
+      ],
+      "hit_rank": 1
+    },
+    {
+      "id": "g028",
+      "question": "私银聚享混合策略谁能买？",
+      "golden": [
+        "prod_p005.md"
+      ],
+      "retrieved": [
+        "prod_p005.md",
+        "prod_p009.md",
+        "prod_p005.md",
+        "prod_p017.md",
+        "prod_p014.md"
+      ],
+      "hit_rank": 1
+    },
+    {
+      "id": "g029",
+      "question": "R3风险等级是什么意思？",
+      "golden": [
+        "risk_level.md"
+      ],
+      "retrieved": [
+        "prod_p004.md",
+        "prod_p022.md",
+        "prod_p004.md",
+        "risk_level.md",
+        "prod_p004.md"
+      ],
+      "hit_rank": 4
+    },
+    {
+      "id": "g030",
+      "question": "风险测评等级R1能买什么产品？",
+      "golden": [
+        "catalog.jsonl",
+        "risk_level.md"
+      ],
+      "retrieved": [
+        "risk_level.md",
+        "risk_level.md",
+        "agency_products.md",
+        "risk_level.md",
+        "prod_p013.md"
+      ],
+      "hit_rank": 1
+    },
+    {
+      "id": "g031",
+      "question": "结构性存款和普通理财哪个安全？",
+      "golden": [
+        "deposit_insurance.md",
+        "prod_p007.md"
+      ],
+      "retrieved": [
+        "prod_p007.md",
+        "prod_p007.md",
+        "deposit_insurance.md",
+        "prod_p007.md",
+        "prod_p020.md"
+      ],
+      "hit_rank": 1
+    },
+    {
+      "id": "g032",
+      "question": "远见成长混合基金会亏本金吗？",
+      "golden": [
+        "prod_p009.md"
+      ],
+      "retrieved": [
+        "prod_p009.md",
+        "insurance_products.md",
+        "fund_knowledge.md",
+        "prod_p015.md",
+        "risk_level.md"
+      ],
+      "hit_rank": 1
+    },
+    {
+      "id": "g033",
+      "question": "信用卡逾期会影响房贷申请吗？",
+      "golden": [
+        "terms_faq.md"
+      ],
+      "retrieved": [
+        "terms_faq.md",
+        "prod_p023.md",
+        "prod_p024.md",
+        "prod_p019.md",
+        "redeem_and_fee.md"
+      ],
+      "hit_rank": 1
+    },
+    {
+      "id": "g034",
+      "question": "怎么查询我的持仓？",
+      "golden": [
+        "privacy_security.md"
+      ],
+      "retrieved": [
+        "privacy_security.md",
+        "fraud_report.md",
+        "terms_faq.md",
+        "redeem_and_fee.md",
+        "complaints_human.md"
+      ],
+      "hit_rank": 1
+    },
+    {
+      "id": "g035",
+      "question": "客服会索要我的短信验证码吗？",
+      "golden": [
+        "privacy_security.md"
+      ],
+      "retrieved": [
+        "privacy_security.md",
+        "privacy_security.md",
+        "privacy_security.md",
+        "complaints_human.md",
+        "privacy_security.md"
+      ],
+      "hit_rank": 1
+    },
+    {
+      "id": "g036",
+      "question": "收到高收益理财宣传应该信吗？",
+      "golden": [
+        "fraud_report.md"
+      ],
+      "retrieved": [
+        "fraud_report.md",
+        "fraud_report.md",
+        "fraud_report.md",
+        "risk_level.md",
+        "prod_p009.md"
+      ],
+      "hit_rank": 1
+    },
+    {
+      "id": "g037",
+      "question": "我把银行卡号告诉你帮我查",
+      "golden": [],
+      "retrieved": [
+        "privacy_security.md",
+        "privacy_security.md",
+        "privacy_security.md",
+        "privacy_security.md",
+        "prod_p021.md"
+      ],
+      "hit_rank": null
+    },
+    {
+      "id": "g038",
+      "question": "理财到期后钱多久到账？",
+      "golden": [
+        "prod_p002.md",
+        "redeem_and_fee.md"
+      ],
+      "retrieved": [
+        "income_and_interest.md",
+        "redeem_and_fee.md",
+        "risk_level.md",
+        "prod_p006.md",
+        "redeem_and_fee.md"
+      ],
+      "hit_rank": 2
+    },
+    {
+      "id": "g039",
+      "question": "为什么我的理财收益和基准不一样？",
+      "golden": [
+        "income_and_interest.md",
+        "terms_faq.md"
+      ],
+      "retrieved": [
+        "prod_p010.md",
+        "terms_faq.md",
+        "terms_faq.md",
+        "agency_products.md",
+        "prod_p009.md"
+      ],
+      "hit_rank": 2
+    },
+    {
+      "id": "g040",
+      "question": "我测评过期了还能买理财吗？",
+      "golden": [
+        "buy_process.md",
+        "risk_level.md"
+      ],
+      "retrieved": [
+        "risk_level.md",
+        "insurance_products.md",
+        "fraud_report.md",
+        "prod_p023.md",
+        "buy_process.md"
+      ],
+      "hit_rank": 1
+    }
+  ]
+}

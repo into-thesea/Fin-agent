@@ -4,6 +4,7 @@ import { FolderOpenOutlined, ApiOutlined, DatabaseOutlined, ThunderboltOutlined,
 import ReactECharts from 'echarts-for-react';
 import { api } from '../services/api';
 import type { Document, Metrics } from '../types/api';
+import { PALETTE, CHART_COLORS } from '../styles/theme';
 
 const { Title } = Typography;
 
@@ -76,6 +77,7 @@ export const DashboardPage: React.FC = () => {
     .sort((a, b) => new Date(a.upload_time).getTime() - new Date(b.upload_time).getTime());
 
   const trendOption = {
+    color: [...CHART_COLORS],
     tooltip: { trigger: 'axis' },
     grid: { left: 40, right: 20, bottom: 40 },
     xAxis: {
@@ -106,7 +108,16 @@ export const DashboardPage: React.FC = () => {
       endAngle: -20,
       min: 0,
       max: 100,
-      detail: { formatter: '{value}%', fontSize: 20 },
+      // 仪表盘是单值, 不用分类色板: 弧用主色, 轨道用最浅的边框色
+      axisLine: {
+        lineStyle: {
+          width: 14,
+          color: [[1, PALETTE.borderSoft]],
+        },
+      },
+      progress: { show: true, width: 14, itemStyle: { color: PALETTE.primary } },
+      pointer: { itemStyle: { color: PALETTE.primary } },
+      detail: { formatter: '{value}%', fontSize: 20, color: PALETTE.text },
       data: [{ value: metrics?.cache_hit_ratio || 0, name: '缓存命中率' }],
     }],
   };
@@ -119,6 +130,7 @@ export const DashboardPage: React.FC = () => {
   }, {});
 
   const pieOption = {
+    color: [...CHART_COLORS],
     tooltip: { trigger: 'item' },
     series: [{
       type: 'pie',
@@ -164,7 +176,7 @@ export const DashboardPage: React.FC = () => {
         <Col xs={24} lg={12}>
           <Card title="📦 知识库增长趋势" size="small">
             {docs.length === 0 ? (
-              <div style={{ textAlign: 'center', padding: 40, color: '#999' }}>暂无数据</div>
+              <div style={{ textAlign: 'center', padding: 40, color: PALETTE.textMuted }}>暂无数据</div>
             ) : (
               <ReactECharts option={trendOption} style={{ height: 300 }} />
             )}
@@ -178,7 +190,7 @@ export const DashboardPage: React.FC = () => {
         <Col xs={24} sm={12} lg={6}>
           <Card title="📊 文档类型分布" size="small">
             {Object.keys(docTypes).length === 0 ? (
-              <div style={{ textAlign: 'center', padding: 40, color: '#999' }}>暂无数据</div>
+              <div style={{ textAlign: 'center', padding: 40, color: PALETTE.textMuted }}>暂无数据</div>
             ) : (
               <ReactECharts option={pieOption} style={{ height: 300 }} />
             )}

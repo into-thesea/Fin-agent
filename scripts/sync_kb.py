@@ -135,50 +135,48 @@ def report_chunk_changes(old_chunks: dict, new_chunks: dict) -> None:
 # ── 快照 / 回滚 ───────────────────────────────────────────────────
 
 def _artifacts():
-    from src.infra.paths import BM25_INDEX_PATH, CHUNKS_PROCESSED_PATH, FAISS_INDEX_DIR
-    return CHUNKS_PROCESSED_PATH, FAISS_INDEX_DIR, BM25_INDEX_PATH
+    from src.infra.paths import BM25_INDEX_PATH, CHUNKS_PROCESSED_PATH
+    return CHUNKS_PROCESSED_PATH, BM25_INDEX_PATH
 
 
 def snapshot() -> str:
-    chunks_p, faiss_d, bm25_p = _artifacts()
+    chunks_p, bm25_p = _artifacts()
     dst = os.path.join(BACKUP_ROOT, datetime.now().strftime("%Y%m%d_%H%M%S"))
     os.makedirs(dst, exist_ok=True)
     for p in (chunks_p, bm25_p):
         if os.path.exists(p):
             shutil.copy2(p, dst)
-    if os.path.isdir(faiss_d):
-        shutil.copytree(faiss_d, os.path.join(dst, "faiss_index"))
     return dst
 
 
 def restore(src: str) -> None:
-    chunks_p, faiss_d, bm25_p = _artifacts()
+    chunks_p, bm25_p = _artifacts()
     for p in (chunks_p, bm25_p):
         b = os.path.join(src, os.path.basename(p))
         if os.path.exists(b):
             shutil.copy2(b, p)
-    b = os.path.join(src, "faiss_index")
-    if os.path.isdir(b):
-        shutil.rmtree(faiss_d, ignore_errors=True)
-        shutil.copytree(b, faiss_d)
 
 
 # ── 校验 ──────────────────────────────────────────────────────────
 
 def verify(n_chunks: int) -> tuple[bool, str]:
-    """三路索引条数必须一致, 否则视为重建失败"""
-    import faiss
-    _, faiss_d, bm25_p = _artifacts()
+    """分块文件 / Milvus / BM25 三路条数必须一致, 否则视为重建失败
 
-    with open(os.path.join(faiss_d, "metadata.json"), "r", encoding="utf-8") as f:
-        n_meta = len(json.load(f))
-    n_vec = faiss.read_index(os.path.join(faiss_d, "index.faiss")).ntotal
+    快照/回滚只覆盖本地文件 (分块文件 + BM25); Milvus 是外部服务, 失败时
+    由下一次全量重建覆盖, 这里只做一致性核对。
+    """
+    from src.vectorstore.milvus_manager import MilvusManager
+
+    _, bm25_p = _artifacts()
     bm25_json = os.path.splitext(bm25_p)[0] + ".json"
     with open(bm25_json, "r", encoding="utf-8") as f:
         n_bm25 = json.load(f).get("total_docs", 0)
 
-    detail = f"chunks={n_chunks} faiss={n_vec} metadata={n_meta} bm25={n_bm25}"
-    return (n_chunks == n_vec == n_meta == n_bm25 and n_chunks > 0), detail
+    mgr = MilvusManager()
+    n_vec = mgr.total_count if mgr.available else -1
+
+    detail = f"chunks={n_chunks} milvus={n_vec} bm25={n_bm25}"
+    return (n_chunks == n_vec == n_bm25 and n_chunks > 0), detail
 
 
 # ── 灌图 / 回归 ───────────────────────────────────────────────────

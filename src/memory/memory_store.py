@@ -24,6 +24,9 @@ MEM_SESSION_PREFIX = "mem:session:"
 MEM_USER_PREFIX = "mem:user:"
 MEM_USER_COLLECTION = "kefu_user_memory"
 MEM_DIM = int(os.getenv("MILVUS_DIM", "768"))
+# Collection.load() 不带 timeout 会无限轮询 (Milvus 半死状态下会挂住调用方)
+CONNECT_TIMEOUT = float(os.getenv("MILVUS_CONNECT_TIMEOUT", "5"))
+LOAD_TIMEOUT = float(os.getenv("MILVUS_LOAD_TIMEOUT", "10"))
 
 
 class MemoryStore:
@@ -58,8 +61,9 @@ class MemoryStore:
         try:
             from pymilvus import connections, utility, Collection, CollectionSchema, FieldSchema, DataType
             connections.connect(alias="default", host=os.getenv("MILVUS_HOST", "127.0.0.1"),
-                                port=os.getenv("MILVUS_PORT", "19530"))
-            if not utility.has_collection(MEM_USER_COLLECTION):
+                                port=os.getenv("MILVUS_PORT", "19530"),
+                                timeout=CONNECT_TIMEOUT)
+            if not utility.has_collection(MEM_USER_COLLECTION, timeout=CONNECT_TIMEOUT):
                 fields = [
                     FieldSchema(name="id", dtype=DataType.INT64, is_primary=True, auto_id=True),
                     FieldSchema(name="user_id", dtype=DataType.VARCHAR, max_length=128),
@@ -68,7 +72,7 @@ class MemoryStore:
                 ]
                 col = Collection(MEM_USER_COLLECTION, CollectionSchema(fields, "用户长期记忆"))
                 col.create_index("embedding", {"index_type": "AUTOINDEX", "metric_type": "COSINE", "params": {}})
-            Collection(MEM_USER_COLLECTION).load()
+            Collection(MEM_USER_COLLECTION).load(timeout=LOAD_TIMEOUT)
             self._milvus_ok = True
         except Exception as e:
             logger.warning("MemoryStore Milvus 不可用 (向量记忆降级): %s", e)

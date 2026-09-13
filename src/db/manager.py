@@ -350,6 +350,23 @@ class DBManager:
         logger.info(f"文档 {filename} {action}: v{new_version} (ID: {doc_id})")
         return doc_id
 
+    def update_document_status(self, doc_id: int, status: str, count: int = None) -> bool:
+        """更新文档状态 / 分块数
+
+        配合 ETL 的「先占位、后收尾」: 流水线一开始就以 status='processing' 登记,
+        这样并发的第二条流水线在去重检查处就能看到记录并跳过, 不会重复写向量。
+        """
+        cursor = self.conn.cursor()
+        if count is None:
+            cursor.execute("UPDATE documents SET status = ? WHERE id = ?", (status, doc_id))
+        else:
+            cursor.execute(
+                "UPDATE documents SET status = ?, chunks_count = ? WHERE id = ?",
+                (status, count, doc_id),
+            )
+        self.conn.commit()
+        return cursor.rowcount > 0
+
     def get_document_by_id(self, doc_id: int) -> Optional[dict]:
         cursor = self.conn.cursor()
         cursor.execute("SELECT * FROM documents WHERE id = ?", (doc_id,))
@@ -652,6 +669,17 @@ class DBManager:
             (task_id, filename, time.ctime()),
         )
         self.conn.commit()
+
+    def get_task(self, task_id: str) -> Optional[dict]:
+        """按 task_id 查任务记录 (Redis TTL 过期后的历史兜底)"""
+        cursor = self.conn.cursor()
+        cursor.execute(
+            "SELECT task_id, filename, status, progress, stage, error, started_at, finished_at "
+            "FROM task_logs WHERE task_id = ?",
+            (task_id,),
+        )
+        row = cursor.fetchone()
+        return dict(row) if row else None
 
     def update_task(self, task_id: str, status: str, progress: int = None, stage: str = None, error: str = None):
         cursor = self.conn.cursor()

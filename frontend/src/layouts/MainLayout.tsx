@@ -5,8 +5,10 @@ import {
   RobotOutlined, FolderOpenOutlined, DashboardOutlined,
   SettingOutlined, BugOutlined, UserOutlined, PhoneOutlined,
   MenuFoldOutlined, MenuUnfoldOutlined, LogoutOutlined, AlertOutlined,
+  ExperimentOutlined,
 } from '@ant-design/icons';
 import { useAuthStore } from '../stores/authStore';
+import { PALETTE } from '../styles/theme';
 
 const { Header, Sider, Content } = Layout;
 const { Text } = Typography;
@@ -16,6 +18,7 @@ const menuItems = [
   { key: '/knowledge', icon: <FolderOpenOutlined />, label: '知识库管理' },
   { key: '/dashboard', icon: <DashboardOutlined />, label: '数据看板' },
   { key: '/llmops', icon: <BugOutlined />, label: '服务监控' },
+  { key: '/eval', icon: <ExperimentOutlined />, label: '评测看板' },
   { key: '/badcase', icon: <AlertOutlined />, label: '质量复盘' },
   { key: '/handoff', icon: <PhoneOutlined />, label: '坐席工作台' },
   { key: '/admin', icon: <SettingOutlined />, label: '系统管理' },
@@ -26,7 +29,7 @@ export const MainLayout: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, logout } = useAuthStore();
-  const { token: { colorBgContainer, borderRadiusLG } } = theme.useToken();
+  const { token: { colorBgContainer, colorBorderSecondary, borderRadiusLG } } = theme.useToken();
 
   // 如果没有登录，跳转登录页
   if (!user) {
@@ -47,7 +50,7 @@ export const MainLayout: React.FC = () => {
   // 双端菜单: admin=全部 / analyst=客服+监控+坐席 / user=仅客服
   const visibleMenu = user.role === 'admin' ? menuItems
     : user.role === 'analyst'
-      ? menuItems.filter((m) => ['/chat', '/llmops', '/handoff'].includes(m.key))
+      ? menuItems.filter((m) => ['/chat', '/llmops', '/handoff', '/eval'].includes(m.key))
       : [menuItems[0]];
 
   // 路由守卫: 当前路径不在本角色允许范围内 → 强制回 /chat
@@ -58,34 +61,29 @@ export const MainLayout: React.FC = () => {
 
   return (
     <Layout style={{ height: '100vh' }}>
-      <Sider
-        trigger={null}
-        collapsible
-        collapsed={collapsed}
-        theme="light"
-        style={{ borderRight: '1px solid #f0f0f0' }}
-      >
-        <div style={{
-          height: 64, display: 'flex', alignItems: 'center',
-          justifyContent: 'center', borderBottom: '1px solid #f0f0f0',
-        }}>
-          <Text strong style={{ fontSize: collapsed ? 16 : 18, color: '#1677ff' }}>
+      <Sider trigger={null} collapsible collapsed={collapsed} theme="dark" width={216}>
+        <div
+          className="fa-sider-logo"
+          style={{ height: 64, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+        >
+          <Text strong style={{ fontSize: collapsed ? 16 : 18, color: '#ffffff', letterSpacing: 1 }}>
             {collapsed ? '客服' : '理财智能客服'}
           </Text>
         </div>
         <Menu
           mode="inline"
+          theme="dark"
           selectedKeys={[location.pathname]}
           items={visibleMenu}
           onClick={({ key }) => navigate(key)}
-          style={{ borderRight: 0 }}
+          style={{ borderRight: 0, marginTop: 8 }}
         />
       </Sider>
       <Layout>
         <Header style={{
           padding: '0 24px', background: colorBgContainer,
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          borderBottom: '1px solid #f0f0f0', height: 64,
+          borderBottom: `1px solid ${colorBorderSecondary}`, height: 64,
         }}>
           <Button
             type="text"
@@ -93,13 +91,17 @@ export const MainLayout: React.FC = () => {
             onClick={() => setCollapsed(!collapsed)}
           />
           <Dropdown menu={userMenu} placement="bottomRight">
-            <Avatar icon={<UserOutlined />} style={{ cursor: 'pointer', backgroundColor: '#1677ff' }} />
+            <Avatar
+              icon={<UserOutlined />}
+              style={{ cursor: 'pointer', backgroundColor: PALETTE.primary }}
+            />
           </Dropdown>
         </Header>
         <Content style={{ margin: 16, overflow: 'auto' }}>
           <div style={{
             padding: 16, minHeight: '100%',
             background: colorBgContainer, borderRadius: borderRadiusLG,
+            boxShadow: '0 1px 2px rgba(16, 24, 40, 0.04)',
           }}>
             <Outlet />
           </div>

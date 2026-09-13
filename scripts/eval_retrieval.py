@@ -91,8 +91,14 @@ def main():
     parser.add_argument("--eval", default=DEFAULT_EVAL, help="评测集路径 (默认 scripts/eval_qa.jsonl)")
     parser.add_argument("--max-k", type=int, default=10, help="检索 top-K 上限 (默认 10)")
     parser.add_argument("--file-level", action="store_true", help="文档级宽松匹配 (同文档任意 chunk 命中即算, 用于诊断 golden 不唯一)")
+    parser.add_argument("--by-evidence", action="store_true",
+                        help="用评测集的 evidence(文件名) 对齐检索结果的 source 字段。"
+                             "理财 golden (data/eval/finance_qa_golden.jsonl) 用的是 evidence, "
+                             "不指定时若记录里没有 golden_chunk_ids 会自动启用该模式")
     parser.add_argument("--rerank", action="store_true", help="启用重排 (本地有 bge-reranker-base 用 CrossEncoder, 否则 SparseBoost)")
-    parser.add_argument("--rerank-type", choices=["auto", "cross", "sparse"], default="auto", help="重排器类型 (默认 auto; cross=强制CrossEncoder, sparse=强制SparseBoost)")
+    parser.add_argument("--rerank-type", choices=["auto", "api", "cross", "sparse"], default="auto",
+                        help="重排器类型: api=DashScope语义精排(推荐) / cross=本地CrossEncoder / "
+                             "sparse=自研SparseBoost(实测负收益,仅供复现) / auto=有CE模型用CE否则用api")
     parser.add_argument("--lambd", type=float, default=0.6, help="SparseBoost 重叠率权重 (默认 0.6)")
     parser.add_argument("--pool-k", type=int, default=0, help="候选池大小 (默认 0=auto: max(max_k*6,30); 调大提升覆盖率)")
     parser.add_argument("--limit", type=int, default=0, help="只处理前 N 条 (0=全部; 分批跑可防 CPU 长跑 segfault)")
@@ -112,55 +118,88 @@ def main():
     scope = f" (第 {args.offset+1}-{args.offset+len(records)} 条)" if (args.offset or args.limit) else ""
     print(f"📋 评测集: {len(records)} 条问题{scope}")
 
-    chunk_map, prefix_index = build_chunk_map()
-    missing = 0
-    for r in records:
-        for g in r.get("golden_chunk_ids") or []:
-            if g not in chunk_map:
-                missing += 1
-                print(f"  ⚠️  golden chunk 不在分块文件中: {g}")
-    if missing:
-        print(f"   (以上 {missing} 个 golden 不在索引来源中, 对应问题的 Recall 可能偏低)")
+    # 对齐方式: golden_chunk_ids (chunk 级) 还是 evidence (文件名级)
+    has_chunk_ids = any(r.get("golden_chunk_ids") for r in records)
+    has_evidence = any(r.get("evidence") for r in records)
+    use_evidence = args.by_evidence or (not has_chunk_ids and has_evidence)
+    if use_evidence:
+        print("🔗 对齐方式: evidence(文件名) ↔ 检索结果 source")
+    if not use_evidence:
+        chunk_map, prefix_index = build_chunk_map()
+        missing = 0
+        for r in records:
+            for g in r.get("golden_chunk_ids") or []:
+                if g not in chunk_map:
+                    missing += 1
+                    print(f"  ⚠️  golden chunk 不在分块文件中: {g}")
+        if missing:
+            print(f"   (以上 {missing} 个 golden 不在索引来源中, 对应问题的 Recall 可能偏低)")
+    else:
+        prefix_index = {}
 
     retriever = HybridRetriever()
-    print("🔍 混合检索器就绪 (FAISS + BM25 + 图谱 + 社区)\n")
+    print("🔍 混合检索器就绪 (Milvus + BM25 + 图谱)\n")
 
-    # 可选 SparseBoost 重排: 扩大候选池 (pool_k) 后按稀疏信号精排
+    # 可选精排: 扩大候选池 (pool_k) 后再收敛到 max_k
     reranker = None
     pool_k = max_k
     if args.rerank:
-        from src.retrieval.reranker import SparseReranker
         pool_k = args.pool_k or max(max_k * 6, 30)
         ce_path = os.path.join(
             os.path.dirname(os.path.abspath(__file__)), "..", "models", "bge-reranker-base"
         )
-        # rerank-type: auto(有模型用CE) / cross(强制CE) / sparse(强制SparseBoost)
+        # rerank-type: api(DashScope 语义精排, 推荐) / cross(本地CrossEncoder) /
+        #              sparse(自研 SparseBoost —— 实测负收益, 仅用于复现结论)
         want_cross = (args.rerank_type == "cross") or (
             args.rerank_type == "auto" and os.path.exists(ce_path)
         )
-        if want_cross:
+        if args.rerank_type == "api":
+            from src.retrieval.reranker import ApiReranker
+            reranker = ApiReranker()
+            print(f"🔎 语义精排 (gte-rerank-v2): 候选池 {pool_k} → 精排取 top-{max_k}\n")
+        elif want_cross:
             try:
                 from src.retrieval.reranker import CrossEncoderReranker
                 reranker = CrossEncoderReranker(ce_path)
                 print(f"🔎 CrossEncoder 精排已启用 (两阶段: 池{pool_k}→粗排30→精排{max_k})\n")
             except Exception as e:
-                print(f"⚠️ CrossEncoder 加载失败, 回退 SparseBoost: {e}")
+                print(f"⚠️ CrossEncoder 加载失败, 改用语义精排: {e}")
                 reranker = None
         if reranker is None:
-            reranker = SparseReranker(lambd_overlap=args.lambd)
-            print(f"🔎 SparseBoost 精排 (lambd={args.lambd}): 候选池 {pool_k} → 精排取 top-{max_k}\n")
+            # 兜底用语义精排, 不用 SparseBoost —— 后者在理财域实测负收益(见 reranker.py)
+            if args.rerank_type == "sparse":
+                from src.retrieval.reranker import SparseReranker
+                reranker = SparseReranker(lambd_overlap=args.lambd)
+                print(f"🔎 SparseBoost 精排 (lambd={args.lambd}, 实测负收益, 仅供复现): "
+                      f"候选池 {pool_k} → 精排取 top-{max_k}\n")
+            else:
+                from src.retrieval.reranker import ApiReranker
+                reranker = ApiReranker()
+                print(f"🔎 语义精排 (gte-rerank-v2): 候选池 {pool_k} → 精排取 top-{max_k}\n")
 
     hits = {k: 0 for k in range(1, max_k + 1)}
     mrr_total = 0.0
     no_chunk_id = 0
     per_record = []
 
+    def key_of(item):
+        """把一个检索结果映射成用于比对 golden 的键"""
+        if use_evidence:
+            return item.get("source") or None
+        cid = chunk_key(item, prefix_index)
+        if cid is None:
+            return None
+        return file_prefix(cid) if args.file_level else cid
+
     for i, rec in enumerate(records, 1):
         q = rec["question"]
-        golden = set(rec.get("golden_chunk_ids") or [])
-        # 文档级宽松模式: golden 与检索结果都映射为文件前缀再比较
-        if args.file_level:
-            golden = {file_prefix(g) for g in golden}
+        if use_evidence:
+            golden = set(rec.get("evidence") or [])
+        else:
+            golden = set(rec.get("golden_chunk_ids") or [])
+            # 文档级宽松模式: golden 与检索结果都映射为文件前缀再比较
+            if args.file_level:
+                golden = {file_prefix(g) for g in golden}
         try:
             result = retriever.hybrid_retrieve(q, top_k=pool_k)
         except Exception as e:
@@ -178,16 +217,17 @@ def main():
         else:
             retrieved = retrieved[:max_k]
 
-        # 命中判定: 前 k 条内是否出现 golden chunk
+        # 命中判定: 前 k 条内是否出现 golden
         rank = None
         for k in range(1, max_k + 1):
             ids = set()
             for item in retrieved[:k]:
-                cid = chunk_key(item, prefix_index)
-                if cid is None:
-                    no_chunk_id += 1
+                key = key_of(item)
+                if key is None:
+                    if not use_evidence:
+                        no_chunk_id += 1
                     continue
-                ids.add(file_prefix(cid) if args.file_level else cid)
+                ids.add(key)
             if ids & golden:
                 hits[k] += 1
                 if rank is None:
@@ -201,7 +241,7 @@ def main():
             "id": rec.get("id"),
             "question": q,
             "golden": sorted(golden),
-            "retrieved": [chunk_key(x, prefix_index) for x in retrieved],
+            "retrieved": [key_of(x) for x in retrieved],
             "hit_rank": rank,
         })
         if i % 10 == 0 or i == len(records):
@@ -210,10 +250,12 @@ def main():
     n = len(records)
     mode_label = " (文档级宽松)" if args.file_level else " (chunk 级严格)"
     if args.rerank:
-        if reranker is not None and type(reranker).__name__ == "CrossEncoderReranker":
-            mode_label += " + CrossEncoder"
-        else:
-            mode_label += f" + SparseBoost(lambd={args.lambd})"
+        _name = type(reranker).__name__ if reranker is not None else "None"
+        mode_label += {
+            "ApiReranker": " + 语义精排(gte-rerank-v2)",
+            "CrossEncoderReranker": " + CrossEncoder",
+            "SparseReranker": f" + SparseBoost(lambd={args.lambd})",
+        }.get(_name, f" + {_name}")
     print("\n" + "=" * 46)
     print(f"📊 检索召回率报告{mode_label}")
     print("=" * 46)

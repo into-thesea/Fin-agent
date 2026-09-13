@@ -13,6 +13,7 @@ Fin-Agent 知识库路由 (文档管理 + ETL 任务追踪)
 import os
 import logging
 import asyncio
+import hashlib
 from datetime import datetime
 
 from fastapi import APIRouter, HTTPException, UploadFile, File, Depends
@@ -30,15 +31,14 @@ router = APIRouter(prefix="/api/v1/knowledge", tags=["知识库"],
 async def _aio(fn, *args, **kwargs):
     return await asyncio.to_thread(fn, *args, **kwargs)
 
-# 同步任务结果内存兜底 (Redis no-op 时使用)
-_SYNC_TASK_RESULTS: dict[str, dict] = {}
-
 # 上传配置
 from src.infra.paths import DATA_REPORTS_DIR
 UPLOAD_DIR = DATA_REPORTS_DIR
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 MAX_FILE_SIZE = 50 * 1024 * 1024  # 50MB
+READ_CHUNK = 1024 * 1024  # 1MB
+MAX_BATCH_FILES = 20        # 单次批量上传的文件数上限
 
 
 # ──────────────────────────────────────────────
@@ -47,25 +47,42 @@ MAX_FILE_SIZE = 50 * 1024 * 1024  # 50MB
 
 
 async def _process_upload(file: UploadFile) -> dict:
-    """处理单个文件上传：校验 → 存储 → 去重 → 提交 ETL"""
+    """处理单个文件上传：校验 → 去重 → 落盘 → 提交 ETL
+
+    Celery Worker 是硬要求, 不再降级到后台线程 —— 两条路原先跑的是两套分块
+    (按页切 vs 章节感知) 和两套索引流程, 同一份 PDF 因「当时 worker 在不在」
+    而产出不同结果。环境没准备好就该直接报错, 而不是给一个更差的答案。
+    """
     if not file.filename or not file.filename.endswith(".pdf"):
-        return {"filename": file.filename or "unknown", "status": "rejected", "message": "仅支持 PDF 文件"}
+        return {"filename": file.filename or "unknown", "status": "rejected",
+                "message": "仅支持 PDF 文件"}
 
-    content = await file.read()
-    if len(content) > MAX_FILE_SIZE:
-        return {"filename": file.filename, "status": "rejected", "message": "文件大小超过 50MB 限制"}
+    # 边读边算哈希并校验大小: 原先 `await file.read()` 先把整个文件读进内存,
+    # 再判断 50MB 上限 —— N 个文件并发就是 N×文件大小 的常驻内存。
+    digest = hashlib.sha256()
+    total = 0
+    parts: list[bytes] = []
+    while True:
+        part = await file.read(READ_CHUNK)
+        if not part:
+            break
+        total += len(part)
+        if total > MAX_FILE_SIZE:
+            return {"filename": file.filename, "status": "rejected",
+                    "message": "文件大小超过 50MB 限制"}
+        digest.update(part)
+        parts.append(part)
 
+    content_hash = digest.hexdigest()  # 与 db_manager.compute_file_hash 同为裸 SHA256
     safe_name = file.filename.replace(" ", "_").replace("/", "_")
-    file_path = os.path.join(UPLOAD_DIR, safe_name)
-    with open(file_path, "wb") as f:
-        f.write(content)
 
     from src.database import db_manager
-    content_hash = db_manager.compute_file_hash(file_path)
     existing = db_manager.find_document_by_hash(content_hash)
-
     if existing:
-        os.remove(file_path)
+        # 关键: 这里不能「先落盘、再去重、重复就删」。
+        # 同名同内容重复上传时, 盘上那个文件正是**已入库文档的 PDF 源文件**,
+        # 删掉它会让已入库文档的源文件消失, 之后删除该文档也找不到 PDF。
+        # 去重通过前不碰磁盘即可根除。
         logger.info("文件重复 (hash=%s): %s", content_hash[:12], safe_name)
         return {
             "filename": safe_name,
@@ -75,117 +92,46 @@ async def _process_upload(file: UploadFile) -> dict:
             "content_hash": content_hash,
         }
 
-    # ── 检测 Celery Worker；不可用时降级到同步 ETL ──
     from src.celery_app import is_celery_worker_running
+    if not is_celery_worker_running():
+        logger.error("拒绝上传: ETL Worker 未运行 (file=%s)", safe_name)
+        return {
+            "filename": safe_name,
+            "status": "rejected",
+            "message": "ETL Worker 未运行，无法处理上传。请启动 Celery Worker 后重试。",
+        }
+
+    file_path = os.path.join(UPLOAD_DIR, safe_name)
+    with open(file_path, "wb") as f:
+        for part in parts:
+            f.write(part)
+
     version_tag = f"api_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+    from src.tasks.etl_tasks import etl_pipeline_task
+    task = etl_pipeline_task.delay(
+        pdf_path=file_path.replace("\\", "/"),
+        filename=safe_name,
+        version_tag=version_tag,
+    )
 
-    if is_celery_worker_running():
-        # 异步路径: Celery Worker 在线
-        from src.tasks.etl_tasks import etl_pipeline_task
+    # 记录 task_id → task_logs, 删除文档时的 Celery revoke 依赖它。
+    # 原先这张表无人写入, 导致「取消正在跑的任务」是死代码。
+    try:
+        db_manager.create_task(task.id, safe_name)
+    except Exception as e:
+        logger.error("task_logs 写入失败 (%s): %s", task.id, e)
 
-        task = etl_pipeline_task.delay(
-            pdf_path=file_path.replace("\\", "/"),
-            filename=safe_name,
-            version_tag=version_tag,
-        )
-
-        logger.info(
-            "上传任务已提交 (异步): file=%s, task_id=%s",
-            safe_name, task.id,
-            extra={"task_id": task.id, "file": safe_name},
-        )
-        return {
-            "filename": safe_name,
-            "status": "accepted",
-            "task_id": task.id,
-            "content_hash": content_hash,
-            "sync_mode": False,
-        }
-    else:
-        # 同步降级: 后台线程跑 ETL，API 立即返回 (fire-and-forget)
-        import uuid
-        import threading
-        sync_task_id = f"sync_{uuid.uuid4().hex[:12]}"
-        logger.info("Celery Worker 不可用, 切换同步模式 (后台): file=%s, task_id=%s", safe_name, sync_task_id)
-
-        # 写入初始状态到 Redis + 内存兜底 (供前端轮询)
-        from src.cache.redis_client import RedisCache
-        cache = RedisCache()
-        cache.set_task_status(
-            task_id=sync_task_id,
-            status="processing",
-            progress=0,
-            stage="starting",
-        )
-        _SYNC_TASK_RESULTS[sync_task_id] = {
-            "task_id": sync_task_id,
-            "status": "processing",
-            "progress": 0,
-            "stage": "starting",
-        }
-
-        # 后台线程运行 ETL，不阻塞 API 响应
-        from src.core.pipeline_manager import ingest_document
-
-        def _run_sync_etl():
-            """在后台线程中运行 ETL 并更新状态"""
-            try:
-                result = ingest_document(
-                    pdf_path=file_path.replace("\\", "/"),
-                    source_label="upload_sync",
-                    version_tag=version_tag,
-                    task_id_for_progress=sync_task_id,
-                )
-                status = result.get("status", "failed")
-                if status in ("success", "skipped"):
-                    cache.set_task_status(
-                        task_id=sync_task_id,
-                        status="completed",
-                        progress=100,
-                        stage="completed",
-                    )
-                else:
-                    cache.set_task_status(
-                        task_id=sync_task_id,
-                        status="failed",
-                        progress=0,
-                        stage="failed",
-                        error=result.get("error", "ETL 流水线执行失败"),
-                    )
-                _SYNC_TASK_RESULTS[sync_task_id] = {
-                    "task_id": sync_task_id,
-                    "status": "completed" if status in ("success", "skipped") else "failed",
-                    "progress": 100 if status in ("success", "skipped") else 0,
-                    "stage": "completed" if status in ("success", "skipped") else "failed",
-                    "error": result.get("error", "") if status != "success" else "",
-                }
-            except Exception as e:
-                logger.error("同步 ETL 失败 (%s): %s", safe_name, e, exc_info=True)
-                cache.set_task_status(
-                    task_id=sync_task_id,
-                    status="failed",
-                    progress=0,
-                    stage="failed",
-                    error=str(e)[:200],
-                )
-                _SYNC_TASK_RESULTS[sync_task_id] = {
-                    "task_id": sync_task_id,
-                    "status": "failed",
-                    "progress": 0,
-                    "stage": "failed",
-                    "error": str(e)[:200],
-                }
-
-        thread = threading.Thread(target=_run_sync_etl, daemon=True)
-        thread.start()
-
-        return {
-            "filename": safe_name,
-            "status": "accepted",
-            "task_id": sync_task_id,
-            "content_hash": content_hash,
-            "sync_mode": True,
-        }
+    logger.info(
+        "上传任务已提交: file=%s, task_id=%s",
+        safe_name, task.id,
+        extra={"task_id": task.id, "file": safe_name},
+    )
+    return {
+        "filename": safe_name,
+        "status": "accepted",
+        "task_id": task.id,
+        "content_hash": content_hash,
+    }
 
 
 @router.post("/upload")
@@ -215,6 +161,13 @@ async def batch_upload(files: list[UploadFile] = File(...)):
     """
     if not files:
         raise HTTPException(status_code=400, detail="未选择任何文件")
+    # 并发闸: 原先无任何上限, 前端一次全塞、后端 asyncio.gather 全并行。
+    # 超出就明确拒绝, 而不是把 N 个文件的解析与向量化一次性压进内存和 Worker 队列。
+    if len(files) > MAX_BATCH_FILES:
+        raise HTTPException(
+            status_code=400,
+            detail=f"单次最多上传 {MAX_BATCH_FILES} 个文件（当前 {len(files)} 个），请分批上传",
+        )
 
     import asyncio
     _raw_results = await asyncio.gather(
@@ -276,18 +229,53 @@ async def knowledge_stats():
 # ──────────────────────────────────────────────
 
 
+def _remove_chunks_of(filename: str) -> int:
+    """从全量分块文件里移除某文档的所有分块, 返回移除条数。
+
+    这是原先完全缺失的一步: chunks_processed.jsonl 是**追加型**文件, 删文档时
+    不清它, 下一次任何重建(BM25 / 向量索引)都会把已删
+    文档的分块重新写回索引 —— 删除看起来生效了, 重建一次全复活。
+    """
+    import json
+    from src.infra.paths import CHUNKS_PROCESSED_PATH
+    if not os.path.exists(CHUNKS_PROCESSED_PATH):
+        return 0
+    kept, removed = [], 0
+    with open(CHUNKS_PROCESSED_PATH, "r", encoding="utf-8") as f:
+        for line in f:
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                c = json.loads(line)
+            except json.JSONDecodeError:
+                continue  # 损坏行丢弃, 与 read_lines 行为一致
+            if c.get("source") == filename:
+                removed += 1
+            else:
+                kept.append(line)
+    if removed:
+        tmp = CHUNKS_PROCESSED_PATH + ".tmp"
+        with open(tmp, "w", encoding="utf-8") as f:
+            f.write("\n".join(kept) + ("\n" if kept else ""))
+            f.flush()
+            os.fsync(f.fileno())
+        os.replace(tmp, CHUNKS_PROCESSED_PATH)
+    return removed
+
+
 @router.delete("/documents/{doc_id}")
 async def delete_document(doc_id: int):
     """
     删除文档及其所有关联数据
 
-    清理项:
-      1. SQLite 元数据库记录
-      2. PDF 源文件
-      3. FAISS 向量索引（逻辑删除）
-      4. Celery 任务撤销（如果仍在运行）
+    清理顺序(有依赖): 分块文件 → BM25 重建 → FAISS/Milvus 向量 → PDF → Celery → SQLite
 
-    Returns: {"deleted": bool, "message": str, "details": dict}
+    任一步失败则**不删 SQLite 记录**, 文档仍留在列表里可以重试 ——
+    否则记录没了、索引里的残留却还在, 用户既看不到也删不掉。
+    索引清理干净后才摘掉记录。
+
+    Returns: {"deleted": bool, "message": str, "details": dict, "errors": dict}
     """
     from src.database import db_manager
 
@@ -297,62 +285,91 @@ async def delete_document(doc_id: int):
         if not doc:
             return {"_404": True}
 
-        details = {"sqlite": False, "pdf": False, "faiss": False, "celery": False}
-
-        # 1. SQLite 删除
-        details["sqlite"] = db_manager.delete_document(doc_id)
-
-        # 2. PDF 源文件删除
-        pdf_path = None
         filename = doc.get("filename", "")
-        for candidate in [filename, filename.replace(" ", "_"), os.path.join(UPLOAD_DIR, filename)]:
-            full_path = os.path.join(UPLOAD_DIR, os.path.basename(candidate))
-            if os.path.exists(full_path):
-                pdf_path = full_path
-                break
-        if pdf_path:
+        details = {"chunks": 0, "bm25": False, "milvus": 0,
+                   "pdf": False, "celery": False, "sqlite": False}
+        errors: dict = {}
+
+        # 1. 分块文件 (必须在 BM25 重建之前)
+        try:
+            details["chunks"] = _remove_chunks_of(filename)
+        except Exception as e:
+            errors["chunks"] = str(e)
+            logger.error("分块文件清理失败 (%s): %s", filename, e, exc_info=True)
+
+        # 2. BM25 重建 —— 索引里不再有该文档
+        try:
+            from src.infra.paths import CHUNKS_PROCESSED_PATH, BM25_INDEX_PATH
+            from src.retrieval.bm25_index import rebuild_bm25_index
+            rebuild_bm25_index(CHUNKS_PROCESSED_PATH, BM25_INDEX_PATH)
+            details["bm25"] = True
+        except Exception as e:
+            errors["bm25"] = str(e)
+            logger.error("BM25 重建失败 (%s): %s", filename, e, exc_info=True)
+
+        # 3. 向量: Milvus (唯一向量后端)
+        #    key 必须是 filename —— 索引 metadata 里的 document_id 存的就是文件名
+        #    (vector_indexer / pipeline_manager 都传 file_name)。
+        #    原先传的是 SQLite 自增 id, 永远匹配不上, 实际删除 0 条。
+        try:
+            from src.vectorstore.milvus_manager import MilvusManager
+            details["milvus"] = MilvusManager().delete_by_document(filename)
+        except Exception as e:
+            errors["milvus"] = str(e)
+            logger.error("Milvus 删除失败 (%s): %s", filename, e, exc_info=True)
+
+        # 4. PDF 源文件
+        pdf_path = os.path.join(UPLOAD_DIR, os.path.basename(filename))
+        if os.path.exists(pdf_path):
             try:
                 os.remove(pdf_path)
                 details["pdf"] = True
-                logger.info("已删除 PDF: %s", pdf_path)
             except OSError as e:
-                logger.warning("PDF 删除失败 %s: %s", pdf_path, e)
+                errors["pdf"] = str(e)
+                logger.error("PDF 删除失败 %s: %s", pdf_path, e)
 
-        # 3. FAISS 向量删除
-        try:
-            from src.cache.faiss_manager import faiss_manager
-            count = faiss_manager.delete_by_document(str(doc_id))
-            details["faiss"] = count > 0
-        except Exception as e:
-            logger.warning("FAISS 删除异常: %s", e)
-
-        # 4. Celery 任务撤销
+        # 5. Celery 任务撤销 (task_id 由上传时写入 task_logs)
         try:
             from src.celery_app import celery_app
             cursor = db_manager.conn.cursor()
             cursor.execute(
-                "SELECT task_id FROM task_logs WHERE filename = ? AND status NOT IN ('completed', 'failed')",
+                "SELECT task_id FROM task_logs WHERE filename = ? "
+                "AND status NOT IN ('completed', 'failed')",
                 (filename,),
             )
             task_row = cursor.fetchone()
             if task_row and task_row["task_id"]:
-                celery_app.control.revoke(task_row["task_id"], terminate=True, signal='SIGTERM')
+                celery_app.control.revoke(task_row["task_id"], terminate=True, signal="SIGTERM")
                 details["celery"] = True
         except Exception as e:
-            logger.warning("Celery 撤销异常: %s", e)
+            errors["celery"] = str(e)
+            logger.error("Celery 撤销失败 (%s): %s", filename, e, exc_info=True)
 
-        return {"_404": False, "details": details, "filename": doc.get("filename", "")}
+        # 6. SQLite 记录 —— 只在索引侧全部清理成功后才摘掉
+        if errors:
+            logger.error("文档 %s 删除未完成, 保留记录以便重试: %s", filename, errors)
+        else:
+            details["sqlite"] = db_manager.delete_document(doc_id)
+
+        return {"_404": False, "details": details, "errors": errors, "filename": filename}
 
     result = await _aio(_delete_sync)
     if result.get("_404"):
         raise HTTPException(status_code=404, detail=f"文档 ID {doc_id} 不存在")
 
     details = result["details"]
+    errors = result["errors"]
     filename = result["filename"]
-    success = details["sqlite"]
+
+    if errors:
+        raise HTTPException(
+            status_code=500,
+            detail=f"文档 '{filename}' 删除未完成, 已保留记录可重试。失败项: {errors}",
+        )
+
     return {
-        "deleted": success,
-        "message": f"文档 '{filename}' 删除成功" if success else "文档删除失败",
+        "deleted": details["sqlite"],
+        "message": f"文档 '{filename}' 删除成功" if details["sqlite"] else "文档记录删除失败",
         "details": details,
     }
 

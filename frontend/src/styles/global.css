@@ -1,4 +1,25 @@
-/* Fin-Agent 全局样式 */
+/* Fin-Agent 全局样式
+ *
+ * 颜色一律走变量 —— 源在 src/styles/theme.ts, 两边保持一致。
+ * 不要在组件里写死十六进制值。
+ */
+:root {
+  --fa-sidebar: #1b2436;
+  --fa-sidebar-selected: #2d3b57;
+  --fa-sidebar-text: #c9d2e3;
+  --fa-surface: #f5f6f8;
+  --fa-card: #ffffff;
+  --fa-border: #e5e7eb;
+  --fa-border-soft: #f0f2f5;
+  --fa-muted-bg: #f6f8fa;
+  --fa-primary: #2563eb;
+  --fa-primary-soft: #eff4ff;
+  --fa-accent: #0ea5e9;
+  --fa-text: #1f2937;
+  --fa-text-secondary: #6b7280;
+  --fa-text-muted: #9ca3af;
+}
+
 * {
   margin: 0;
   padding: 0;
@@ -8,12 +29,44 @@
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'PingFang SC', 'Microsoft YaHei', sans-serif;
   -webkit-font-smoothing: antialiased;
+  color: var(--fa-text);
+  background: var(--fa-surface);
 }
 
 #root {
   height: 100vh;
   width: 100vw;
   overflow: hidden;
+}
+
+/* 侧栏: 选中项左侧亮蓝色条 —— 深色侧栏下光靠底色深浅不易辨认当前页 */
+.ant-menu-dark .ant-menu-item {
+  position: relative;
+}
+
+.ant-menu-dark .ant-menu-item-selected::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 8px;
+  bottom: 8px;
+  width: 3px;
+  border-radius: 0 3px 3px 0;
+  background: var(--fa-accent);
+}
+
+/* 侧栏 logo 区在深色底上的分隔线 */
+.fa-sider-logo {
+  border-bottom: 1px solid #26314a;
+}
+
+/* 侧栏滚动条收深, 避免浅色滚动条在深色底上突兀 */
+.ant-layout-sider ::-webkit-scrollbar {
+  width: 6px;
+}
+.ant-layout-sider ::-webkit-scrollbar-thumb {
+  background: #3a4761;
+  border-radius: 3px;
 }
 
 /* 流式消息打字动画 */
@@ -28,10 +81,10 @@ body {
 
 /* 溯源卡片 */
 .evidence-card {
-  border-left: 3px solid #1677ff;
+  border-left: 3px solid var(--fa-primary);
   margin: 8px 0;
   padding: 8px 12px;
-  background: #f6f8fa;
+  background: var(--fa-muted-bg);
   border-radius: 4px;
   font-size: 13px;
 }
@@ -39,12 +92,12 @@ body {
 /* 进度条自定义 */
 .etl-progress .ant-progress-text {
   font-size: 13px;
-  color: #666;
+  color: var(--fa-text-secondary);
 }
 
 /* 登录页背景 */
 .login-bg {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #1b2436 0%, #2d3b57 55%, #2563eb 140%);
 }
 
 /* 图表容器 */

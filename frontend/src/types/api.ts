@@ -157,3 +157,39 @@ export interface AuditLog {
   user_id: string;
   timestamp: string;
 }
+
+// ── 评测看板 ──
+
+export interface EvalRow {
+  id: string;
+  question: string;
+  intent: string;
+  evidence_covered: boolean;
+  path_consistent: boolean | null;
+  graph_hit: boolean;
+  entities?: string[];
+}
+
+export interface EvalHistoryPoint {
+  at: string;
+  version: string;
+  n: number;
+  evidence_coverage: number | null;
+  path_structure_consistency: number | null;
+  graph_trigger_ratio: number | null;
+}
+
+export interface EvalSummary {
+  current: {
+    version: string;
+    golden_n: number;
+    n: number;
+    metrics: Record<string, number | null>;
+    rows: EvalRow[];
+    online: unknown | null;
+  } | null;
+  history: EvalHistoryPoint[];
+  metric_labels: Record<string, string>;
+  available: { history: boolean; report: boolean; online: boolean };
+  raw_history_count: number;
+}

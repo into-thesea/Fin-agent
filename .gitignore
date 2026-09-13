@@ -75,3 +75,11 @@ data/_backup_kb_expand/
 
 # 运行期缓存 (可重建)
 data/semantic_cache.db
+
+# Milvus 卷备份 (本地回滚点, 不入库)
+.vol_backup/
+
+# 运行时产物
+.fin-agent.pid
+.fin-celery.pid
+frontend/tsconfig.tsbuildinfo

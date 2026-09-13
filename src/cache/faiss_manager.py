@@ -140,7 +140,11 @@ class FaissIndexManager:
         with self._rw_lock:
             for i, idx in enumerate(indices[0]):
                 if 0 <= idx < len(self._metadata):
-                    meta = self._metadata[idx].copy()
+                    meta = self._metadata[idx]
+                    # 已删除条目必须跳过 —— 否则删除只改了标记, 检索照样召回
+                    if meta.get("deleted"):
+                        continue
+                    meta = meta.copy()
                     meta["score"] = float(distances[0][i])
                     meta["faiss_idx"] = int(idx)  # 用于 MMR 向量重构
                     results.append(meta)
@@ -189,7 +193,10 @@ class FaissIndexManager:
                 q_results = []
                 for i, idx in enumerate(indices[q_idx]):
                     if 0 <= idx < len(self._metadata):
-                        meta = self._metadata[idx].copy()
+                        meta = self._metadata[idx]
+                        if meta.get("deleted"):
+                            continue  # 同上: 已删除条目不召回
+                        meta = meta.copy()
                         meta["score"] = float(distances[q_idx][i])
                         q_results.append(meta)
                 all_results.append(q_results)
@@ -217,8 +224,13 @@ class FaissIndexManager:
             return
 
         with self._rw_lock:  # 写锁 — 阻塞所有读
+            # 必须先确保已从磁盘加载。否则新进程的首次 add_embeddings 会看到
+            # _index is None 而新建一个空索引, 落盘时把已有的 index.faiss
+            # **整个覆盖**掉 —— 实测: 知识库重建出的 213 条向量, 上传一次文档后
+            # 磁盘上只剩该文档的 2 条。
+            self._ensure_loaded()
             if self._index is None:
-                # 首次创建索引
+                # 索引文件不存在或为空 → 真正的首次创建
                 self._dimension = embeddings.shape[1]
                 self._index = faiss.IndexFlatIP(self._dimension)
                 self._metadata = []
@@ -267,40 +279,39 @@ class FaissIndexManager:
         return count
 
     def _rebuild(self):
-        """重建索引（过滤已删除条目）"""
-        active = [
-            (i, m) for i, m in enumerate(self._metadata)
-            if not m.get("deleted")
-        ]
+        """重建索引（过滤已删除条目）
 
+        必须**同时**重建向量索引与 metadata。原实现只重写 metadata.json 就把
+        索引置空重载, 而磁盘上的 index.faiss 仍是旧的、向量数不变 —— 于是
+        metadata 的第 i 项不再对应索引的第 i 条向量, 检索命中会配上错误的内容
+        与归属(引用张冠李戴), 且尾部合法向量被 `idx < len(metadata)` 静默丢弃。
+        """
+        if self._index is None:
+            return
+        active = [(i, m) for i, m in enumerate(self._metadata) if not m.get("deleted")]
+
+        old_index = self._index
         if not active:
             self._index = None
             self._metadata = []
             self._index_ntotal = 0
+            faiss.write_index(old_index, os.path.join(self._index_dir, "index.faiss"))
+            self._persist_metadata()
             logger.warning("重建后索引为空")
             return
 
-        # 重新提取有效向量和元数据
-        old_index = self._index
-        if old_index is None:
-            return
+        # 按保留条目取回向量, 建一个全新的连续索引 —— 下标与 metadata 重新对齐
+        vectors = np.vstack([
+            old_index.reconstruct(int(i)).reshape(1, -1) for i, _ in active
+        ]).astype("float32")
+        new_index = faiss.IndexFlatIP(old_index.d)
+        new_index.add(vectors)
 
-        # 注意: FAISS 不支持按 ID 提取向量
-        # 这里我们通过重建整个索引来过滤已删除条目
-        # 对于 IVF 索引需要特殊处理
-        # 简化方案: 将 active indices 重新排为连续的
-        new_metadata = [m for _, m in active]
-        # 重建索引需要重新 encode，这里只能持久化新元数据
-        # 并标记需要完全重建
-        self._metadata = new_metadata
-        self._persist_metadata()
-
-        # 标记索引为未加载，下次 search 时会重新从磁盘加载
-        self._loaded = False
-        self._index = None
-        logger.info(
-            f"索引重建完成: {len(new_metadata)} 条有效向量"
-        )
+        self._index = new_index
+        self._metadata = [m for _, m in active]
+        self._index_ntotal = new_index.ntotal
+        self._persist()
+        logger.info("索引重建完成: %d 条有效向量 (索引与 metadata 已同步)", len(self._metadata))
 
     # ──────────────────────────────────────────────
     # 持久化
@@ -326,6 +337,19 @@ class FaissIndexManager:
     # ──────────────────────────────────────────────
     # 重置
     # ──────────────────────────────────────────────
+
+    def replace_all(self):
+        """丢弃当前索引, 从空索引重新开始 (全量重建用)。
+
+        置 `_loaded = True` 是关键 —— 不置的话后续 add_embeddings 里的
+        `_ensure_loaded()` 会把磁盘上的旧索引再读回来, 新数据追加在旧数据后面。
+        """
+        with self._rw_lock:
+            self._index = None
+            self._metadata = []
+            self._index_ntotal = 0
+            self._loaded = True
+        logger.info("FAISS 索引已清空, 准备全量重建")
 
     def reset(self):
         """清空并重置索引（用于测试）"""

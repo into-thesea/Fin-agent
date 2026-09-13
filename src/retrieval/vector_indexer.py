@@ -2,9 +2,8 @@
 Fin-Agent 向量索引构建器 (企业版)
 
 支持:
-  - 增量构建 FAISS 索引 (通过 FaissIndexManager)
+  - 增量写入 Milvus 向量库 (唯一向量后端)
   - 文档级元数据追踪 (document_id, page, source)
-  - 线程安全
 """
 
 import os
@@ -16,8 +15,6 @@ import numpy as np
 import torch
 from sentence_transformers import SentenceTransformer
 from dotenv import load_dotenv
-
-from src.cache.faiss_manager import FaissIndexManager
 
 logger = logging.getLogger(__name__)
 
@@ -111,58 +108,46 @@ def add_chunks_to_index(
     )
     embeddings = np.array(embeddings).astype("float32")
 
-    # 4. 通过 FaissIndexManager 增量更新 (线程安全)
-    manager = FaissIndexManager()
-    manager.add_embeddings(embeddings, metadata_list)
+    # 4. 写入 Milvus —— 唯一向量后端。
+    #    此处是两条 ETL 路径的共同收口, 写在这里保证不会漏。
+    #    不可用/写入失败会直接抛错 —— 静默跳过会造成「数据库说成功、索引里没有」。
+    from src.vectorstore.milvus_manager import MilvusManager
+    milvus = MilvusManager()
+    milvus.add_embeddings(embeddings, metadata_list)
 
-    logger.info(f"向量索引增量更新完成: 总数 {manager.total_count}")
+    logger.info(f"向量写入完成: Milvus {milvus.total_count} 条")
     return len(embeddings)
 
 
-def rebuild_full_index(
-    chunks_file: str = None,
-    output_dir: str = None,
-) -> int:
-    """
-    全量重建向量索引
+def rebuild_vector_index(chunks_file: str = None) -> int:
+    """全量重建向量索引 (Milvus 唯一后端)
 
-    Args:
-        chunks_file: JSONL 分块文件路径
-        output_dir: 索引输出目录
+    从 chunks_processed.jsonl 编码后整批灌入 Milvus —— 先清空 collection 再写。
+    不再经过 FAISS 中转。
     """
     if chunks_file is None:
         from src.infra.paths import CHUNKS_PROCESSED_PATH
         chunks_file = CHUNKS_PROCESSED_PATH
-    if output_dir is None:
-        from src.infra.paths import FAISS_INDEX_DIR
-        output_dir = FAISS_INDEX_DIR
 
-    # 1. 读取全部分块
-    all_chunks = []
     with open(chunks_file, "r", encoding="utf-8") as f:
-        for line in f:
-            all_chunks.append(json.loads(line))
+        all_chunks = [json.loads(line) for line in f if line.strip()]
+    logger.info(f"全量向量重建: {len(all_chunks)} 个分块")
 
-    logger.info(f"全量索引重建: {len(all_chunks)} 个分块")
+    from src.vectorstore.milvus_manager import MilvusManager
+    mgr = MilvusManager()
+    if not mgr.available:
+        raise RuntimeError("Milvus 不可用 —— 无法重建向量索引 (没有降级后端)")
+    mgr.reset()   # 全量重建: 先清空 collection
 
-    # 2. 重置索引
-    manager = FaissIndexManager()
-
-    # 3. 分批编码并添加 (防止 OOM)
     batch_size = 64
-    total = 0
     model = _get_model()
-
     for i in range(0, len(all_chunks), batch_size):
         batch = all_chunks[i:i + batch_size]
-        texts = [c["content"] for c in batch]
-
-        embeddings = model.encode(
-            texts,
+        embeddings = np.array(model.encode(
+            [c["content"] for c in batch],
             normalize_embeddings=True,
             batch_size=batch_size,
-        )
-        embeddings = np.array(embeddings).astype("float32")
+        )).astype("float32")
 
         metadata_list = [
             {
@@ -176,27 +161,18 @@ def rebuild_full_index(
             }
             for c in batch
         ]
+        # add_embeddings 内部已 flush, 逐批落盘
+        mgr.add_embeddings(embeddings, metadata_list)
+        logger.info(f"  进度: {min(i + batch_size, len(all_chunks))}/{len(all_chunks)}")
 
-        if i == 0:
-            # 首次：创建新索引
-            from src.cache.faiss_manager import FaissIndexManager as FIM
-            # Hack: 直接设置 manager 的索引
-            import faiss
-            manager._index = faiss.IndexFlatIP(embeddings.shape[1])
-            manager._metadata = []
-
-        manager.add_embeddings(embeddings, metadata_list)
-        total += len(batch)
-        logger.info(f"  进度: {total}/{len(all_chunks)}")
-
-    logger.info(f"全量索引重建完成: {total} 条向量")
-    return total
+    logger.info(f"全量向量重建完成: Milvus {mgr.total_count} 条")
+    return len(all_chunks)
 
 
 if __name__ == "__main__":
     # CLI 模式
     import sys
     if "--rebuild" in sys.argv:
-        rebuild_full_index()
+        rebuild_vector_index()
     else:
         print("用法: python src/vector_indexer.py --rebuild")

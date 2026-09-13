@@ -33,6 +33,9 @@ L2_THRESHOLD = float(os.getenv("CACHE_L2_THRESHOLD", "0.82"))
 MAX_ENTRIES = int(os.getenv("CACHE_MAX_ENTRIES", "2000"))
 TTL_DAYS = int(os.getenv("CACHE_TTL_DAYS", "1"))
 DIM = int(os.getenv("MILVUS_DIM", "768"))
+# 与 milvus_manager 同源: Collection.load() 不带 timeout 会无限轮询
+CONNECT_TIMEOUT = float(os.getenv("MILVUS_CONNECT_TIMEOUT", "5"))
+LOAD_TIMEOUT = float(os.getenv("MILVUS_LOAD_TIMEOUT", "10"))
 
 _YEAR_RE = re.compile(r"20\d{2}")
 _ORDER_RE = re.compile(r"SO\d+")
@@ -57,7 +60,8 @@ class GatewayCache:
         try:
             from pymilvus import connections, utility, Collection, CollectionSchema, FieldSchema, DataType
             connections.connect(alias="default", host=os.getenv("MILVUS_HOST", "127.0.0.1"),
-                                port=os.getenv("MILVUS_PORT", "19530"))
+                                port=os.getenv("MILVUS_PORT", "19530"),
+                                timeout=CONNECT_TIMEOUT)
             if not utility.has_collection(CACHE_COLLECTION):
                 fields = [
                     FieldSchema(name="id", dtype=DataType.INT64, is_primary=True, auto_id=True),
@@ -70,12 +74,14 @@ class GatewayCache:
                 ]
                 col = Collection(CACHE_COLLECTION, CollectionSchema(fields, "问答语义缓存"))
                 col.create_index("embedding", {"index_type": "AUTOINDEX", "metric_type": "COSINE", "params": {}})
-            Collection(CACHE_COLLECTION).load()
+            # 必须带 timeout: 不带时 pymilvus 会无限轮询 wait_for_loading_collection,
+            # Milvus 半死状态下整个问答请求会永久挂住(实测)。
+            Collection(CACHE_COLLECTION).load(timeout=LOAD_TIMEOUT)
             self._ok = True
             logger.info("GatewayCache: Milvus 语义缓存就绪")
         except Exception as e:
             self._ok = False
-            logger.warning("GatewayCache: Milvus 不可用, 语义缓存降级内存: %s", e)
+            logger.error("GatewayCache: Milvus 不可用, 语义缓存降级为进程内存: %s", e)
         return self._ok
 
     def _embed(self, text: str):

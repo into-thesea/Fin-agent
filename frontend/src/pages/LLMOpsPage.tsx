@@ -7,6 +7,7 @@ import {
 import ReactECharts from 'echarts-for-react';
 import { api } from '../services/api';
 import type { AuditLog, Metrics, SLI } from '../types/api';
+import { PALETTE, CHART_COLORS } from '../styles/theme';
 
 const { Title } = Typography;
 
@@ -98,11 +99,13 @@ export const LLMOpsPage: React.FC = () => {
       type: 'bar',
       data: recentLogs.map((l) => l.latency || 0),
       itemStyle: {
+        // 同色系渐变(主色 -> 浅蓝), 柱顶 4px 圆角、底边贴基线
+        borderRadius: [4, 4, 0, 0],
         color: {
           type: 'linear', x: 0, y: 0, x2: 0, y2: 1,
           colorStops: [
-            { offset: 0, color: '#1677ff' },
-            { offset: 1, color: '#91caff' },
+            { offset: 0, color: PALETTE.primary },
+            { offset: 1, color: '#93c5fd' },
           ],
         },
       },
@@ -114,6 +117,7 @@ export const LLMOpsPage: React.FC = () => {
     .map(([k, v]) => ({ name: INTENT_LABELS[k] || k, value: v }))
     .filter((d) => d.value > 0);
   const intentOption = {
+    color: [...CHART_COLORS],
     tooltip: { trigger: 'item' },
     legend: { bottom: 0 },
     series: [{

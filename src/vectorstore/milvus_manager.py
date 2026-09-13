@@ -1,14 +1,18 @@
 """
-Milvus 向量索引管理器 (P0)
+Milvus 向量索引管理器 (P0) —— 系统唯一的向量后端
 
-接口镜像 FaissIndexManager，供 HybridRetriever 无缝切换：
-  - Milvus 可用 → 用 Milvus（检索外置、可分布式、支撑记忆/语义缓存）
-  - Milvus 不可用 → 自动降级 FAISS（现有路径不变，系统不崩）
+刻意**没有降级后端**:
+  - Milvus 不可用时, search/add/delete 直接抛 MilvusUnavailableError,
+    绝不静默返回空 —— 返回空会让用户看到「未找到资料」而不是「检索服务故障」,
+    前者是错误答案, 后者是可修复的故障。
+  - 曾经有一条「Milvus 挂了降级 FAISS」的分支, 已删除: 两种后端会给出不同答案
+    (同一问题在不同机器上结果不同), 且 FAISS 路径下上传的新文档根本进不去。
 
 设计要点:
-  - pymilvus 懒加载：未安装或 Milvus 未启动时，模块 import 不报错，
-    search/add 等方法静默返回空 / no-op，日志提示降级。
-  - 向量距离：COSINE（与 FAISS IndexFlatIP + 归一化向量等价）。
+  - pymilvus 懒加载：未安装时模块 import 不报错，各方法经 available 短路。
+  - 连接与 load 都带边界超时 —— pymilvus 的 Collection.load() 不传 timeout 时会
+    无限轮询, Milvus 半死状态下整个请求会永久挂住(实测)。
+  - 向量距离：COSINE（归一化向量下的内积等价）。
   - 删除：Milvus 原生硬删除（小库场景最简单）。
 """
 
@@ -39,10 +43,22 @@ MILVUS_HOST = os.getenv("MILVUS_HOST", "127.0.0.1")
 MILVUS_PORT = os.getenv("MILVUS_PORT", "19530")
 MILVUS_COLLECTION = os.getenv("MILVUS_COLLECTION", "kefu_chunks")
 MILVUS_DIM = int(os.getenv("MILVUS_DIM", "768"))
+# 连接与 load 的边界超时。pymilvus 的 Collection.load() 不传 timeout 时,
+# wait_for_loading_collection 会**无限轮询** —— Milvus 半死状态下整个请求永久挂住。
+CONNECT_TIMEOUT = float(os.getenv("MILVUS_CONNECT_TIMEOUT", "5"))
+LOAD_TIMEOUT = float(os.getenv("MILVUS_LOAD_TIMEOUT", "10"))
+
+
+class MilvusUnavailableError(RuntimeError):
+    """Milvus 不可用或操作失败。
+
+    刻意不降级: 向量检索是答案正确性的一部分, 静默返回空会让用户看到
+    「未找到相关资料」而不是「检索服务故障」——前者是错误答案, 后者是可修复的故障。
+    """
 
 
 class MilvusManager:
-    """Milvus 向量索引管理器 (全局单例，接口对齐 FaissIndexManager)"""
+    """Milvus 向量索引管理器 (全局单例)"""
 
     _instance: Optional['MilvusManager'] = None
     _lock = threading.RLock()
@@ -85,20 +101,33 @@ class MilvusManager:
                 return self._connected
             self._check_done = True
             try:
-                connections.connect(alias="default", host=MILVUS_HOST, port=MILVUS_PORT)
+                connections.connect(alias="default", host=MILVUS_HOST, port=MILVUS_PORT,
+                                    timeout=CONNECT_TIMEOUT)
                 self._connected = True
                 logger.info("Milvus 连接成功: %s:%s", MILVUS_HOST, MILVUS_PORT)
             except Exception as e:
                 self._connected = False
-                logger.warning("Milvus 不可用 (%s), 向量检索降级到 FAISS", e)
+                logger.error(
+                    "Milvus 不可用 (%s:%s): %s —— 向量检索将直接报错, 不再降级 FAISS",
+                    MILVUS_HOST, MILVUS_PORT, e,
+                )
             if self._connected:
-                self._ensure_collection()
+                try:
+                    self._ensure_collection()
+                except Exception as e:
+                    # 连上了但 collection 建/load 失败(如 Milvus 半死、load 超时):
+                    # 同样视为不可用。available 是谓词, 绝不能把异常抛出去 ——
+                    # 那会让 HybridRetriever 构造直接炸, 比"不可用"更难处理。
+                    self._connected = False
+                    logger.error("Milvus collection 准备失败: %s", e, exc_info=True)
         return self._connected
 
     def _ensure_collection(self) -> None:
-        """collection 不存在则创建（幂等）"""
-        if utility.has_collection(self._collection_name):
+        """collection 不存在则创建（幂等），并 load 一次"""
+        if utility.has_collection(self._collection_name, timeout=CONNECT_TIMEOUT):
             self._collection = Collection(self._collection_name)
+            # 每进程只 load 一次 (原来放在 search 里, 每次检索都 load)
+            self._collection.load(timeout=LOAD_TIMEOUT)
             return
         fields = [
             FieldSchema(name="id", dtype=DataType.INT64, is_primary=True, auto_id=True),
@@ -119,7 +148,7 @@ class MilvusManager:
             "embedding",
             {"index_type": "AUTOINDEX", "metric_type": "COSINE", "params": {}},
         )
-        self._collection.load()
+        self._collection.load(timeout=LOAD_TIMEOUT)
         logger.info("Milvus collection 已创建并加载: %s", self._collection_name)
 
     @property
@@ -142,7 +171,7 @@ class MilvusManager:
             return 0
 
     # ──────────────────────────────────────────────
-    # 检索（接口对齐 FaissIndexManager.search）
+    # 检索
     # ──────────────────────────────────────────────
 
     def search(self, query_embedding: np.ndarray, top_k: int = 10) -> list:
@@ -154,10 +183,11 @@ class MilvusManager:
           - id 为 Milvus 主键，供 MMR 的 get_vectors 回查
         """
         if not self.available or self._collection is None:
-            return []
+            raise MilvusUnavailableError(
+                f"Milvus 不可用 ({MILVUS_HOST}:{MILVUS_PORT}), 向量检索无法执行"
+            )
         try:
-            col = Collection(self._collection_name)
-            col.load()
+            col = Collection(self._collection_name)  # 已在 _ensure_collection 中 load 过
             res = col.search(
                 data=[np.asarray(query_embedding).reshape(1, -1).astype("float32").tolist()[0]],
                 anns_field="embedding",
@@ -180,8 +210,8 @@ class MilvusManager:
                 })
             return results
         except Exception as e:
-            logger.warning("Milvus 检索失败 (降级为空): %s", e)
-            return []
+            logger.error("Milvus 检索失败: %s", e, exc_info=True)
+            raise MilvusUnavailableError(f"Milvus 检索失败: {e}") from e
 
     def batch_search(self, queries: np.ndarray, top_k: int = 10) -> list:
         """批量检索（兼容接口；小库单条循环即可）"""
@@ -209,8 +239,8 @@ class MilvusManager:
                 return np.array([], dtype=np.float32)
             return np.asarray(vectors, dtype=np.float32)
         except Exception as e:
-            logger.warning("Milvus 向量回查失败 (降级为空): %s", e)
-            return np.array([], dtype=np.float32)
+            logger.error("Milvus 向量回查失败: %s", e, exc_info=True)
+            raise MilvusUnavailableError(f"Milvus 向量回查失败: {e}") from e
 
     # ──────────────────────────────────────────────
     # 写入 / 删除
@@ -226,8 +256,9 @@ class MilvusManager:
                 f"embeddings ({len(embeddings)}) 和 metadata ({len(metadata_list)}) 长度不匹配"
             )
         if not self.available or self._collection is None:
-            logger.warning("Milvus 不可用, add_embeddings 跳过")
-            return
+            raise MilvusUnavailableError(
+                f"Milvus 不可用 ({MILVUS_HOST}:{MILVUS_PORT}), 无法写入向量"
+            )
         try:
             rows = []
             for emb, meta in zip(embeddings, metadata_list):
@@ -246,12 +277,16 @@ class MilvusManager:
             col.flush()
             logger.info("Milvus 增量写入 %d 条", len(rows))
         except Exception as e:
-            logger.error("Milvus 写入失败: %s", e)
+            # 写入失败必须抛出: 吞掉会出现「数据库说成功、索引里没有」的假成功
+            logger.error("Milvus 写入失败: %s", e, exc_info=True)
+            raise MilvusUnavailableError(f"Milvus 写入失败: {e}") from e
 
     def delete_by_document(self, document_id: str) -> int:
         """删除某文档的所有向量（Milvus 原生硬删除）。返回删除条数。"""
         if not self.available or self._collection is None:
-            return 0
+            raise MilvusUnavailableError(
+                f"Milvus 不可用 ({MILVUS_HOST}:{MILVUS_PORT}), 无法删除向量"
+            )
         try:
             col = Collection(self._collection_name)
             col.flush()
@@ -265,8 +300,9 @@ class MilvusManager:
             logger.info("Milvus 删除文档 %s: %d 条", document_id, len(ids))
             return len(ids)
         except Exception as e:
-            logger.warning("Milvus 删除失败: %s", e)
-            return 0
+            # 返回 0 会和「本来就没东西可删」无法区分 → 删除静默失败
+            logger.error("Milvus 删除失败: %s", e, exc_info=True)
+            raise MilvusUnavailableError(f"Milvus 删除失败: {e}") from e
 
     # ──────────────────────────────────────────────
     # 管理

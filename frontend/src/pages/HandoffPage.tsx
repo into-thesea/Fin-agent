@@ -3,6 +3,7 @@ import { List, Card, Button, Input, Tag, Typography, Space, Empty, message, Spin
 import { PhoneOutlined, CheckOutlined, CloseOutlined, RobotOutlined, ReloadOutlined } from '@ant-design/icons';
 import { api } from '../services/api';
 import type { HandoffTicket, HandoffMessage } from '../types/api';
+import { PALETTE } from '../styles/theme';
 
 const { Text, Paragraph } = Typography;
 const { TextArea } = Input;
@@ -124,7 +125,7 @@ export const HandoffPage: React.FC = () => {
             renderItem={(t) => (
               <List.Item
                 onClick={() => select(t)}
-                style={{ cursor: 'pointer', background: selected?.id === t.id ? '#f0f7ff' : undefined, padding: '0 8px' }}
+                style={{ cursor: 'pointer', background: selected?.id === t.id ? PALETTE.primarySoft : undefined, padding: '0 8px' }}
                 actions={[
                   <Tag color={STATUS_COLOR[t.status] || 'default'} key="s">{t.status}</Tag>,
                   t.status === 'open' ? (
@@ -151,7 +152,7 @@ export const HandoffPage: React.FC = () => {
         ) : (
           <div>
             {/* 工单信息 (点击队列项后的明确反馈) */}
-            <div style={{ background: '#f0f7ff', borderRadius: 8, padding: '8px 12px', marginBottom: 16 }}>
+            <div style={{ background: PALETTE.primarySoft, borderRadius: 8, padding: '8px 12px', marginBottom: 16 }}>
               <Paragraph style={{ marginBottom: 4 }}>
                 <Tag color={STATUS_COLOR[selected.status]}>{selected.status}</Tag>
                 <Text strong> 用户: {selected.user_id}</Text>
@@ -169,7 +170,7 @@ export const HandoffPage: React.FC = () => {
             {(!selected.session_context || selected.session_context.length === 0) ? (
               <Text type="secondary">（无历史上下文）</Text>
             ) : (
-              <div style={{ background: '#f6f8fa', borderRadius: 8, padding: '8px 12px', marginBottom: 16 }}>
+              <div style={{ background: PALETTE.mutedBg, borderRadius: 8, padding: '8px 12px', marginBottom: 16 }}>
                 {selected.session_context.map((c, i) => (
                   <Paragraph key={i} style={{ marginBottom: 6, fontSize: 13 }}>
                     <Text type="secondary">用户:</Text> {c.query}<br />
@@ -181,7 +182,7 @@ export const HandoffPage: React.FC = () => {
 
             {/* 消息记录 */}
             <Paragraph><Text strong>💬 会话记录：</Text></Paragraph>
-            <div style={{ background: '#f6f8fa', borderRadius: 8, padding: '8px 12px', marginBottom: 16, minHeight: 60 }}>
+            <div style={{ background: PALETTE.mutedBg, borderRadius: 8, padding: '8px 12px', marginBottom: 16, minHeight: 60 }}>
               {messages.length === 0 && <Text type="secondary">暂无坐席回复</Text>}
               {messages.map((m) => (
                 <Paragraph key={m.id} style={{ marginBottom: 6, fontSize: 13 }}>

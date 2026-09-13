@@ -2,17 +2,16 @@ import React, { useEffect, useState, useCallback, useRef } from 'react';
 import {
   Table, Button, Progress, Tag, Card, Row, Col, Statistic,
   message, Typography, Space, List, Badge, notification, Modal,
-  Tooltip, Popover, Empty,
+  Tooltip, Popover, Empty, Alert,
 } from 'antd';
 import {
   UploadOutlined, InboxOutlined, FolderOpenOutlined,
   ApiOutlined, DeleteOutlined, StopOutlined,
-  SearchOutlined, ThunderboltOutlined, FileOutlined,
-  PlayCircleOutlined,
+  FileOutlined, PlayCircleOutlined,
 } from '@ant-design/icons';
 import { api } from '../services/api';
-import { WSClient } from '../services/websocket';
-import type { Document, TaskStatus, BatchUploadResult, SystemStatus } from '../types/api';
+import type { Document, BatchUploadResult, SystemStatus } from '../types/api';
+import { PALETTE } from '../styles/theme';
 
 const { Text } = Typography;
 
@@ -32,16 +31,22 @@ interface FileItem {
   etlStage?: string;
 }
 
+// 后端会把文件名里的空格/斜杠换成下划线, 匹配时必须做同样归一化
+const safeName = (s: string) => s.replace(/ /g, '_').replace(/\//g, '_');
+
 export const KnowledgePage: React.FC = () => {
   const [docs, setDocs] = useState<Document[]>([]);
   const [stats, setStats] = useState({ documents: 0, queries: 0, chunks: 0 });
   const [loading, setLoading] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [fileQueue, setFileQueue] = useState<FileItem[]>([]);
   const [batchUploading, setBatchUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [dragOver, setDragOver] = useState(false);
   const abortRef = useRef<AbortController | null>(null);
   const existingAbortRef = useRef<AbortController | null>(null);
+  // ETL 观察者清理登记: 卸载时统一收尾
+  const etlCleanupRef = useRef<Array<() => void>>([]);
 
   // ── 删除确认 ──
   const [deleteTarget, setDeleteTarget] = useState<Document | null>(null);
@@ -66,16 +71,33 @@ export const KnowledgePage: React.FC = () => {
       ]);
       setDocs(docsRes.documents);
       setStats(statsRes);
-    } catch { /* ignore */ }
+      setLoadError(null);
+    } catch (err: any) {
+      // 原先这里 catch {} 全静默: 后端 401/500 时页面只显示「0 文档」,
+      // 使用者完全不知道是知识库空了还是服务挂了。
+      const msg = err?.response?.data?.detail || err?.message || '未知错误';
+      setLoadError(`知识库数据加载失败：${msg}`);
+    }
     setLoading(false);
   }, []);
 
   useEffect(() => { loadData(); }, [loadData]);
 
+  // 卸载时收尾所有 ETL 观察者 (WS + 轮询定时器)
+  useEffect(() => () => {
+    etlCleanupRef.current.forEach((fn) => fn());
+    etlCleanupRef.current = [];
+  }, []);
+
   // 轮询系统服务状态 (每 30 秒)
   useEffect(() => {
     const fetchStatus = async () => {
-      try { setSysStatus(await api.getSystemStatus()); } catch { /* ignore */ }
+      try {
+        setSysStatus(await api.getSystemStatus());
+      } catch (err: any) {
+        setSysStatus(null);  // 置空让顶部状态标识消失, 而不是继续显示上一次的快照
+        console.error('服务状态查询失败', err);
+      }
     };
     fetchStatus();
     const interval = setInterval(fetchStatus, 30000);
@@ -85,38 +107,27 @@ export const KnowledgePage: React.FC = () => {
   const updateFile = (uid: string, patch: Partial<FileItem>) =>
     setFileQueue((prev) => prev.map((f) => (f.uid === uid ? { ...f, ...patch } : f)));
 
-  // ── 监听 ETL 进度 (带超时和重试) ──
+  // ── 监听 ETL 进度 (轮询) ──
+  // 原先 WS + 轮询双通道并存: WS 只推 4~5 个阶段点, 却要为每条上传任务建一条
+  // 连接、依赖 API 进程里的 Redis 监听线程; 轮询又必须留着兜丢消息。
+  // 两条都半残, 已于 2026-09-14 统一为轮询。
   const watchEtl = (uid: string, taskId: string) => {
-    // WebSocket 实时推送 (首选)
-    let ws: WSClient | null = null;
-    try {
-      ws = new WSClient(taskId);
-      ws.onProgress((status: TaskStatus) => {
-        updateFile(uid, { etlProgress: status.progress, etlStage: status.stage });
-        if (status.status === 'completed') {
-          ws?.disconnect();
-          updateFile(uid, { status: 'etl-done', etlProgress: 100 });
-          loadData();
-        } else if (status.status === 'failed') {
-          ws?.disconnect();
-          updateFile(uid, { status: 'etl-failed', message: status.error });
-        }
-      });
-      ws.connect();
-    } catch {
-      // WS 失败不影响轮询降级
-    }
+    let poll: ReturnType<typeof setInterval> | null = null;
 
-    // HTTP 轮询降级 (健壮版: 不因临时错误停止)
+    const cleanup = () => {
+      if (poll) { clearInterval(poll); poll = null; }
+      etlCleanupRef.current = etlCleanupRef.current.filter((fn) => fn !== cleanup);
+    };
+    etlCleanupRef.current.push(cleanup);
+
     const MAX_WAIT_MS = 30 * 60 * 1000; // 30 分钟超时
     const startTime = Date.now();
     let failureCount = 0;
     const MAX_FAILURES = 5;
 
-    const poll = setInterval(async () => {
+    poll = setInterval(async () => {
       if (Date.now() - startTime > MAX_WAIT_MS) {
-        clearInterval(poll);
-        ws?.disconnect();
+        cleanup();
         updateFile(uid, { status: 'etl-failed', message: 'ETL 处理超时 (超过 30 分钟)' });
         return;
       }
@@ -127,21 +138,20 @@ export const KnowledgePage: React.FC = () => {
 
         updateFile(uid, { etlProgress: status.progress, etlStage: status.stage });
         if (status.status === 'completed') {
-          clearInterval(poll);
-          ws?.disconnect();
+          cleanup();
           updateFile(uid, { status: 'etl-done', etlProgress: 100 });
           loadData();
         } else if (status.status === 'failed') {
-          clearInterval(poll);
-          ws?.disconnect();
+          cleanup();
           updateFile(uid, { status: 'etl-failed', message: status.error || 'ETL 处理失败' });
         }
-      } catch {
+      } catch (err) {
         failureCount++;
         if (failureCount >= MAX_FAILURES) {
-          clearInterval(poll);
-          ws?.disconnect();
+          cleanup();
           updateFile(uid, { status: 'etl-failed', message: '无法获取任务状态 (多次重试失败)' });
+        } else {
+          console.error('ETL 状态轮询失败', err);
         }
       }
     }, 3000);
@@ -151,8 +161,10 @@ export const KnowledgePage: React.FC = () => {
   const handleBatchUpload = async (files: File[]) => {
     if (files.length === 0) return;
 
-    const newItems: FileItem[] = files.map((f) => ({
-      uid: `${Date.now()}-${f.name}`,
+    // uid 带上下标: 同一批次里出现两个同名文件时, 原先 `${Date.now()}-${name}`
+    // 会生成相同 uid, 两条队列项的状态互相覆盖。
+    const newItems: FileItem[] = files.map((f, i) => ({
+      uid: `${Date.now()}-${i}-${f.name}`,
       name: f.name,
       size: f.size,
       status: 'pending' as FileItemStatus,
@@ -169,7 +181,11 @@ export const KnowledgePage: React.FC = () => {
       const res = await api.batchUpload(files, controller.signal);
 
       res.results.forEach((r: BatchUploadResult) => {
-        const item = newItems.find((n) => n.name === r.filename);
+        // 后端返回的是归一化后的文件名 (空格→下划线), 直接和原名比会匹配不上,
+        // 结果就是该项永远停在「上传中」——既不上报进度也无法取消。
+        const item =
+          newItems.find((n) => safeName(n.name) === r.filename) ||
+          newItems.find((n) => n.name === r.filename);
         if (!item) return;
 
         if (r.status === 'accepted') {
@@ -218,11 +234,10 @@ export const KnowledgePage: React.FC = () => {
         .map((f) => f.name);
       setExistingFiles(unprocessed);
       setExistingModalOpen(true);
-    } catch {
-      // 降级：使用知识库中的文件名推断
-      const docNames = new Set(docs.map((d) => d.filename));
-      setExistingFiles(Array.from(docNames));
-      setExistingModalOpen(true);
+    } catch (err: any) {
+      const msg = err?.response?.data?.detail || err?.message || '未知错误';
+      message.error(`扫描已有文件失败：${msg}`);
+      setExistingFiles([]);
     }
   };
 
@@ -236,17 +251,27 @@ export const KnowledgePage: React.FC = () => {
     existingAbortRef.current = controller;
     const signal = controller.signal;
     const filesToUpload: File[] = [];
+    const failed: string[] = [];
     for (const name of existingFiles) {
       if (signal.aborted) break;
       try {
-        const resp = await fetch(`/api/v1/knowledge/existing-files/${encodeURIComponent(name)}`, { signal });
-        if (resp.ok) {
-          const blob = await resp.blob();
-          filesToUpload.push(new File([blob], name, { type: 'application/pdf' }));
-        }
-      } catch {
-        // 忽略单个文件失败
+        const blob = await api.getExistingFileBlob(name, signal);
+        filesToUpload.push(new File([blob], name, { type: 'application/pdf' }));
+      } catch (err) {
+        if (signal.aborted) break;
+        // 原先这里静默忽略: 全部失败也只会收到一句「需要手动上传」,
+        // 看不出到底是 401、404 还是网络问题。
+        console.error(`读取已有文件失败: ${name}`, err);
+        failed.push(name);
       }
+    }
+
+    if (failed.length > 0) {
+      notification.warning({
+        message: `${failed.length} 个文件读取失败`,
+        description: failed.slice(0, 5).join(', ') + (failed.length > 5 ? ' …' : ''),
+        duration: 8,
+      });
     }
 
     if (!signal.aborted && filesToUpload.length > 0) {
@@ -311,8 +336,7 @@ export const KnowledgePage: React.FC = () => {
     const stageMap: Record<string, string> = {
       'dedup': '内容去重校验',
       'parsing': 'PDF 文本解析',
-      'vectorizing': 'BGE 向量化',
-      'bm25': 'BM25 索引重建',
+      'vectorizing': '向量化 + BM25 索引重建',
       'db_record': '元数据写入',
       'cache_invalidation': '缓存刷新',
     };
@@ -345,27 +369,9 @@ export const KnowledgePage: React.FC = () => {
       sorter: (a: any, b: any) => new Date(a.upload_time).getTime() - new Date(b.upload_time).getTime(),
     },
     {
-      title: '操作', key: 'action', width: 180,
+      title: '操作', key: 'action', width: 120,
       render: (_: any, record: Document) => (
         <Space>
-          <Tooltip title="在图谱中探索该文档的实体">
-            <Button
-              type="link"
-              size="small"
-              icon={<SearchOutlined />}
-              onClick={() => {
-                // 跳转到图谱页并搜索文档中的核心实体
-                const entity = record.filename
-                  .replace(/_/g, ' ')
-                  .replace(/\.pdf$/i, '')
-                  .replace(/\d{4}.*$/, '')
-                  .trim();
-                window.location.href = `/graph?q=${encodeURIComponent(entity)}`;
-              }}
-            >
-              探索
-            </Button>
-          </Tooltip>
           <Tooltip title="删除文档及相关数据">
             <Button
               type="link"
@@ -444,6 +450,19 @@ export const KnowledgePage: React.FC = () => {
         onChange={handleFileSelected}
       />
 
+      {/* ── 加载失败提示 ── */}
+      {loadError && (
+        <Alert
+          type="error"
+          showIcon
+          closable
+          message={loadError}
+          onClose={() => setLoadError(null)}
+          action={<Button size="small" onClick={loadData}>重试</Button>}
+          style={{ marginBottom: 16 }}
+        />
+      )}
+
       {/* ── 统计卡片 ── */}
       <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
         <Col xs={24} sm={12} lg={6}>
@@ -485,12 +504,6 @@ export const KnowledgePage: React.FC = () => {
               >
                 处理已有文件
               </Button>
-              <Button
-                icon={<ThunderboltOutlined />}
-                onClick={() => window.open('/graph', '_blank')}
-              >
-                知识图谱探索
-              </Button>
               <Text type="secondary" style={{ fontSize: 12 }}>
                 拖拽 产品说明书 / 政策规则文档 (PDF/Markdown) 到下方区域，自动入库并建立检索索引
               </Text>
@@ -529,9 +542,9 @@ export const KnowledgePage: React.FC = () => {
         style={{
           marginBottom: 16,
           cursor: batchUploading ? 'not-allowed' : 'pointer',
-          borderColor: dragOver ? '#1677ff' : undefined,
+          borderColor: dragOver ? PALETTE.primary : undefined,
           borderStyle: dragOver ? 'dashed' : undefined,
-          background: dragOver ? '#e6f4ff' : undefined,
+          background: dragOver ? PALETTE.primarySoft : undefined,
           transition: 'all 0.2s',
         }}
         onClick={() => !batchUploading && fileInputRef.current?.click()}
@@ -541,11 +554,11 @@ export const KnowledgePage: React.FC = () => {
         onDrop={handleDrop}
       >
         <div style={{ textAlign: 'center', padding: '40px 0', pointerEvents: 'none' }}>
-          <InboxOutlined style={{ fontSize: 48, color: dragOver ? '#1677ff' : '#999' }} />
-          <p style={{ marginTop: 16, fontSize: 16, color: dragOver ? '#1677ff' : '#333' }}>
+          <InboxOutlined style={{ fontSize: 48, color: dragOver ? PALETTE.primary : PALETTE.textMuted }} />
+          <p style={{ marginTop: 16, fontSize: 16, color: dragOver ? PALETTE.primary : PALETTE.text }}>
             {dragOver ? '松开以上传文件' : '点击或拖拽文档到此处 (PDF)'}
           </p>
-          <p style={{ color: '#999' }}>支持多文件批量上传 · 每文件最大 50MB · 上传后自动执行 8 阶段 ETL</p>
+          <p style={{ color: PALETTE.textMuted }}>支持多文件批量上传 · 每文件最大 50MB · 上传后自动执行 ETL 流水线</p>
         </div>
       </Card>
 
@@ -640,7 +653,7 @@ export const KnowledgePage: React.FC = () => {
           <Space direction="vertical">
             <Text>确定要删除文档 <Text strong>{deleteTarget.filename}</Text> 吗？</Text>
             <Text type="secondary" style={{ fontSize: 12 }}>
-              将同时清理：SQLite 记录、PDF 源文件、FAISS 向量、Neo4j 图谱数据
+              将同时清理：分块文件、BM25 索引、向量索引、PDF 源文件、数据库记录
             </Text>
           </Space>
         )}

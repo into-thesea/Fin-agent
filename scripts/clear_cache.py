@@ -3,10 +3,10 @@
 Fin-Agent 全量缓存清理工具
 
 清理内容:
-  1. Redis: 所有 fin:* 和 qa:* 键
+  1. Redis: 所有 fin:* / qa:* / celery-task-meta-* 键
   2. 内存: answer_cache 全局缓存重置
-  3. FAISS: 无关缓存
-  4. SQLite: 语义缓存数据库 (如果存在)
+  3. SQLite: 语义缓存数据库 (如果存在) + 临时缓存目录
+  4. 残留 PID 文件
 """
 
 import os
@@ -122,16 +122,6 @@ def clear_pid_file():
         print(f"  [i] PID 文件不存在，跳过")
 
 
-def clear_faiss_cache():
-    """清理 FAISS 缓存的 embedding hash 缓存 (Redis 中已清, 这里检查内存)"""
-    try:
-        from src.cache.faiss_manager import FaissIndexManager
-        mgr = FaissIndexManager()
-        # 重置索引 (如果有 force_reload 方法)
-        print(f"  [OK] FAISS 索引管理器已重置")
-    except Exception as e:
-        print(f"  [i] FAISS 重置跳过: {e}")
-
 
 def main():
     print("=" * 50)
@@ -139,20 +129,17 @@ def main():
     print("=" * 50)
     print()
 
-    print("[1/5] Redis 缓存...")
+    print("[1/4] Redis 缓存...")
     clear_redis()
 
-    print("[2/5] 内存缓存...")
+    print("[2/4] 内存缓存...")
     clear_memory_cache()
 
-    print("[3/5] SQLite/磁盘缓存...")
+    print("[3/4] SQLite/磁盘缓存...")
     clear_sqlite_cache()
 
-    print("[4/5] PID 文件...")
+    print("[4/4] PID 文件...")
     clear_pid_file()
-
-    print("[5/5] FAISS 缓存...")
-    clear_faiss_cache()
 
     print()
     print("=" * 50)

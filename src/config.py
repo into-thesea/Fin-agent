@@ -43,6 +43,14 @@ class Settings(BaseSettings):
     cheap_model: str = "gemini-2.5-flash"
     dashscope_api_key: str = ""
 
+    # ── 重排 (Rerank) ──
+    # 默认关闭。开启后混合检索会先超取候选池, 再用语义重排模型精排到 top_k。
+    # 用 .env 里 RERANK_ENABLED=true 打开; 改动前后务必跑
+    # scripts/eval_retrieval.py 做 A/B —— 重排接错信号会掉分(实测过)。
+    rerank_enabled: bool = False
+    rerank_model: str = "gte-rerank-v2"
+    rerank_pool: int = 20            # 精排候选池大小 (须 > 最终 top_k)
+
     # ── Gemini ──
     gemini_api_key: Optional[str] = None
     gemini_model: Optional[str] = None

@@ -2,9 +2,9 @@
 知识图谱核心: 三元组加载 / 内存邻接图 / Neo4j 适配 (同接口)
 
 设计: 图谱逻辑对后端透明。
-  - InMemoryGraph: 从 data/finance_kb/kg_triples.jsonl 载入内存邻接 (零依赖, 离线可跑)
-  - Neo4jGraph:   同 neighbors/path 接口, 用 neo4j driver 执行 Cypher (Docker 部署后启用)
-GraphRetriever 优先 Neo4j (可用时), 否则内存降级 —— 链路不断。
+  - Neo4jGraph:   运行时唯一后端, 用 neo4j driver 执行 Cypher
+  - InMemoryGraph: 同 neighbors/path 接口, 仅供单测/离线调试显式使用
+运行时不再自动降级内存图 —— 两个后端的图可能不一致, 静默换源会改变答案依据。
 """
 
 from __future__ import annotations
@@ -113,7 +113,7 @@ class Neo4jGraph:
             logger.info("Neo4j 连接成功: %s", self._uri)
         except Exception as e:
             self._driver = None
-            logger.info("Neo4j 不可用 (%s), 图谱走内存降级", e)
+            logger.error("Neo4j 不可用 (%s) —— 图谱检索将直接报错, 不再降级内存图", e)
         return self._driver
 
     @property
@@ -128,8 +128,9 @@ class Neo4jGraph:
             with d.session() as s:
                 return list(s.run(cypher, **params))
         except Exception as e:
-            logger.warning("Neo4j 查询失败: %s", e)
-            return []
+            # 返回 [] 会和「图上本来就没有这条边」无法区分 → 图谱证据静默缺失
+            logger.error("Neo4j 查询失败: %s", e, exc_info=True)
+            raise
 
     def neighbors(self, name: str, max_edges: int = 8) -> list:
         rows = self._run(

@@ -836,7 +836,10 @@ def main():
     parser.add_argument("--silent", action="store_true", help="安静模式 (别名 --daemon, 无命令行窗口)")
     parser.add_argument("--force", action="store_true", help="端口冲突时自动杀掉占用进程")
     parser.add_argument("--status", action="store_true", help="查看运行状态")
-    parser.add_argument("--celery", action="store_true", help="同时启动 Celery Worker (需 Redis)")
+    parser.add_argument("--celery", action="store_true",
+                        help="启动 Celery Worker (现在是默认行为, 保留此参数仅为兼容)")
+    parser.add_argument("--no-celery", action="store_true",
+                        help="不启动 Celery Worker (此时上传会被拒绝 —— ETL 强依赖 worker)")
     parser.add_argument("--celery-concurrency", type=int, default=2, help="Celery 并发数 (默认 2)")
     parser.add_argument("--celery-stop", action="store_true", help="停止 Celery Worker")
     parser.add_argument("--build", action="store_true", help="仅构建前端")
@@ -893,8 +896,12 @@ def main():
     print("  Fin-Agent 4.0")
     print("=" * 50)
 
-    # 可选: 启动 Celery Worker
-    if args.celery and not args.dev:
+    # 启动 Celery Worker —— **默认启动**。
+    # 上传/ETL 现在强依赖 worker(没有 worker 时 knowledge 路由会直接拒绝上传,
+    # 不再降级到同步线程)。原先只在显式 --celery 时才启动, 于是默认启动下
+    # 用户点「批量上传」会直接吃到「ETL Worker 未运行」。
+    # 注意 dev 模式也要起 —— 开发时同样需要上传。
+    if not args.no_celery:
         run_celery_worker(concurrency=args.celery_concurrency)
 
     # 启动 API

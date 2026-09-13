@@ -11,6 +11,7 @@ const DashboardPage = lazy(() => import('./pages/DashboardPage').then(m => ({ de
 const LLMOpsPage = lazy(() => import('./pages/LLMOpsPage').then(m => ({ default: m.LLMOpsPage })));
 const HandoffPage = lazy(() => import('./pages/HandoffPage').then(m => ({ default: m.HandoffPage })));
 const BadcasePage = lazy(() => import('./pages/BadcasePage').then(m => ({ default: m.BadcasePage })));
+const EvalPage = lazy(() => import('./pages/EvalPage').then(m => ({ default: m.EvalPage })));
 const AdminPage = lazy(() => import('./pages/AdminPage').then(m => ({ default: m.AdminPage })));
 const LoginPage = lazy(() => import('./pages/LoginPage').then(m => ({ default: m.LoginPage })));
 
@@ -47,6 +48,7 @@ export const router = createBrowserRouter([
       { path: 'llmops', element: <LazyLoad><LLMOpsPage /></LazyLoad> },
       { path: 'handoff', element: <LazyLoad><HandoffPage /></LazyLoad> },
       { path: 'badcase', element: <LazyLoad><BadcasePage /></LazyLoad> },
+      { path: 'eval', element: <LazyLoad><EvalPage /></LazyLoad> },
       { path: 'admin', element: <LazyLoad><AdminPage /></LazyLoad> },
     ],
   },

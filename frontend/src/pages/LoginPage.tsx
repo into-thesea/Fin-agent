@@ -4,6 +4,7 @@ import { Card, Form, Input, Button, Typography, message, Space } from 'antd';
 import { UserOutlined, LockOutlined, SafetyOutlined } from '@ant-design/icons';
 import { api } from '../services/api';
 import { useAuthStore } from '../stores/authStore';
+import { PALETTE } from '../styles/theme';
 
 const { Title, Text } = Typography;
 
@@ -37,13 +38,12 @@ export const LoginPage: React.FC = () => {
   };
 
   return (
-    <div style={{
-      height: '100vh', display: 'flex', justifyContent: 'center',
-      alignItems: 'center', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+    <div className="login-bg" style={{
+      height: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center',
     }}>
       <Card style={{ width: 400, borderRadius: 12, boxShadow: '0 8px 24px rgba(0,0,0,0.15)' }}>
         <Space direction="vertical" size="large" style={{ width: '100%', textAlign: 'center' }}>
-          <SafetyOutlined style={{ fontSize: 48, color: '#1677ff' }} />
+          <SafetyOutlined style={{ fontSize: 48, color: PALETTE.primary }} />
           <div>
             <Title level={3} style={{ margin: 0 }}>理财智能客服系统</Title>
             <Text type="secondary">理财产品 · 存款保险 · 基金保险 · 适当性合规</Text>

@@ -2,9 +2,7 @@
 构建金融理财产品知识库索引 (阶段一/二用)
 
 从 data/finance_kb/*.md 按 '## ' 标题分节生成 chunk (跳过 _ 开头的文件, 如 catalog 由 jsonl 提供),
-重建活动索引到 data/output_analysis/ (chunks_processed.jsonl + FAISS + BM25),
-若 Milvus 可用则同时把同一批向量灌入 collection (kefu_chunks) — 保证 Milvus/FAISS 两路一致,
-避免"向量走电商、稀疏走金融"的混搭。
+重建索引: chunks_processed.jsonl + BM25 稀疏索引 + Milvus 向量库 (唯一向量后端)。
 
 用法:
     .venv/Scripts/python.exe scripts/build_finance_kb.py [--skip-milvus]
@@ -251,62 +249,30 @@ def collect_chunks() -> list:
 
 
 def rebuild_local(chunks: list) -> None:
-    """写 chunks_processed.jsonl + 重建 FAISS + BM25"""
-    from src.infra.paths import (
-        CHUNKS_PROCESSED_PATH, FAISS_INDEX_DIR, BM25_INDEX_PATH,
-    )
+    """写 chunks_processed.jsonl + 重建 BM25
+
+    向量部分不在这里做 —— 由 load_vector_index 直接编码灌 Milvus, 不经 FAISS 中转。
+    """
+    from src.infra.paths import CHUNKS_PROCESSED_PATH, BM25_INDEX_PATH
     os.makedirs(os.path.dirname(CHUNKS_PROCESSED_PATH), exist_ok=True)
     with open(CHUNKS_PROCESSED_PATH, "w", encoding="utf-8") as f:
         for c in chunks:
             f.write(json.dumps(c, ensure_ascii=False) + "\n")
     logger.info("chunks 写入: %s (%d)", CHUNKS_PROCESSED_PATH, len(chunks))
 
-    from src.retrieval.vector_indexer import rebuild_full_index
-    rebuild_full_index(CHUNKS_PROCESSED_PATH, FAISS_INDEX_DIR)
-
     from src.retrieval.bm25_index import rebuild_bm25_index
     rebuild_bm25_index(CHUNKS_PROCESSED_PATH, BM25_INDEX_PATH)
-    logger.info("本地 FAISS+BM25 重建完成")
+    logger.info("分块文件 + BM25 重建完成")
 
 
-def sync_milvus() -> None:
-    """若 Milvus 可用, 从 FAISS 索引 reconstruct 向量后重灌 collection (保持两路一致)"""
-    import faiss
-    from src.infra.paths import FAISS_INDEX_DIR
-    from src.vectorstore.milvus_manager import MilvusManager
+def load_vector_index() -> int:
+    """全量重建向量索引 —— 从 chunks_processed.jsonl 编码后灌入 Milvus
 
-    mgr = MilvusManager()
-    if not mgr.available:
-        logger.info("Milvus 不可用, 跳过 (系统将走 FAISS 向量后端)")
-        return
-
-    index_path = os.path.join(FAISS_INDEX_DIR, "index.faiss")
-    meta_path = os.path.join(FAISS_INDEX_DIR, "metadata.json")
-    if not (os.path.exists(index_path) and os.path.exists(meta_path)):
-        logger.error("FAISS 索引文件缺失, 无法同步 Milvus")
-        return
-    index = faiss.read_index(index_path)
-    with open(meta_path, "r", encoding="utf-8") as f:
-        metadata = json.load(f)
-    vectors, metas = [], []
-    for i, meta in enumerate(metadata):
-        if not meta.get("content"):
-            continue
-        vectors.append(index.reconstruct(i).reshape(1, -1))
-        metas.append({
-            "content": meta.get("content", ""),
-            "source": meta.get("source", ""),
-            "document_id": meta.get("document_id", ""),
-            "page": int(meta.get("page", 1)),
-            "chunk_id": meta.get("chunk_id", ""),
-            "section": meta.get("section", ""),
-        })
-    if not vectors:
-        logger.error("无有效向量可同步 Milvus")
-        return
-    mgr.reset()
-    mgr.add_embeddings(np.vstack(vectors).astype("float32"), metas)
-    logger.info("Milvus 已重灌 %d 条 (collection=%s)", mgr.total_count, mgr._collection_name)
+    Milvus 是唯一向量后端, 不再经 FAISS 中转(原先这条路要读 index.faiss
+    再 reconstruct 向量, 是 FAISS 唯一还活着的理由)。失败直接抛错, 不静默跳过。
+    """
+    from src.retrieval.vector_indexer import rebuild_vector_index
+    return rebuild_vector_index()
 
 
 def build_all(skip_milvus: bool = False) -> int:
@@ -319,7 +285,7 @@ def build_all(skip_milvus: bool = False) -> int:
     rebuild_local(chunks)
     render_kg_triples()
     if not skip_milvus:
-        sync_milvus()
+        load_vector_index()
     logger.info("金融知识库构建完成")
     return len(chunks)
 

@@ -3,7 +3,7 @@ GraphRetriever — 知识图谱多跳检索 (GraphRAG 局部查询思路)
 
 流程: 实体解析(产品名/概念别名) → 双实体路径查询(有向BFS ≤3跳) → 剩余实体邻居补全
       → 每条带 doc 溯源转自然语言。
-后端: Neo4j 可用走 Neo4jGraph, 否则内存邻接降级 (链路不断)。
+后端: 运行时只走 Neo4jGraph; Neo4j 不可用直接报错, 不降级内存图。
 
 返回条目与向量/BM25 语境同构: {"content": str, "source": "知识图谱-<doc>", "path": [节点...]}。
 """
@@ -78,9 +78,22 @@ def _build_alias_map() -> dict:
 
 class GraphRetriever:
     def __init__(self, backend: Optional[str] = None):
-        # backend: "neo4j" | "memory" | None(自动: neo4j 可用则用)
+        """backend: "neo4j"(默认运行时后端) | "memory"(仅单测显式指定)
+
+        运行时不再降级到内存图: 内存图与 Neo4j 的节点/边可能不一致,
+        悄悄换掉数据源等于悄悄改变答案的证据依据。
+        """
         self._aliases = sorted(_build_alias_map().items(), key=lambda kv: -len(kv[0]))
-        self._use_neo4j = backend == "neo4j" or (backend is None and Neo4jGraph().available)
+        if backend == "memory":
+            self._graph = get_graph()
+            return
+        neo = Neo4jGraph()
+        if not neo.available:
+            raise RuntimeError(
+                "Neo4j 不可用 —— 知识图谱检索无法执行 (不再降级到内存图)。"
+                "请启动 Neo4j (docker compose up -d neo4j)。"
+            )
+        self._graph = neo
 
     def resolve(self, query: str) -> list:
         """返回查询命中的规范节点名 (最长优先, 去重, ≤3)"""
@@ -137,4 +150,4 @@ class GraphRetriever:
         return {"entries": entries[:8], "entities": entities, "paths": paths}
 
     def _backend_graph(self):
-        return Neo4jGraph() if self._use_neo4j else get_graph()
+        return self._graph

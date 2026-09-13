@@ -6,7 +6,7 @@ import axios, { AxiosInstance, AxiosError } from 'axios';
 import type {
   HealthStatus, UploadResponse, BatchUploadResponse, TaskStatus, QueryResponse,
   KnowledgeStats, Document, Metrics, AuditLog, SystemStatus, SLI,
-  HandoffTicket, HandoffMessage,
+  HandoffTicket, HandoffMessage, EvalSummary,
 } from '../types/api';
 
 const BASE_URL = import.meta.env.VITE_API_BASE || '';
@@ -176,15 +176,8 @@ class ApiClient {
   }
 
   // ========== 文档上传 ==========
-  async uploadDocument(file: File): Promise<UploadResponse> {
-    const formData = new FormData();
-    formData.append('file', file);
-    const { data } = await this.client.post('/api/v1/knowledge/upload', formData, {
-      timeout: 60000,
-    });
-    return data;
-  }
-
+  // 注: 后端单文件端点 POST /api/v1/knowledge/upload 仍在, 但前端只用批量接口
+  // (批量接口传单文件同样工作), 因此不再包一个无人调用的 wrapper。
   async batchUpload(files: File[], signal?: AbortSignal): Promise<BatchUploadResponse> {
     const formData = new FormData();
     files.forEach((f) => formData.append('files', f));
@@ -220,6 +213,25 @@ class ApiClient {
 
   async getExistingFiles(): Promise<{ files: Array<{name: string; size: number; in_db: boolean}>; total: number; unprocessed: number }> {
     const { data } = await this.client.get('/api/v1/knowledge/existing-files');
+    return data;
+  }
+
+  /**
+   * 下载 data_reports 里某个已有 PDF 的内容。
+   * 走 axios 实例而不是裸 fetch —— 该路由强制 admin 鉴权, 裸 fetch 不会带
+   * Authorization 头, 必然 401, 「处理已有文件」会 100% 走不通。
+   */
+  async getExistingFileBlob(name: string, signal?: AbortSignal): Promise<Blob> {
+    const { data } = await this.client.get(
+      `/api/v1/knowledge/existing-files/${encodeURIComponent(name)}`,
+      { responseType: 'blob', signal },
+    );
+    return data as Blob;
+  }
+
+  // ========== 评测看板 ==========
+  async getEvalSummary(): Promise<EvalSummary> {
+    const { data } = await this.client.get('/api/v1/eval/summary');
     return data;
   }
 
