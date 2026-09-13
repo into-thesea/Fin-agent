@@ -66,6 +66,15 @@ def test_get_all_exposes_updated_metadata():
     assert cfg["updated_by"] == "admin"
 
 
+def test_save_twice_in_a_row():
+    """连存两次必须都成功 —— 第二次读到的配置里已有 updated_at, 曾经的
+    dict 推导式会在这上面抛 ValueError, 表现为"第一次保存成功, 之后每次都 500"。"""
+    kb_settings.save("retrieval", {**kb_settings.DEFAULTS["retrieval"], "top_k": 9}, user="admin")
+    kb_settings.save("retrieval", {**kb_settings.DEFAULTS["retrieval"], "top_k": 7}, user="admin")
+    assert kb_settings.get_retrieval()["top_k"] == 7
+    assert kb_settings.get_retrieval()["rerank_pool"] == kb_settings.DEFAULTS["retrieval"]["rerank_pool"]
+
+
 def test_callers_cannot_poison_the_cache():
     """调用方改返回值不该污染进程内缓存"""
     kb_settings.save("retrieval", {**kb_settings.DEFAULTS["retrieval"], "top_k": 3}, user="admin")

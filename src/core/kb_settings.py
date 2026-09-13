@@ -121,8 +121,10 @@ def save(section: str, values: dict, user: str = "") -> dict:
     """完整替换某个 section 的值并落盘。校验由 kb_validate 负责, 本函数只管存取。"""
     if section not in DEFAULTS:
         raise ValueError(f"未知配置段: {section}")
+    # _load() 返回的就是脱离缓存的副本, 不必再复制 —— 曾经这里写成
+    # `{s: dict(v) for s, v in cfg.items()}`, 在 updated_at/updated_by (字符串)
+    # 存在时直接 ValueError: 于是第一次保存成功, 之后每次保存都 500。
     cfg, _ = _load()
-    cfg = {s: dict(v) for s, v in cfg.items()}
     cfg[section] = {**DEFAULTS[section], **values}
     cfg["updated_at"] = time.strftime("%Y-%m-%dT%H:%M:%S")
     cfg["updated_by"] = user
