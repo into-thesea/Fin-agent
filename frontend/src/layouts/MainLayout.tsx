@@ -72,12 +72,12 @@ export const MainLayout: React.FC = () => {
     .filter((m: any) => (m.children ? m.children.length > 0 : roleAllowed(m.key)));
 
   // 守卫用前缀匹配: /knowledge/chunks 属于 /knowledge 组。
-  // 精确匹配会把所有二级路由判成越权、直接踢回 /chat。
+  // 父键也进列表 —— 谁能看见该分组, 谁就能访问它的父路径(用于 /knowledge → /knowledge/docs 的重定向)。
   const allowedPrefixes = visibleMenu.flatMap((m: any) =>
-    m.children ? m.children.map((c: any) => c.key) : [m.key]);
-  const allowed =
-    allowedPrefixes.some((p) => location.pathname === p || location.pathname.startsWith(p + '/')) ||
-    allowedPrefixes.includes('/knowledge/docs');   // /knowledge 重定向后的落点
+    m.children ? [...m.children.map((c: any) => c.key), m.key] : [m.key]);
+  const allowed = allowedPrefixes.some(
+    (p) => location.pathname === p || location.pathname.startsWith(p + '/'),
+  );
   if (!allowed) {
     return <Navigate to="/chat" replace />;
   }
