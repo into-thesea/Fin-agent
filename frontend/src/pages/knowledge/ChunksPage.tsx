@@ -55,8 +55,12 @@ export const ChunksPage: React.FC = () => {
     { title: '字数', dataIndex: 'length', key: 'length', width: 80 },
     {
       title: '内容', dataIndex: 'content', key: 'content', ellipsis: true,
+      // 用 Button 而不是 <a>: <a> 没有 href 就不在 Tab 顺序里, 键盘用户打不开详情抽屉,
+      // 而抽屉是这个页面查看分块全文与内容指纹的唯一入口。padding:0 保持原外观。
       render: (v: string, r: ChunkItem) => (
-        <a onClick={() => setDetail(r)}>{v.slice(0, 60)}{v.length > 60 ? '…' : ''}</a>
+        <Button type="link" size="small" style={{ padding: 0 }} onClick={() => setDetail(r)}>
+          {v.slice(0, 60)}{v.length > 60 ? '…' : ''}
+        </Button>
       ),
     },
   ];
@@ -100,7 +104,9 @@ export const ChunksPage: React.FC = () => {
             onChange: (p, s) => { setPage(p); setSize(s); },
           }}
           locale={{
-            // 请求失败时表格必然为空: 提示语也跟着改, 免得被读成"知识库一条分块都没有"
+            // 失败不会清掉已经拿到的数据, 所以这里只覆盖"首屏就失败"的场景 ——
+            // 那时表格确实是空的, 空态若还写"没有匹配的片段", 会被读成"知识库一条分块都没有";
+            // 后续失败保留旧数据, 由顶部红色 Alert 提示。
             emptyText: error ? '加载失败，请重试' : '没有匹配的片段',
           }}
         />
