@@ -81,15 +81,29 @@ class HybridRetriever:
         self.bm25 = None
         self._init_bm25()
 
-        # 5. 重排器 (默认关闭; 开启后先超取候选池再精排)
-        from src.config import settings
+        # 5. 重排器 —— 由可编辑配置决定, 惰性构建 (见 _reranker_for)
+        from src.config import settings as _s   # 仅用于首次启动提示
         self.reranker = None
+        self._reranker_model = ""
         self.rerank_pool = 0
-        if settings.rerank_enabled:
+        if _s.rerank_enabled:
+            logger.info("检测到 RERANK_ENABLED=true（.env）; 线上以 data/kb_settings.json 为准")
+
+    def _reranker_for(self, cfg: dict):
+        """按配置取重排器。配置里关掉了就返回 None。
+
+        按模型名缓存实例 —— 每个请求都新建 ApiReranker 会白跑构造校验;
+        而配置改了模型名必须能换, 所以用 _reranker_model 记住当前实例对应哪个模型。
+        """
+        if not cfg.get("rerank_enabled"):
+            return None
+        model = cfg.get("rerank_model") or "gte-rerank-v2"
+        if self.reranker is None or self._reranker_model != model:
             from src.retrieval.reranker import ApiReranker
-            self.reranker = ApiReranker(model=settings.rerank_model)
-            self.rerank_pool = max(int(settings.rerank_pool), 1)
-            logger.info("重排已启用: %s (候选池 %d)", settings.rerank_model, self.rerank_pool)
+            self.reranker = ApiReranker(model=model)
+            self._reranker_model = model
+            logger.info("重排器已装载: %s", model)
+        return self.reranker
 
     def _init_bm25(self) -> None:
         """加载 BM25 索引。
@@ -243,8 +257,14 @@ class HybridRetriever:
         return selected_list
 
     def vector_search(self, query: str, top_k: int = 5,
-                       enable_mmr: bool = True) -> list:
-        """向量语义检索 (带缓存)"""
+                       enable_mmr: bool = None) -> list:
+        """向量语义检索 (带缓存)。MMR 开关与 λ 来自可编辑配置。"""
+        from src.core.kb_settings import get_retrieval
+        cfg = get_retrieval()
+        if enable_mmr is None:
+            enable_mmr = bool(cfg.get("mmr_enabled", True))
+        mmr_lambda = float(cfg.get("mmr_lambda", 0.5))
+
         query_emb = self.model.encode([query], normalize_embeddings=True)
 
         emb_bytes = query_emb.tobytes()
@@ -261,7 +281,7 @@ class HybridRetriever:
         if enable_mmr and len(results) > top_k:
             results = self.mmr_rerank(
                 results, query_emb, self.index_manager,
-                top_k=top_k, lambd=0.5,
+                top_k=top_k, lambd=mmr_lambda,
             )
         else:
             results = results[:top_k]
@@ -341,8 +361,13 @@ class HybridRetriever:
         """
         logger.info(f"混合检索: {query[:60]}...")
 
+        from src.core.kb_settings import get_retrieval
+        cfg = get_retrieval()
+        reranker = self._reranker_for(cfg)
         # 候选池: 启用重排时先多取, 精排后再收敛到 top_k
-        pool_k = self.rerank_pool if self.reranker is not None else top_k
+        # max(...,1): 配置文件是手工可改的, 校验只在 API 那一侧 —— 池子为 0 会让
+        # 两路检索都取 0 条, 变成"检索成功但什么都没有"
+        pool_k = max(int(cfg.get("rerank_pool", 20)), 1) if reranker is not None else top_k
 
         # Path A: 密集向量检索
         dense_results = self.vector_search(query, top_k=pool_k * 3)
@@ -359,13 +384,14 @@ class HybridRetriever:
                 "BM25 稀疏路返回 0 条 —— 混合检索无法成立(纯向量不等于混合检索)。"
                 "请检查 BM25 索引是否为空或分词是否失效。"
             )
-        local_context = rrf_fusion(dense_results, sparse_results, top_k=pool_k)
+        local_context = rrf_fusion(dense_results, sparse_results,
+                                   top_k=pool_k, k=int(cfg.get("rrf_k", 60)))
 
         # 精排: 用语义重排模型把候选池收敛到 top_k
         rerank_failed = None
-        if self.reranker is not None:
+        if reranker is not None:
             try:
-                local_context = self.reranker.rerank(query, local_context, top_k=top_k)
+                local_context = reranker.rerank(query, local_context, top_k=top_k)
             except Exception as e:
                 # 重排只影响「排序质量」, 不改变答案有没有依据 —— 失败时保留 RRF
                 # 原序并大声记录, 不因为外部接口抖动就让整轮问答挂掉。

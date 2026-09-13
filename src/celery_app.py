@@ -36,7 +36,7 @@ celery_app = Celery(
     "fin_agent",
     broker=redis_url,
     backend=redis_url,
-    include=["src.tasks.etl_tasks"],  # 自动发现任务模块
+    include=["src.tasks.etl_tasks", "src.tasks.kb_tasks"],  # 自动发现任务模块
 )
 
 # Celery 配置

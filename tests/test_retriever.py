@@ -49,3 +49,35 @@ class TestHybridRetriever:
         mgr = FaissIndexManager()
         mgr.reload()  # 不抛出异常即可
         assert True
+
+
+class TestRetrievalConfigWiring:
+    """策略页上可编辑的每个检索参数都必须真的驱动行为"""
+
+    def test_rrf_k_comes_from_config(self, monkeypatch):
+        from src.retrieval import retriever as mod
+        from src.core import kb_settings
+
+        seen = {}
+        monkeypatch.setattr(mod, "rrf_fusion",
+                            lambda d, s, top_k=5, k=60: seen.update(k=k) or [])
+        monkeypatch.setattr(mod.HybridRetriever, "vector_search",
+                            lambda self, *a, **kw: [{"chunk_id": "a", "content": "x"}])
+        monkeypatch.setattr(mod.HybridRetriever, "bm25_search",
+                            lambda self, *a, **kw: [{"chunk_id": "a", "content": "x"}])
+        monkeypatch.setattr(mod.HybridRetriever, "_graph_retrieve",
+                            lambda self, q: {"entries": [], "entities": []})
+        # retriever 内部是"函数内 import", 所以 patch 模块属性即可生效
+        monkeypatch.setattr(kb_settings, "get_retrieval",
+                            lambda: {**kb_settings.DEFAULTS["retrieval"], "rrf_k": 17})
+
+        mod.HybridRetriever().hybrid_retrieve("测试", top_k=5)
+        assert seen.get("k") == 17, "rrf_k 没有从配置传进 rrf_fusion"
+
+    def test_mmr_lambda_comes_from_config(self, monkeypatch):
+        """MMR 的 λ 目前硬编码 0.5, 必须改成读配置"""
+        from src.retrieval import retriever as mod
+        import inspect as _i
+        src = _i.getsource(mod.HybridRetriever.vector_search)
+        assert "lambd=0.5" not in src, "λ 仍是硬编码, 配置改了不生效"
+        assert "lambd=" in src and ("cfg" in src or "get_retrieval" in src)

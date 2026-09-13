@@ -12,6 +12,8 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
 
 from src.api.routes.auth import require_roles
+# 模块级 import: 测试靠 patch 这个名字模拟 worker 不在线, 放函数里 patch 不生效
+from src.celery_app import is_celery_worker_running
 from src.core import kb_settings
 from src.core.kb_validate import validate, ValidationError
 # 模块级 import: 测试靠 patch 这个名字把分块文件指到 tmp, 放函数里 patch 不生效
@@ -106,3 +108,25 @@ async def list_chunks(
         for r in rows[start:start + size]
     ]
     return {"total": len(rows), "page": page, "size": size, "items": items}
+
+
+@router.post("/rebuild")
+async def rebuild_kb(user=Depends(require_roles("admin"))):
+    """手动触发全量重建（索引维护用，与切分参数无关）
+
+    异步执行, 进度走已有的 GET /api/v1/tasks/{task_id} —— 不新增进度通道。
+    """
+    if not is_celery_worker_running():
+        raise HTTPException(
+            status_code=503,
+            detail="ETL Worker 未运行，无法执行重建。请启动 Celery Worker 后重试。",
+        )
+    from src.tasks.kb_tasks import rebuild_kb_task
+    task = rebuild_kb_task.delay()
+    try:
+        from src.database import db_manager
+        db_manager.create_task(task.id, "__kb_rebuild__")
+    except Exception as e:
+        logger.error("task_logs 写入失败 (%s): %s", task.id, e)
+    logger.info("知识库重建任务已提交: task_id=%s", task.id)
+    return {"task_id": task.id, "status": "accepted"}

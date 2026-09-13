@@ -16,11 +16,20 @@ import threading
 from typing import Optional
 
 from src.infra.paths import DATA_DIR
+# 切分默认值从 smart_chunk 的常量派生 —— 它才是这些数字的事实源(算法与注释都在那边),
+# 这里再抄一份必然漂移: 改了 smart_chunk 的上限, 界面上显示的"默认值"还是旧数字。
+from src.core.smart_chunk import (
+    DEFAULT_CHUNK_SIZE, DEFAULT_OVERLAP, MAX_CHUNK_CONTENT,
+)
 
 logger = logging.getLogger(__name__)
 
 DEFAULTS: dict = {
-    "chunking": {"chunk_size": 350, "overlap": 70, "max_chunk_content": 300},
+    "chunking": {
+        "chunk_size": DEFAULT_CHUNK_SIZE,
+        "overlap": DEFAULT_OVERLAP,
+        "max_chunk_content": MAX_CHUNK_CONTENT,
+    },
     "retrieval": {
         "top_k": 5,
         "mmr_enabled": True,

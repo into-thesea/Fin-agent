@@ -141,7 +141,14 @@ def ingest_document(
         # Step 1: PDF 解析 (章节感知分块)
         logger.info("Step 1/4: PDF 解析...")
         _report("parsing", 1)
-        chunks = extract_chunks_from_pdf(target_path)
+        # 切分参数来自可编辑配置(data/kb_settings.json); 只影响本次上传,
+        # 不回溯已入库内容 —— 内置知识库走 build_finance_kb.parse_faq_markdown,
+        # 按 '## ' 标题切分, 不读这两个参数。
+        from src.core.kb_settings import get_chunking
+        _ck = get_chunking()
+        chunks = extract_chunks_from_pdf(
+            target_path, chunk_size=_ck["chunk_size"], overlap=_ck["overlap"],
+        )
         if not chunks:
             db_manager.update_document_status(doc_id, "failed")
             return {"status": "failed", "error": "No content extracted from PDF."}

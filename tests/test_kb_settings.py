@@ -1,4 +1,6 @@
 import json, os, sys
+import inspect
+
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(__file__))))
 import pytest
 from src.core import kb_settings
@@ -84,3 +86,11 @@ def test_callers_cannot_poison_the_cache():
     cfg2, _ = kb_settings.get_all()
     assert cfg2["retrieval"]["top_k"] == 3
     assert cfg2["chunking"]["chunk_size"] == kb_settings.DEFAULTS["chunking"]["chunk_size"]
+
+
+def test_pipeline_passes_configured_chunk_params():
+    """切分参数必须真的传到 smart_chunk_pdf —— 否则页面上改了没有任何作用"""
+    from src.core import pipeline_manager
+    src = inspect.getsource(pipeline_manager.ingest_document)
+    assert "get_chunking" in src
+    assert "chunk_size=" in src and "overlap=" in src

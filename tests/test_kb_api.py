@@ -151,3 +151,35 @@ def test_chunks_missing_file_returns_empty(client, admin_headers, tmp_path, monk
     monkeypatch.setattr("src.api.routes.kb_console.CHUNKS_PROCESSED_PATH", missing)
     r = client.get("/api/v1/kb/chunks", headers=admin_headers)
     assert r.status_code == 200 and r.json()["total"] == 0
+
+
+# --- 全量重建 (/api/v1/kb/rebuild) ---
+
+def test_rebuild_requires_worker(client, admin_headers, monkeypatch):
+    """没 worker 时明确 503, 不能默默投一个没人消费的任务"""
+    monkeypatch.setattr("src.api.routes.kb_console.is_celery_worker_running", lambda: False)
+    r = client.post("/api/v1/kb/rebuild", headers=admin_headers)
+    assert r.status_code == 503
+    assert "Worker" in r.json()["detail"]
+
+
+def test_rebuild_submits_task_and_returns_id(client, admin_headers, monkeypatch):
+    """有 worker 时投递任务并回 task_id —— 进度复用已有的 /api/v1/tasks/{id}"""
+    import src.tasks.kb_tasks as kb_tasks
+    from src.db.manager import DBManager
+
+    monkeypatch.setattr("src.api.routes.kb_console.is_celery_worker_running", lambda: True)
+    monkeypatch.setattr(kb_tasks, "rebuild_kb_task",
+                        type("T", (), {"delay": staticmethod(lambda: type("R", (), {"id": "task-1"})())}))
+    recorded = {}
+    monkeypatch.setattr(DBManager, "create_task",
+                        lambda self, task_id, filename: recorded.update(task_id=task_id, filename=filename))
+
+    r = client.post("/api/v1/kb/rebuild", headers=admin_headers)
+    assert r.status_code == 200
+    assert r.json() == {"task_id": "task-1", "status": "accepted"}
+    assert recorded["task_id"] == "task-1"
+
+
+def test_rebuild_anonymous_rejected(client):
+    assert client.post("/api/v1/kb/rebuild").status_code == 401
