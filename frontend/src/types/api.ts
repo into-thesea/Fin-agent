@@ -193,3 +193,22 @@ export interface EvalSummary {
   available: { history: boolean; report: boolean; online: boolean };
   raw_history_count: number;
 }
+
+// ── 片段浏览 ──
+
+export interface ChunkItem {
+  chunk_id: string;
+  source: string;
+  section: string;
+  page: number;
+  content: string;
+  content_hash: string;
+  length: number;
+}
+
+export interface ChunkPage {
+  total: number;
+  page: number;
+  size: number;
+  items: ChunkItem[];
+}

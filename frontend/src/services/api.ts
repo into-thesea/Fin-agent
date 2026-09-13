@@ -6,7 +6,7 @@ import axios, { AxiosInstance, AxiosError } from 'axios';
 import type {
   HealthStatus, UploadResponse, BatchUploadResponse, TaskStatus, QueryResponse,
   KnowledgeStats, Document, Metrics, AuditLog, SystemStatus, SLI,
-  HandoffTicket, HandoffMessage, EvalSummary,
+  HandoffTicket, HandoffMessage, EvalSummary, ChunkPage,
 } from '../types/api';
 
 const BASE_URL = import.meta.env.VITE_API_BASE || '';
@@ -316,6 +316,15 @@ class ApiClient {
     const { data } = await this.client.post(
       `/api/v1/badcases/${encodeURIComponent(traceId)}/promote`, { note },
     );
+    return data;
+  }
+
+  // ========== 知识库管理台 ==========
+  /** 片段浏览 (分页 + 来源/小节/关键词筛选) */
+  async listChunks(params: {
+    page?: number; size?: number; source?: string; section?: string; q?: string;
+  }): Promise<ChunkPage> {
+    const { data } = await this.client.get('/api/v1/kb/chunks', { params });
     return data;
   }
 
