@@ -7,6 +7,7 @@ import type {
   HealthStatus, UploadResponse, BatchUploadResponse, TaskStatus, QueryResponse,
   KnowledgeStats, Document, Metrics, AuditLog, SystemStatus, SLI,
   HandoffTicket, HandoffMessage, EvalSummary, ChunkPage, KbStrategy,
+  RetrievalTestResult,
 } from '../types/api';
 
 const BASE_URL = import.meta.env.VITE_API_BASE || '';
@@ -342,6 +343,14 @@ class ApiClient {
   /** 手动触发全量重建 (索引维护); 进度走 getTaskStatus 轮询 */
   async rebuildKb(): Promise<{ task_id: string; status: string }> {
     const { data } = await this.client.post('/api/v1/kb/rebuild');
+    return data;
+  }
+
+  /** 检索调试: 跑一次检索并看各通路明细 */
+  async retrievalTest(params: {
+    query: string; top_k?: number; only_single_path?: boolean;
+  }): Promise<RetrievalTestResult> {
+    const { data } = await this.client.post('/api/v1/kb/retrieval-test', params);
     return data;
   }
 

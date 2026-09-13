@@ -231,3 +231,41 @@ export interface KbStrategy {
   updated_at: string;
   updated_by: string;
 }
+
+// ── 检索调试 ──
+
+export interface RetrievalPathHit {
+  chunk_id: string;
+  source: string;
+  rank: number;
+  score: number | null;
+}
+
+export interface RetrievalFusedItem {
+  chunk_id: string;
+  source: string;
+  section: string;
+  rank: number;
+  rrf_score: number | null;
+  dense_rank: number | null;
+  sparse_rank: number | null;
+  rerank_score: number | null;
+  found_by: string[];
+}
+
+export interface RetrievalTestResult {
+  query: string;
+  elapsed_ms: number;
+  dense: RetrievalPathHit[];
+  sparse: RetrievalPathHit[];
+  fused: RetrievalFusedItem[];
+  graph: { entries?: any[]; entities?: string[]; error?: string };
+  config_used: Record<string, any>;
+  single_path_count: number;
+  /**
+   * 关键词检索一条都没返回。
+   * 此时 fused 的 found_by 会全是「向量」, 但那不代表"关键词没命中这一条" ——
+   * 是整条关键词通路都空了, 不提示就会被误读。
+   */
+  sparse_empty: boolean;
+}
