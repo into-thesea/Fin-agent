@@ -53,3 +53,25 @@ def test_partial_section_merged_over_defaults():
     cfg, _ = kb_settings.get_all()
     assert cfg["chunking"]["chunk_size"] == 400
     assert cfg["chunking"]["overlap"] == kb_settings.DEFAULTS["chunking"]["overlap"]
+
+
+def test_get_all_exposes_updated_metadata():
+    """谁在什么时候改的 —— 必须能从 get_all 读出来, 且各分支形状一致"""
+    cfg, _ = kb_settings.get_all()
+    assert cfg["updated_at"] == "" and cfg["updated_by"] == ""
+
+    kb_settings.save("retrieval", kb_settings.DEFAULTS["retrieval"], user="admin")
+    cfg, _ = kb_settings.get_all()
+    assert isinstance(cfg["updated_at"], str) and cfg["updated_at"]
+    assert cfg["updated_by"] == "admin"
+
+
+def test_callers_cannot_poison_the_cache():
+    """调用方改返回值不该污染进程内缓存"""
+    kb_settings.save("retrieval", {**kb_settings.DEFAULTS["retrieval"], "top_k": 3}, user="admin")
+    cfg, _ = kb_settings.get_all()
+    cfg["retrieval"]["top_k"] = 999
+    cfg["chunking"]["chunk_size"] = 999
+    cfg2, _ = kb_settings.get_all()
+    assert cfg2["retrieval"]["top_k"] == 3
+    assert cfg2["chunking"]["chunk_size"] == kb_settings.DEFAULTS["chunking"]["chunk_size"]

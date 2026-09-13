@@ -58,6 +58,18 @@ def _merge(section: str, raw: dict) -> dict:
     return out
 
 
+def _with_meta(cfg: dict, updated_at: str = "", updated_by: str = "") -> dict:
+    """补上元字段 —— updated_at/updated_by 是审计信息不是可编辑配置, 故不进 DEFAULTS"""
+    cfg["updated_at"] = updated_at
+    cfg["updated_by"] = updated_by
+    return cfg
+
+
+def _copy(cfg: dict) -> dict:
+    """外传前复制: section 也要复制, 否则调用方改值会污染进程内缓存"""
+    return {k: (dict(v) if isinstance(v, dict) else v) for k, v in cfg.items()}
+
+
 def _load() -> tuple[dict, str]:
     """返回 (配置, source)。文件不可读/损坏时回落默认值并记 ERROR。"""
     global _cache, _cache_mtime
@@ -68,22 +80,29 @@ def _load() -> tuple[dict, str]:
             mtime = os.path.getmtime(p)
         except OSError:
             # 文件不存在: 正常的初始状态, 不是错误
-            return {s: dict(v) for s, v in DEFAULTS.items()}, "default"
+            return _with_meta({s: dict(v) for s, v in DEFAULTS.items()}), "default"
 
         if _cache is not None and mtime == _cache_mtime:
-            return _cache, "file"
+            return _copy(_cache), "file"
 
         try:
             with open(p, "r", encoding="utf-8") as f:
                 raw = json.load(f)
+            if not isinstance(raw, dict):     # 合法 JSON 但不是对象, 同样算损坏
+                raise ValueError("顶层不是 JSON 对象")
+            cfg = {s: _merge(s, raw.get(s, {})) for s in DEFAULTS}
+            cfg = _with_meta(
+                cfg,
+                str(raw.get("updated_at") or ""),
+                str(raw.get("updated_by") or ""),
+            )
         except Exception as e:
             # 损坏要大声 —— 否则"改了没生效"会被当成前端 bug 查半天
             logger.error("kb_settings.json 不可读, 回落代码默认值: %s", e)
-            return {s: dict(v) for s, v in DEFAULTS.items()}, "default"
+            return _with_meta({s: dict(v) for s, v in DEFAULTS.items()}), "default"
 
-        cfg = {s: _merge(s, raw.get(s, {})) for s in DEFAULTS}
         _cache, _cache_mtime = cfg, mtime
-        return cfg, "file"
+        return _copy(cfg), "file"
 
 
 def get_all() -> tuple[dict, str]:
