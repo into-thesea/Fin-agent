@@ -438,6 +438,75 @@ class HybridRetriever:
             "rerank_failed": rerank_failed,
         }
 
+    # ──────────────────────────────────────────────
+    # 调试视图: 各通路中间结果 (调试台用, 不在线上热路径)
+    # ──────────────────────────────────────────────
+
+    def retrieve_debug(self, query: str, top_k: int = 5) -> dict:
+        """返回向量/稀疏/融合/图谱各路明细, 用于"为什么这条没搜到"的排查。
+
+        独立于 hybrid_retrieve: 后者是线上热路径, 返回值被 agent/评测/E2E 多处消费,
+        为调试加字段会扩大回归面。
+
+        融合用的 rrf_k 必须与 hybrid_retrieve 一样取自配置 —— 否则调试台显示的排序
+        会和线上实际排序不一致, 而"如实反映线上发生了什么"正是这个视图的全部价值。
+        """
+        import time as _t
+        from src.core.kb_settings import get_retrieval
+        from src.retrieval.bm25_index import rrf_fusion
+
+        cfg = get_retrieval()
+        t0 = _t.perf_counter()
+
+        dense = self.vector_search(query, top_k=top_k * 3)
+        sparse = self.bm25_search(query, top_k=top_k * 3)
+
+        sparse = sparse or []
+        fused = (rrf_fusion(dense, sparse, top_k=top_k, k=int(cfg.get("rrf_k", 60)))
+                 if sparse else list(dense[:top_k]))
+
+        dense_rank = {c.get("chunk_id"): i + 1 for i, c in enumerate(dense)}
+        sparse_rank = {c.get("chunk_id"): i + 1 for i, c in enumerate(sparse)}
+
+        fused_out = []
+        for i, c in enumerate(fused):
+            cid = c.get("chunk_id")
+            found = []
+            if cid in dense_rank:
+                found.append("dense")
+            if cid in sparse_rank:
+                found.append("sparse")
+            fused_out.append({
+                "chunk_id": cid,
+                "source": c.get("source", ""),
+                "section": c.get("section", ""),
+                "rank": i + 1,
+                "rrf_score": c.get("rrf_score"),
+                "dense_rank": dense_rank.get(cid),
+                "sparse_rank": sparse_rank.get(cid),
+                "rerank_score": c.get("rerank_score"),
+                "found_by": found,
+            })
+
+        try:
+            graph = self._graph_retrieve(query)
+        except Exception as e:
+            # 调试台要把失败显示出来, 而不是假装图谱没命中
+            graph = {"entries": [], "entities": [], "error": str(e)}
+
+        return {
+            "dense": [{"chunk_id": c.get("chunk_id"), "source": c.get("source", ""),
+                       "rank": i + 1, "score": c.get("score")}
+                      for i, c in enumerate(dense)],
+            "sparse": [{"chunk_id": c.get("chunk_id"), "source": c.get("source", ""),
+                        "rank": i + 1, "score": c.get("score")}
+                       for i, c in enumerate(sparse)],
+            "fused": fused_out,
+            "graph": graph,
+            "config_used": {**cfg, "top_k": top_k},
+            "elapsed_ms": round((_t.perf_counter() - t0) * 1000, 1),
+        }
+
 
 # 兼容旧代码的便捷函数
 def create_retriever() -> HybridRetriever:

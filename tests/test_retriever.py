@@ -105,3 +105,68 @@ class TestRetrievalConfigWiring:
 
         r.hybrid_retrieve("测试", top_k=3)           # 显式传 → 不变
         assert seen.get("top_k") == 3, "显式 top_k 被配置覆盖了"
+
+
+class TestRetrieveDebug:
+    """检索调试视图: 各通路的中间结果必须可分别看到"""
+
+    def test_retrieve_debug_reports_per_path_ranks(self):
+        from src.retrieval.retriever import HybridRetriever
+        r = HybridRetriever()
+        saved_v, saved_b, saved_g = r.vector_search, r.bm25_search, r._graph_retrieve
+        r.vector_search = lambda *a, **k: [
+            {"chunk_id": "a", "source": "s1.md", "content": "x"},
+            {"chunk_id": "b", "source": "s2.md", "content": "y"},
+        ]
+        r.bm25_search = lambda *a, **k: [
+            {"chunk_id": "b", "source": "s2.md", "content": "y"},
+            {"chunk_id": "c", "source": "s3.md", "content": "z"},
+        ]
+        r._graph_retrieve = lambda q: {"entries": [], "entities": []}
+        try:
+            out = r.retrieve_debug("测试查询", top_k=3)
+        finally:
+            r.vector_search, r.bm25_search, r._graph_retrieve = saved_v, saved_b, saved_g
+
+        fused = {i["chunk_id"]: i for i in out["fused"]}
+        assert fused["a"]["found_by"] == ["dense"]
+        assert fused["c"]["found_by"] == ["sparse"]
+        assert sorted(fused["b"]["found_by"]) == ["dense", "sparse"]
+        assert fused["a"]["dense_rank"] == 1
+        assert fused["a"]["sparse_rank"] is None
+        assert set(out.keys()) >= {"dense", "sparse", "fused", "graph", "config_used", "elapsed_ms"}
+
+    def test_retrieve_debug_config_used_echoes_effective_values(self):
+        from src.retrieval.retriever import HybridRetriever
+        r = HybridRetriever()
+        saved_v, saved_b, saved_g = r.vector_search, r.bm25_search, r._graph_retrieve
+        r.vector_search = lambda *a, **k: [{"chunk_id": "a", "source": "s.md", "content": "x"}]
+        r.bm25_search = lambda *a, **k: [{"chunk_id": "a", "source": "s.md", "content": "x"}]
+        r._graph_retrieve = lambda q: {"entries": [], "entities": []}
+        try:
+            out = r.retrieve_debug("q", top_k=3)
+        finally:
+            r.vector_search, r.bm25_search, r._graph_retrieve = saved_v, saved_b, saved_g
+        # 回显本次实际生效的参数, 避免"我明明改了怎么没变"的困惑
+        assert out["config_used"]["top_k"] == 3
+        assert "rrf_k" in out["config_used"]
+
+    def test_retrieve_debug_surfaces_graph_failure(self):
+        """图谱失败要显示出来, 不能假装"图谱没命中" """
+        from src.retrieval.retriever import HybridRetriever
+        r = HybridRetriever()
+        saved_v, saved_b, saved_g = r.vector_search, r.bm25_search, r._graph_retrieve
+        r.vector_search = lambda *a, **k: [{"chunk_id": "a", "source": "s.md", "content": "x"}]
+        r.bm25_search = lambda *a, **k: [{"chunk_id": "a", "source": "s.md", "content": "x"}]
+
+        def _boom(q):
+            raise RuntimeError("Neo4j 连不上")
+
+        r._graph_retrieve = _boom
+        try:
+            out = r.retrieve_debug("q", top_k=1)
+        finally:
+            r.vector_search, r.bm25_search, r._graph_retrieve = saved_v, saved_b, saved_g
+
+        assert "Neo4j 连不上" in out["graph"]["error"]
+        assert out["fused"][0]["chunk_id"] == "a"  # 图谱挂了不影响两路检索结果
