@@ -242,6 +242,11 @@ class DBManager:
         """)
         cursor.execute("CREATE INDEX IF NOT EXISTS idx_handoff_status ON handoff_tickets(status)")
 
+        # 接单时间 (幂等迁移) — 有它才能算「接单时长」与 SLA 达标率, 原先只有 created/resolved
+        ht_cols = [r[1] for r in cursor.execute("PRAGMA table_info(handoff_tickets)").fetchall()]
+        if "taken_at" not in ht_cols:
+            cursor.execute("ALTER TABLE handoff_tickets ADD COLUMN taken_at TEXT")
+
         # 转人工工单消息表 (坐席回复, 用户侧轮询)
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS handoff_messages (
@@ -594,8 +599,9 @@ class DBManager:
         """坐席接单 (open→taken); 已被他人接单返回 False"""
         cursor = self.conn.cursor()
         cursor.execute(
-            "UPDATE handoff_tickets SET status='taken', agent_id=? WHERE id=? AND status='open'",
-            (agent_id, ticket_id),
+            "UPDATE handoff_tickets SET status='taken', agent_id=?, taken_at=? "
+            "WHERE id=? AND status='open'",
+            (agent_id, time.ctime(), ticket_id),
         )
         self.conn.commit()
         return cursor.rowcount > 0

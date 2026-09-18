@@ -33,6 +33,51 @@ from src.retrieval.bm25_index import BM25Index, rrf_fusion
 
 logger = logging.getLogger(__name__)
 
+# ── BM25 金丝雀 ──────────────────────────────
+# 判定「索引/分词坏了」在索引加载后验证一次, 而不是每次查询猜。
+# 原因: 稠密路(ANN)永远返回 k 个最近邻, 所以「稠密有条 + 稀疏 0 条」是有歧义的 ——
+# 既可能是 BM25 挂了, 也可能只是 query 跟语料零词面重叠(离题问题如「给我写一首诗」)。
+# 前者必须响亮失败(2026-09-13「假混合检索」缺陷), 后者应正常兜底而不是给用户 500。
+_BM25_CANARY_QUERY = "存款保险"
+
+
+def bm25_canary_ok(bm25) -> bool:
+    """索引健康度金丝雀 —— 每个索引对象只验一次(结果挂在索引上, 索引重建自然失效)"""
+    cached = getattr(bm25, "_canary_ok", None)
+    if cached is not None:
+        return cached
+    ok = False
+    if getattr(bm25, "nd", 0):
+        try:
+            ok = bool(bm25.search(_BM25_CANARY_QUERY, top_k=1))
+        except Exception as e:
+            logger.error("BM25 金丝雀探针异常: %s", e)
+    bm25._canary_ok = ok
+    if not ok:
+        logger.error("BM25 金丝雀探针 %r 返回 0 条 —— 索引为空或分词已失效",
+                     _BM25_CANARY_QUERY)
+    return ok
+
+
+def format_graph_context(items) -> str:
+    """把 contexts['graph'] 渲染成可注入 Prompt 的文本。
+
+    graph 位刻意保留结构化路径条目 ({"content","source","path"}) —— 前端画推理路径、
+    评测算 path_structure_consistency 都依赖它, 所以不能在生产端降级成字符串。
+    但消费端有 9 处历史写法是直接 "\\n".join(contexts['graph']): 图谱没命中时是空列表
+    不报错, **一旦命中就 TypeError: expected str instance, dict found**。
+    统一走这里, 别在各处再手写 join。
+    """
+    lines = []
+    for it in items or []:
+        if isinstance(it, str):
+            lines.append(it)
+            continue
+        it = it or {}
+        src = it.get("source", "知识图谱")
+        lines.append(f"- {it.get('content', '')} (来源: {src})")
+    return "\n".join(lines)
+
 # 嵌入模型加载状态 (供系统状态查询)
 EMBEDDING_MODEL_LOADED = False
 
@@ -384,10 +429,20 @@ class HybridRetriever:
         # 原先 `if sparse_results: RRF else: dense[:top_k]` 是个静默降级 ——
         # 它把「BM25 索引是空的 / 分词失效」伪装成「本来就没关键词命中」,
         # 让纯向量检索冒充混合检索(2026-09-13 的「假混合检索」缺陷)。
+        #
+        # 但「索引坏了」和「这条 query 没有关键词命中」是两件事, 必须分开:
+        # 离题/超纲问题(如「给我写一首诗」)在健康索引上本来就该 0 命中,
+        # 一律 raise 会把正常提问变成 500。用金丝雀探针判定索引健康度 ——
+        # 索引坏了(探针 0 条)照旧响亮失败, 索引健康则只记警告并退回稠密路。
         if not sparse_results:
-            raise RuntimeError(
-                "BM25 稀疏路返回 0 条 —— 混合检索无法成立(纯向量不等于混合检索)。"
-                "请检查 BM25 索引是否为空或分词是否失效。"
+            if not bm25_canary_ok(self.bm25):
+                raise RuntimeError(
+                    "BM25 稀疏路返回 0 条 —— 混合检索无法成立(纯向量不等于混合检索)。"
+                    "请检查 BM25 索引是否为空或分词是否失效。"
+                )
+            logger.warning(
+                "BM25 稀疏路无关键词命中 (索引 %d 篇, query=%r) → 本轮退化为纯向量",
+                self.bm25.nd, query[:40],
             )
         local_context = rrf_fusion(dense_results, sparse_results,
                                    top_k=pool_k, k=int(cfg.get("rrf_k", 60)))
@@ -436,6 +491,9 @@ class HybridRetriever:
             # 重排异常时非 None —— 让「重排没生效」可被上层/评测看见,
             # 而不是和「重排后顺序恰好没变」混在一起
             "rerank_failed": rerank_failed,
+            # 稀疏路 0 命中(索引健康但 query 离题)时同样留痕, 与 09-13 修的
+            # 「假混合检索」区分开: 那个是索引坏的静默降级, 这个是离题问题的正常退化
+            "sparse_empty": not sparse_results,
         }
 
     # ──────────────────────────────────────────────

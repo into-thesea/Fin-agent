@@ -42,7 +42,12 @@ def _query_product_names(query: str) -> list:
     """返回查询中命中的目录产品名 (全名或简称命中)"""
     hits = []
     for name in KNOWN_PRODUCTS:
-        if name in query or _PRODUCT_ALIASES.get(name, "") in query:
+        # 别名表只覆盖部分产品, 缺省值必须是 None 而不是 "" ——
+        # `"" in query` 恒为真, 会让别名表没覆盖的产品在**任何**提问上都"命中",
+        # 于是「存款保险保不保理财产品」被判成点名了 13 个产品,
+        # 下面 retrieve_knowledge 的对齐检查就把检索结果整个丢掉, sources 全是空的。
+        alias = _PRODUCT_ALIASES.get(name)
+        if name in query or (alias and alias in query):
             hits.append(name)
     return hits
 

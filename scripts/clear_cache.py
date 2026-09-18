@@ -48,16 +48,23 @@ def clear_redis():
 
 
 def clear_memory_cache():
-    """清理 answer_cache 的内存缓存"""
+    """清理 answer_cache 的内存缓存 (只对本进程有效)
+
+    注意: 本脚本是独立进程, 清的是**自己**的内存缓存 —— 而真正在服务的是
+    API 那个进程, 它的 L1/L2 内存缓存清不掉。要让内存缓存真正失效, 必须重启 API
+    (run.py --stop 后再起)。原来写成 `from src import answer_cache` 直接 ImportError,
+    于是这一步从来只是打印个 WARN, 让人误以为清过了。
+    """
     try:
-        from src import answer_cache
+        from src.core import answer_cache
         # 重置内存缓存
         with answer_cache._memory_lock:
             old_exact = len(answer_cache._memory_cache)
             old_sem = len(answer_cache._memory_semantic)
             answer_cache._memory_cache.clear()
             answer_cache._memory_semantic.clear()
-        print(f"  [OK] 内存缓存已清除 (精确{old_exact}条 + 语义{old_sem}条)")
+        print(f"  [OK] 本进程内存缓存已清 (精确{old_exact}条 + 语义{old_sem}条)")
+        print("  [i] API 进程的内存缓存需重启才会失效: run.py --stop && run.py --daemon")
     except Exception as e:
         print(f"  [WARN] 内存缓存清理失败: {e}")
 

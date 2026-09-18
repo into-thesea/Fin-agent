@@ -10,7 +10,7 @@ import logging
 from typing import Optional
 
 from dotenv import load_dotenv
-from src.retrieval.retriever import HybridRetriever
+from src.retrieval.retriever import HybridRetriever, format_graph_context
 from src.llm.llm_client import create_client
 
 logger = logging.getLogger(__name__)
@@ -50,7 +50,7 @@ class FactAgent:
             [f"- (score:{c.get('score', 0):.3f}) {c.get('content', '')[:1500]} [来源: {c.get('source', '未知')}]"
              for c in contexts['local']]
         )
-        graph_text = "\n".join(contexts['graph'])
+        graph_text = format_graph_context(contexts.get('graph', []))
         web_text = f"\n\n【网络补充信息】:\n{web_context}" if web_context else ""
 
         user_input = f"""问题: {query}
@@ -95,7 +95,7 @@ class FactAgent:
             [f"- (score:{c.get('score', 0):.3f}) {c.get('content', '')[:1500]} [来源: {c.get('source', '未知')}]"
              for c in contexts['local']]
         )
-        graph_text = "\n".join(contexts['graph'])
+        graph_text = format_graph_context(contexts.get('graph', []))
         web_text = f"\n\n【网络补充信息】:\n{web_context}" if web_context else ""
 
         user_input = f"""问题: {query}

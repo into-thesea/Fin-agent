@@ -27,7 +27,7 @@ from typing import Any, Iterator, Optional, Tuple, Union
 
 from dotenv import load_dotenv
 
-from src.retrieval.retriever import HybridRetriever
+from src.retrieval.retriever import HybridRetriever, format_graph_context
 from src.llm.llm_client import create_client
 from src.agents.router_agent import RouterAgent, QueryIntent, RoutingResult
 from src.agents.fact_agent import FactAgent
@@ -71,7 +71,7 @@ class GeneralAgent:
         global_text = "\n".join(
             [f"- 宏观背景: {s}" for s in contexts['global']]
         )
-        graph_text = "\n".join(contexts['graph'])
+        graph_text = format_graph_context(contexts.get('graph', []))
         web_text = f"\n【网络补充信息】:\n{web_context}" if web_context else ""
 
         user_input = f"""【问题】: {query}
@@ -111,7 +111,7 @@ class GeneralAgent:
         global_text = "\n".join(
             [f"- 宏观背景: {s}" for s in contexts['global']]
         )
-        graph_text = "\n".join(contexts['graph'])
+        graph_text = format_graph_context(contexts.get('graph', []))
         web_text = f"\n【网络补充信息】:\n{web_context}" if web_context else ""
 
         user_input = f"""【问题】: {query}

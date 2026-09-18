@@ -54,8 +54,8 @@ class TestNoSilentDegradation:
         finally:
             r.bm25 = saved
 
-    def test_hybrid_retrieve_raises_when_sparse_returns_empty(self):
-        """稀疏路返回 0 条时必须报错, 不能静默退回纯向量检索。
+    def test_hybrid_retrieve_raises_when_index_broken(self):
+        """索引坏掉(金丝雀探针 0 条)时必须报错, 不能静默退回纯向量检索。
 
         这是「假混合检索」缺陷的执行点: 只要 BM25 挂掉而稠密路有条,
         系统就会假装自己是混合检索。
@@ -64,13 +64,67 @@ class TestNoSilentDegradation:
 
         r = HybridRetriever()
         saved_vec, saved_bm = r.vector_search, r.bm25_search
+        saved_canary = getattr(r.bm25, "_canary_ok", None)
         r.vector_search = lambda *a, **k: [{"content": "命中但来自稠密路", "chunk_id": "c1"}]
         r.bm25_search = lambda *a, **k: []
+        r.bm25._canary_ok = False          # 金丝雀判定索引/分词已失效
         try:
             with pytest.raises(RuntimeError, match="BM25 稀疏路返回 0 条"):
                 r.hybrid_retrieve("测试查询")
         finally:
             r.vector_search, r.bm25_search = saved_vec, saved_bm
+            if saved_canary is None:
+                r.bm25.__dict__.pop("_canary_ok", None)
+            else:
+                r.bm25._canary_ok = saved_canary
+
+    def test_hybrid_retrieve_degrades_visibly_when_query_has_no_keyword_hit(self):
+        """索引健康但这条 query 零词面重叠(离题问题) → 退化纯向量, 但必须留痕。
+
+        稠密路(ANN)永远返回 k 个最近邻, 所以「稠密有条 + 稀疏 0 条」并不等于
+        BM25 挂了 —— 离题问题本来就该 0 命中, 给用户 500 是错的。
+        代价是这种退化不能再靠异常暴露, 必须由 sparse_empty 标记出来。
+        """
+        from src.retrieval.retriever import HybridRetriever
+
+        r = HybridRetriever()
+        saved_vec, saved_bm = r.vector_search, r.bm25_search
+        saved_canary = getattr(r.bm25, "_canary_ok", None)
+        r.vector_search = lambda *a, **k: [{"content": "命中但来自稠密路", "chunk_id": "c1"}]
+        r.bm25_search = lambda *a, **k: []
+        r.bm25._canary_ok = True           # 金丝雀判定索引健康
+        try:
+            ctx = r.hybrid_retrieve("给我写一首诗")     # 不抛错
+            assert ctx["sparse_empty"] is True          # 但退化可见
+            assert ctx["local"], "退化后仍应给稠密路结果"
+        finally:
+            r.vector_search, r.bm25_search = saved_vec, saved_bm
+            if saved_canary is None:
+                r.bm25.__dict__.pop("_canary_ok", None)
+            else:
+                r.bm25._canary_ok = saved_canary
+
+    def test_bm25_canary_detects_broken_tokenizer(self):
+        """金丝雀探针本身: 索引文档数 >0 但探针检索 0 条 → 判定失效。"""
+        from src.retrieval.retriever import bm25_canary_ok
+
+        class _FakeIndex:
+            nd = 100
+            _canary_ok = None
+
+            def search(self, q, top_k=1):
+                return []          # 分词坏掉: 任何 query 都检不出
+
+        assert bm25_canary_ok(_FakeIndex()) is False
+
+        class _Healthy:
+            nd = 100
+            _canary_ok = None
+
+            def search(self, q, top_k=1):
+                return [{"chunk_id": "c1"}]
+
+        assert bm25_canary_ok(_Healthy()) is True
 
     def test_graph_retriever_raises_without_neo4j(self, monkeypatch):
         """Neo4j 不可用时不再降级内存图 —— 两个后端的图可能不一致。"""

@@ -20,6 +20,7 @@ from dataclasses import dataclass, field
 
 from dotenv import load_dotenv
 from src.llm.llm_client import create_client
+from src.retrieval.retriever import format_graph_context
 
 logger = logging.getLogger(__name__)
 
@@ -108,7 +109,7 @@ class ReviewerAgent:
             [f"- {c.get('content', '')[:800]} [来源: {c.get('source', '未知')}]"
              for c in contexts.get('local', [])]
         )
-        graph_text = "\n".join(contexts.get('graph', []))
+        graph_text = format_graph_context(contexts.get('graph', []))
         global_text = "\n".join(
             [f"- 宏观背景: {s}" for s in contexts.get('global', [])]
         )

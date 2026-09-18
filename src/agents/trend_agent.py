@@ -10,7 +10,7 @@ import json
 import logging
 
 from dotenv import load_dotenv
-from src.retrieval.retriever import HybridRetriever
+from src.retrieval.retriever import HybridRetriever, format_graph_context
 from src.llm.llm_client import create_client
 
 logger = logging.getLogger(__name__)
@@ -52,7 +52,7 @@ class TrendAgent:
         global_text = "\n".join(
             [f"- 宏观背景: {s}" for s in contexts['global']]
         )
-        graph_text = "\n".join(contexts['graph'])
+        graph_text = format_graph_context(contexts.get('graph', []))
         web_text = f"\n\n【网络补充信息】:\n{web_context}" if web_context else ""
 
         user_input = f"""问题: {query}
@@ -115,7 +115,7 @@ class TrendAgent:
         global_text = "\n".join(
             [f"- 宏观背景: {s}" for s in contexts['global']]
         )
-        graph_text = "\n".join(contexts['graph'])
+        graph_text = format_graph_context(contexts.get('graph', []))
         web_text = f"\n\n【网络补充信息】:\n{web_context}" if web_context else ""
 
         user_input = f"""问题: {query}
