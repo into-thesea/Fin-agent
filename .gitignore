@@ -132,6 +132,8 @@ docs/评测问题分析与优化记录.md
 # 开发/构建/抓取产物 (可重建或已废弃)
 .img_conv/
 docs/_build/
+# SDD 过程计划/规格: 属开发过程留档; 内含早期粘贴的 .env 片段 (含真实密钥), 不入库
+docs/superpowers/
 .jbeval/
 data/_archive_financial_20260822/
 bash.exe.stackdump
