@@ -307,13 +307,16 @@ def rebuild_bm25_index(chunks_path: str, output_path: str) -> BM25Index:
     """
     import json
 
-    documents = []
+    all_documents = []
     with open(chunks_path, "r", encoding="utf-8") as f:
         for line in f:
             line = line.strip()
             if line:
                 doc = json.loads(line)
-                documents.append(doc)
+                all_documents.append(doc)
+    # 父子分块: BM25只索引子块 (父块是完整章节, 不直接检索)
+    documents = [d for d in all_documents if d.get("chunk_type") != "parent"]
+    logger.info("BM25索引: %d 子块 (跳过 %d 父块)", len(documents), len(all_documents) - len(documents))
 
     index = BM25Index()
     index.build(documents)

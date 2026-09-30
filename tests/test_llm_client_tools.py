@@ -48,7 +48,7 @@ def test_parse_deepseek_tool_calls():
             "tool_calls": [{
                 "id": "call_1",
                 "type": "function",
-                "function": {"name": "retrieve_knowledge", "arguments": '{"query": "比亚迪"}'},
+                "function": {"name": "retrieve_knowledge", "arguments": '{"query": "存款保险"}'},
             }],
         }}]
     }
@@ -56,7 +56,7 @@ def test_parse_deepseek_tool_calls():
     assert result["type"] == "tool_calls"
     call = result["calls"][0]
     assert call["name"] == "retrieve_knowledge"
-    assert call["arguments"] == {"query": "比亚迪"}
+    assert call["arguments"] == {"query": "存款保险"}
 
 
 def test_parse_deepseek_tool_calls_bad_json():
@@ -99,14 +99,14 @@ def test_append_tool_result_gemini(monkeypatch):
 def test_parse_gemini_rest_preserves_thought_signature():
     from src.llm.llm_client import _parse_gemini_rest_response
     raw = {"candidates": [{"content": {"parts": [
-        {"functionCall": {"name": "retrieve_knowledge", "args": {"query": "比亚迪"},
+        {"functionCall": {"name": "retrieve_knowledge", "args": {"query": "存款保险"},
                           "thoughtSignature": "sig_abc"}},
     ]}}]}
     result = _parse_gemini_rest_response(raw)
     assert result["type"] == "tool_calls"
     call = result["calls"][0]
     assert call["name"] == "retrieve_knowledge"
-    assert call["arguments"] == {"query": "比亚迪"}
+    assert call["arguments"] == {"query": "存款保险"}
     # thoughtSignature 必须保留在原始 dict 中供回传
     assert call["_raw_function_call"]["thoughtSignature"] == "sig_abc"
 
@@ -124,7 +124,7 @@ def test_build_gemini_contents_echoes_raw_function_call():
         {"role": "user", "content": "q"},
         {"role": "assistant", "content": None, "tool_calls": [
             {"id": "x", "type": "function", "function": {"name": "retrieve_knowledge", "arguments": "{}"},
-             "_raw_function_call": {"name": "retrieve_knowledge", "args": {"query": "比亚迪"},
+             "_raw_function_call": {"name": "retrieve_knowledge", "args": {"query": "存款保险"},
                                     "thoughtSignature": "sig_abc"}}]},
         {"role": "tool", "name": "retrieve_knowledge", "content": "片段"},
     ]
@@ -132,7 +132,7 @@ def test_build_gemini_contents_echoes_raw_function_call():
     assert system == "sys"
     fc = contents[1]["parts"][0]["functionCall"]
     assert fc["thoughtSignature"] == "sig_abc"
-    assert fc["args"] == {"query": "比亚迪"}
+    assert fc["args"] == {"query": "存款保险"}
     fr = contents[2]["parts"][0]["functionResponse"]
     assert fr["name"] == "retrieve_knowledge"
     assert fr["response"]["result"] == "片段"
@@ -153,7 +153,7 @@ def test_to_gemini_tool_messages_roundtrip():
         {"role": "user", "content": "q"},
         {"role": "assistant", "content": None, "tool_calls": [
             {"id": "c1", "type": "function",
-             "function": {"name": "retrieve_knowledge", "arguments": {"query": "比亚迪"}}}]},
+             "function": {"name": "retrieve_knowledge", "arguments": {"query": "存款保险"}}}]},
         {"role": "tool", "name": "retrieve_knowledge", "content": "片段"},
     ]
     contents, system = _to_gemini_tool_messages(msgs)

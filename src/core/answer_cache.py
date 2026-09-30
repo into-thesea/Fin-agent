@@ -295,45 +295,11 @@ def _char_ngram_jaccard(q1: str, q2: str, n: int = 3) -> float:
     return inter / union if union > 0 else 0.0
 
 
-# 已知公司名列表 (用于跨公司假阳性防护)
-_KNOWN_COMPANIES = [
-    "比亚迪", "宁德时代", "特斯拉", "小米", "蔚来", "理想", "小鹏",
-    "腾讯", "阿里", "华为", "字节", "美团", "京东", "拼多多",
-    "百度", "网易", "茅台", "中石油", "中石化", "工商银行",
-    "中国平安", "中国人寿", "宁德", "同花顺", "BYD", "TSLA", "CATL",
-]
-
-
-def _extract_company(q: str) -> str | None:
-    """提取查询中的公司名"""
-    q = _preprocess(q)
-    for c in _KNOWN_COMPANIES:
-        if c in q:
-            return c
-    # 尝试匹配 "XX集团" "XX股份" 模式
-    m = re.search(r'([一-鿿]{2,6})(?:集团|股份|有限)', q)
-    if m:
-        return m.group(1)
-    return None
-
-
-def _has_multiple_companies(q: str) -> bool:
-    """检测查询是否涉及多公司 (对比类查询)"""
-    q = _preprocess(q)
-    found = 0
-    for c in _KNOWN_COMPANIES:
-        if c in q:
-            found += 1
-            if found >= 2:
-                return True
-    return False
-
-
 # ── 理财域守卫 ──────────────────────────────────
-# 原有守卫 (公司名/年份) 是为年报问答建的, 在理财产品域全部空转:
-# _extract_company 对"稳盈添利30天""天天利货币基金"一律返回 None。
-# 实测裸相似度下"理财产品怎么赎回" vs "怎么申购" = 0.518 > 阈值 0.50 → 会串答。
-# 下面补两道理财域守卫。
+# 基于公司名的旧守卫在理财产品域全空转(抽不出"稳盈添利30天"这类产品实体), 已删。
+# 实体守卫改由 _extract_product 从 catalog.jsonl 读真实产品名承担。
+# 实测裸相似度下"理财产品怎么赎回" vs "怎么申购" = 0.518 > 阈值 0.50 → 会串答,
+# 故另有动作守卫。
 
 _PRODUCT_CACHE = {"mtime": 0.0, "names": []}
 
@@ -384,42 +350,25 @@ def _l2_similarity(q1: str, q2: str) -> float:
     """
     L2 混合相似度: 关键词 Jaccard (0.6) + 字 n-gram (0.4)
 
-    跨公司防护: 如果检测到公司名不同, 直接返回 0
-
-    - 关键词带同义词组映射 → 处理"营收↔收入"
+    - 关键词带同义词组映射 → 处理"赎回↔卖出"
     - 字 n-gram → 处理语序变化
     """
-    # 跨公司防护
-    c1 = _extract_company(q1)
-    c2 = _extract_company(q2)
-    if c1 and c2 and c1 != c2 and c1 not in c2 and c2 not in c1:
-        return 0.0
-
-    # 对比查询不应匹配单公司查询
-    if _has_multiple_companies(q1) != _has_multiple_companies(q2):
-        return 0.0
-
     # 年份守卫: 明确年份不同 → 不命中 (2024 数据 ≠ 2025 数据)
     _y1 = re.search(r"(20\d{2})", q1)
     _y2 = re.search(r"(20\d{2})", q2)
     if _y1 and _y2 and _y1.group(1) != _y2.group(1):
         return 0.0
 
-    # 内容守卫: 剥掉公司名+年份后, 剩余内容完全不重叠 → 不同问题 (如"营收" vs "销量")
-    _c1 = _preprocess(q1)
-    _c2 = _preprocess(q2)
-    for _c in _KNOWN_COMPANIES:
-        _c1 = _c1.replace(_c, "")
-        _c2 = _c2.replace(_c, "")
-    _c1 = re.sub(r"20\d{2}", "", _c1)
-    _c2 = re.sub(r"20\d{2}", "", _c2)
+    # 内容守卫: 剥掉年份后, 剩余内容完全不重叠 → 不同问题 (如"收益" vs "费率")
+    _c1 = re.sub(r"20\d{2}", "", _preprocess(q1))
+    _c2 = re.sub(r"20\d{2}", "", _preprocess(q2))
     if _c1 and _c2:
         _b1 = set(_c1[i:i+2] for i in range(len(_c1)-1))
         _b2 = set(_c2[i:i+2] for i in range(len(_c2)-1))
         if not (_b1 & _b2):
             return 0.0
 
-    # ── 理财域守卫 (上面几道是为年报域建的, 此处基本空转) ──
+    # ── 理财域守卫 ──
 
     # 产品名守卫: 两边都点了具体产品且不是同一个 → 不同问题
     _p1 = _extract_product(q1)

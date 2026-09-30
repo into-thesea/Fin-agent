@@ -55,8 +55,23 @@ async def health_check():
 
 @health_router.get("/health/ready")
 async def readiness_check():
-    """就绪检查 (K8s Probe)"""
-    return {"status": "ready"}
+    """就绪检查 (K8s Readiness Probe)
+
+    嵌入模型完成后台预热(import torch/transformers ~11s + 权重加载)后才算就绪。
+    未就绪返回 503, 让负载均衡/部署暂不把流量打进来 —— 冷启动成本因此不落在
+    任何真实用户身上; 即使预热窗口内有请求, Python import 锁与模型双检锁
+    也保证重型依赖只加载一次, 请求是等待而非重复触发。
+    """
+    try:
+        from src.retrieval.retriever import EMBEDDING_MODEL_LOADED
+        model_ready = bool(EMBEDDING_MODEL_LOADED)
+    except Exception:
+        model_ready = False
+    if model_ready:
+        return JSONResponse({"status": "ready", "embedding_model": "loaded"},
+                            status_code=200)
+    return JSONResponse({"status": "not_ready", "embedding_model": "warming"},
+                        status_code=503)
 
 
 @router.get("/api/v1/system/status")

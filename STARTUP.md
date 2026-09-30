@@ -119,7 +119,7 @@ curl http://localhost:8001/api/v1/graph/stats
 ```bash
 curl -X POST http://localhost:8001/api/v1/chat/sync \
   -H "Content-Type: application/json" \
-  -d '{"query": "比亚迪2024年营收是多少？"}'
+  -d '{"query": "存款保险保多少钱？"}'
 ```
 
 ### 流式聊天 `POST /api/v1/chat/stream`（SSE）

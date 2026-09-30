@@ -24,7 +24,7 @@
   - 条款术语: 存款保险 / 业绩比较基准 / 犹豫期 / 适当性 / 赎回 …
   - 原始相关分: RRF 融合后的 rrf_score (或向量 score), 归一化到 0-1
 
-注意: 本类原先用的是**财报域**词表 (年份/公司名/财务指标), 在理财客服域实测
+注意: 本类原先用的是**文档问答域**词表 (年份/公司名/财务指标), 在理财客服域实测
 是负收益 (Recall@1 82.5% → 75.0%, MRR 0.8938 → 0.8375)。现改为域适配词表,
 仍须用 scripts/eval_retrieval.py 做 A/B 验证后再决定是否接进线上。
 
@@ -120,7 +120,7 @@ class SparseReranker:
         """提取 (强信号集合, 关键词集合)
 
         强信号 = 产品名 / 风险等级 / 期限与数字; 关键词 = 条款术语 + 停用词切分片段。
-        比原先的「年份 + 英文公司名」(财报域) 更贴合理财问答。
+        比原先的「年份 + 英文公司名」更贴合理财问答。
         """
         strong = set(SparseReranker._match_products(query))
         strong |= set(RISK_RE.findall(query))
@@ -141,13 +141,13 @@ class SparseReranker:
     def _split_zh(text: str) -> List[str]:
         """切分中文为有意义片段: 先按数字断开, 再按停用词切分 (免分词器)
 
-        例: 比亚迪在2024的营业收入是多少 → 比亚迪 / 营业收入
-            宁德时代2024年度与关联方发生... → 宁德时代 / 年度 / 关联方发生
+        例: 稳盈添利30天2024年的收益率是多少 → 稳盈添利 / 天 / 收益率
+            大额存单3年期与定期存款的区别 → 大额存单 / 年期 / 定期存款的区别
         """
         sw = sorted(STOPWORDS, key=len, reverse=True)
         sw_pattern = "|".join(re.escape(s) for s in sw)
         out = []
-        # 1) 按数字断开 (宁德时代2024年度 → 宁德时代 / 年度)
+        # 1) 按数字断开 (大额存单3年期 → 大额存单 / 年期)
         for seg in re.split(r"\d+", text):
             # 2) 按停用词切分
             for part in re.split(sw_pattern, seg):

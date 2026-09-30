@@ -89,3 +89,52 @@ data/kb_settings.json
 
 # SDD 工作区(临时)
 .superpowers/
+
+# ──────────────────────────────────────────────
+# 补充 (2026-10-01) — 个人学习/求职材料与开发过程产物
+# 与项目运行无关, 不随仓库分发
+# ──────────────────────────────────────────────
+
+# 个人求职/面试材料
+学习笔记/
+docs/面试笔记.md
+docs/面试笔记.docx
+docs/fin-agent.md
+docs/简历-AI应用开发-应届.md
+docs/简历项目经历.md
+个人简历.docx
+简历.pdf
+
+# 个人学习材料 (PDF 讲义 / 练习脚本)
+禅师rrf.py
+AI应用开发：RAG技术从小白到深入理解-详细版.pdf
+Claude Code 从小白到实战高手：大厂工程化实战手册.pdf
+Vibe Coding指南-AI编辑器全栈开发-附实战和视频.pdf
+大模型AI Agent知识与0-1笔记-万字详解版本！.pdf
+AI应用开发项目实战知识库-详解版/
+AI开发基础：Langchain框架从入门到实战开发-附代码/
+
+# 架构图/链路图文稿 (个人整理, 非系统产物)
+docs/项目结构与技术链路.md
+docs/项目架构图.svg
+docs/业务流程图.svg
+docs/时序图.svg
+docs/完整链路架构图.html
+docs/可复用经验库.md
+智能客服项目技术分析_最新版.md
+
+# 过程性总结文档 (口径随轮次变化)
+docs/优化后评测指标报告.md
+docs/变更存档_*.md
+docs/意图识别与延迟优化方案.md
+docs/评测问题分析与优化记录.md
+
+# 开发/构建/抓取产物 (可重建或已废弃)
+.img_conv/
+docs/_build/
+.jbeval/
+data/_archive_financial_20260822/
+bash.exe.stackdump
+
+# 本地运行期库文件 (0 字节占位/临时)
+data/platform.db

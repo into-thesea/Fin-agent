@@ -214,6 +214,118 @@ def render_kg_triples() -> int:
     return len(triples)
 
 
+
+# ── 父子文档分块 (Parent-Child Chunking) ──────────────────────────
+# 父块 = ##章节 (完整内容, 不入检索索引)
+# 子块 = 句子级小chunk (约150字符, 入Milvus/BM25检索)
+# 检索命中子块后, 通过parent_id返回父块完整上下文
+
+CHILD_CHUNK_SIZE = 150   # 子块目标字符数
+CHILD_OVERLAP = 30       # 子块间重叠字符数
+
+
+def _split_sentences(text: str) -> list:
+    """按中文句子边界切分 (句号/问号/感叹号/分号/换行)"""
+    # 保留分隔符
+    parts = re.split(r'(?<=[。！？；\n])', text)
+    return [p for p in parts if p.strip()]
+
+
+def split_parent_into_children(parent: dict) -> list:
+    """把一个父chunk按句子边界切分为多个子chunk
+
+    子块保留父块的标题前缀, 保证检索时上下文完整。
+    """
+    parent_id = parent["chunk_id"]
+    full_content = parent["content"]
+
+    # 提取标题前缀 (如 【标题】\n)
+    title_match = re.match(r'(^【[^】]+】\n)', full_content)
+    title_prefix = title_match.group(1) if title_match else ""
+    body = full_content[len(title_prefix):] if title_prefix else full_content
+
+    sentences = _split_sentences(body)
+    if not sentences:
+        return []
+
+    # 如果整个父块内容不超过CHILD_CHUNK_SIZE, 只生成一个子块
+    if len(full_content) <= CHILD_CHUNK_SIZE:
+        child_id = f"{parent_id}_c1"
+        return [{
+            "chunk_id": child_id,
+            "source": parent.get("source", ""),
+            "page": parent.get("page", 1),
+            "section": parent.get("section", ""),
+            "content": full_content,
+            "content_hash": _content_hash(full_content),
+            "chunk_type": "child",
+            "parent_id": parent_id,
+        }]
+
+    # 累积句子生成子块
+    children = []
+    current = ""
+    child_idx = 0
+
+    for sent in sentences:
+        if not current:
+            current = sent
+        elif len(title_prefix) + len(current) + len(sent) <= CHILD_CHUNK_SIZE:
+            current += sent
+        else:
+            # 当前子块已满, 保存
+            child_idx += 1
+            child_content = title_prefix + current
+            children.append({
+                "chunk_id": f"{parent_id}_c{child_idx}",
+                "source": parent.get("source", ""),
+                "page": parent.get("page", 1),
+                "section": parent.get("section", ""),
+                "content": child_content,
+                "content_hash": _content_hash(child_content),
+                "chunk_type": "child",
+                "parent_id": parent_id,
+            })
+            # overlap: 下一个子块以当前最后一个句子开头
+            last_sent = sentences[max(0, sentences.index(sent) - 1)] if sentences.index(sent) > 0 else ""
+            current = last_sent + sent if last_sent and len(last_sent) < CHILD_OVERLAP else sent
+
+    # 最后一个子块
+    if current:
+        child_idx += 1
+        child_content = title_prefix + current
+        children.append({
+            "chunk_id": f"{parent_id}_c{child_idx}",
+            "source": parent.get("source", ""),
+            "page": parent.get("page", 1),
+            "section": parent.get("section", ""),
+            "content": child_content,
+            "content_hash": _content_hash(child_content),
+            "chunk_type": "child",
+            "parent_id": parent_id,
+        })
+
+    return children
+
+
+def build_parent_child_chunks(parent_chunks: list) -> list:
+    """把所有父chunk转换为 父子结构 的完整chunk列表
+
+    返回: [父块1, 子块1a, 子块1b, 父块2, 子块2a, ...]
+    父块标记 chunk_type=parent, 子块标记 chunk_type=child+parent_id
+    """
+    result = []
+    for p in parent_chunks:
+        # 父块标记
+        parent_with_type = dict(p)
+        parent_with_type["chunk_type"] = "parent"
+        result.append(parent_with_type)
+        # 子块
+        children = split_parent_into_children(p)
+        result.extend(children)
+    return result
+
+
 def collect_chunks() -> list:
     """收集 finance_kb 目录下所有 md 的 chunk (跳过 _ 开头文件) + catalog 派生的产品文档"""
     files = sorted(glob.glob(os.path.join(KB_DIR, "*.md")))
@@ -319,12 +431,16 @@ def build_all(skip_milvus: bool = False) -> int:
     返回**索引里的实际块数**(内置 + 保留的上传文档) —— sync_kb 的 verify 拿它
     跟分块文件/Milvus/BM25 三路核对, 只报内置数会误判成不一致。
     """
-    chunks = collect_chunks()
-    n_total = rebuild_local(chunks)
+    parent_chunks = collect_chunks()
+    # 父子文档分块: 章节为父块, 句子级小chunk为子块
+    all_chunks = build_parent_child_chunks(parent_chunks)
+    n_total = rebuild_local(all_chunks)
     render_kg_triples()
     if not skip_milvus:
         load_vector_index()
-    logger.info("金融知识库构建完成: %d 块", n_total)
+    n_parents = len(parent_chunks)
+    n_children = len(all_chunks) - n_parents
+    logger.info("金融知识库构建完成: %d 父块 + %d 子块 = %d 块", n_parents, n_children, n_total)
     return n_total
 
 

@@ -10,7 +10,7 @@ Fin-Agent Web 搜索工具
   from src.tools.web_search import WebSearchTool
 
   searcher = WebSearchTool()
-  results = searcher.search("比亚迪2025年最新财报")
+  results = searcher.search("稳盈添利30天 收益")
 """
 
 import os
@@ -103,7 +103,7 @@ class WebSearchTool:
         Returns:
             SearchResponse
         """
-        enhanced_query = f"{query} 财务 财报 数据"
+        enhanced_query = f"{query} 银行理财 产品说明"
         return self.search(enhanced_query, max_results)
 
     # ─── DuckDuckGo (免费, 无 API Key) ─────────

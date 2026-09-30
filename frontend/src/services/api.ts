@@ -230,6 +230,20 @@ class ApiClient {
     return data as Blob;
   }
 
+  /**
+   * 上传内置知识库文件 (.md/.txt/.jsonl)
+   * 保存到 data/finance_kb/ 后由文件监听自动触发同步
+   */
+  async uploadKbFile(file: File): Promise<{ filename: string; status: string; target?: string; added?: number; note: string }> {
+    const formData = new FormData();
+    formData.append('file', file);
+    const { data } = await this.client.post('/api/v1/knowledge/upload-kb', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+      timeout: 60000,
+    });
+    return data;
+  }
+
   // ========== 评测看板 ==========
   async getEvalSummary(): Promise<EvalSummary> {
     const { data } = await this.client.get('/api/v1/eval/summary');

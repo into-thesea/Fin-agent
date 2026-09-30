@@ -53,6 +53,65 @@ async def _warmup_model():
         logger.warning("模型预热失败 (可忽略): %s", e)
 
 
+async def _start_kb_watcher():
+    """启动知识库文件监听 — data/finance_kb/ 有变化自动同步（防抖5秒）"""
+    import threading
+    import time
+
+    KB_DIR = os.path.join(PROJECT_ROOT, "data", "finance_kb")
+    if not os.path.exists(KB_DIR):
+        logger.warning("知识库目录不存在，跳过文件监听: %s", KB_DIR)
+        return
+
+    try:
+        from watchdog.observers import Observer
+        from watchdog.events import FileSystemEventHandler
+    except ImportError:
+        logger.warning("watchdog 未安装，跳过知识库文件监听。安装: pip install watchdog")
+        return
+
+    _debounce = {"timer": None}
+
+    def do_sync():
+        logger.info("[KB监听] 检测到文件变化，开始同步...")
+        try:
+            import sys
+            sync_path = os.path.join(PROJECT_ROOT, "scripts")
+            if sync_path not in sys.path:
+                sys.path.insert(0, sync_path)
+            import sync_kb
+            code = sync_kb.main()
+            logger.info("[KB监听] 同步完成 (code=%s)", code)
+        except Exception as e:
+            logger.error("[KB监听] 同步失败: %s", e, exc_info=True)
+
+    class Handler(FileSystemEventHandler):
+        def on_any_event(self, event):
+            if event.is_directory:
+                return
+            if not event.src_path.endswith((".md", ".jsonl")):
+                return
+            if _debounce["timer"]:
+                _debounce["timer"].cancel()
+            _debounce["timer"] = threading.Timer(5.0, do_sync)
+            _debounce["timer"].start()
+
+    def run_watcher():
+        observer = Observer()
+        observer.schedule(Handler(), KB_DIR, recursive=False)
+        observer.start()
+        logger.info("[KB监听] 已启动，监听目录: %s", KB_DIR)
+        try:
+            while True:
+                time.sleep(1)
+        except Exception:
+            observer.stop()
+        observer.join()
+
+    thread = threading.Thread(target=run_watcher, daemon=True, name="kb-watcher")
+    thread.start()
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """应用启动/关闭事件"""
@@ -60,6 +119,8 @@ async def lifespan(app: FastAPI):
 
     # 预热 bge-base-zh-v1.5 (约 3-5s, 轻量不 OOM)
     asyncio.create_task(_warmup_model())
+    # 启动知识库文件监听（data/finance_kb/ 变化自动同步）
+    asyncio.create_task(_start_kb_watcher())
 
     yield  # 应用运行中
 
@@ -121,9 +182,17 @@ async def add_trace_id(request: Request, call_next):
     )
 
     # P2: 指标聚合 (Redis 原子计数 + 内存降级, 失败不影响响应)
+    # SSE 不走这里: 此刻 duration 只是「响应对象返回」的耗时(实测 ~1ms), 不是用户感知的
+    # 首 token 时间 —— 混进全局延迟样本会把 p99 拉成假象。流式自己在 chat.py 里按
+    # 首个 token / 流结束打点 (metrics_store.record_stream)。
+    # 判据必须用 content-type: BaseHTTPMiddleware 的 call_next 永远返回 _StreamingResponse
+    # (Response 的子类), 用 isinstance(resp, StreamingResponse) 判断会静默失效。
     try:
         from src.monitor.metrics_store import metrics_store
-        metrics_store.record(response.status_code, duration)
+        if response.headers.get("content-type", "").startswith("text/event-stream"):
+            logger.debug("SSE 请求不进全局延迟采样: %s", request.url.path)
+        else:
+            metrics_store.record(response.status_code, duration)
     except Exception as e:
         logger.debug("指标记录失败 (可忽略): %s", e)
 

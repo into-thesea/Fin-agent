@@ -16,6 +16,8 @@ import logging
 
 from src.business.finance_services import (
     query_products, check_suitability, query_holdings,
+    query_account_balance, query_transactions, query_credit_card,
+    query_loan, query_asset_overview, query_order_status,
 )
 from src.core.slot_filler import KNOWN_PRODUCTS
 
@@ -74,15 +76,31 @@ def retrieve_knowledge(query: str, top_k: int = 5) -> dict:
     else:
         text = "【知识库检索结果】\n(未检索到相关文档)"
 
-    # 对齐检查: 查询点名的产品未命中检索内容 → 明确提示不应采用无关内容
+    # 对齐检查: 查询点名的产品若在检索内容里找不到, 要明确告知模型 —— 防的是
+    # "拿别的产品的内容冒充它"。但判定必须**逐产品**且认口语简称:
+    #   1) 命中判定用「目录全名 or 别名」—— 检索文本里写的通常是"大额存单"这种简称,
+    #      只认目录全名会把明明找到的产品判成"未检索到";
+    #   2) 只缺一个产品时保留已找到的内容(只标注缺的那个), 不做一票否决 ——
+    #      否则问"A 和 B 哪个好"而只缺 B 时, 连 A 都答不了。
+    # 只有在点名产品**一个都没命中**时才整份丢弃(fail closed)。
     names = _query_product_names(query)
-    all_content = " ".join((c.get("content") or "") for c in res.get("local", []))
-    for name in names:
-        if name not in all_content:
-            text = (f"【知识库检索结果】\n知识库中未检索到「{name}」的相关内容，"
+    if names:
+        all_content = " ".join((c.get("content") or "") for c in res.get("local", []))
+        found, missing = [], []
+        for name in names:
+            alias = _PRODUCT_ALIASES.get(name)
+            if name in all_content or (alias and alias in all_content):
+                found.append(name)
+            else:
+                missing.append(name)
+        if not found:
+            text = (f"【知识库检索结果】\n知识库中未检索到「{'、'.join(missing)}」的相关内容，"
                     f"命中的内容与其无关、不应采用。如仍无法获取，请如实告知用户"
                     f"知识库暂无该产品资料，不要用其他内容冒充，可建议转人工坐席。")
             return {"text": text, "sources": [], "contexts": res}
+        if missing:
+            text = (f"【注意】知识库中未检索到「{'、'.join(missing)}」的相关内容，"
+                    f"不要用其他产品的内容替代它作答，可建议转人工坐席。\n" + text)
     return {"text": text, "sources": sources, "contexts": res}
 
 
@@ -122,6 +140,36 @@ TOOL_DEFINITIONS = [
         "description": "查询当前登录用户的持仓（只读本人数据）。用户问“我的持仓/我买了什么/查我的理财”时调用。",
         "parameters": {"type": "object", "properties": {}},
     },
+    {
+        "name": "query_account_balance",
+        "description": "查询当前用户账户余额（储蓄卡+定期存款）。用户问“我卡里有多少钱/余额多少/定期存款”时调用。生产环境对接银行核心账户系统。",
+        "parameters": {"type": "object", "properties": {}},
+    },
+    {
+        "name": "query_transactions",
+        "description": "查询当前用户最近交易明细（收入/支出/理财交易）。用户问“最近交易/流水/收支明细/钱花哪了”时调用。生产环境对接交易流水系统。",
+        "parameters": {"type": "object", "properties": {"limit": {"type": "integer", "description": "返回条数，默认10"}}},
+    },
+    {
+        "name": "query_credit_card",
+        "description": "查询当前用户信用卡信息（额度/账单/还款日）。用户问“信用卡账单/额度多少/什么时候还款”时调用。生产环境对接信用卡核心系统。",
+        "parameters": {"type": "object", "properties": {}},
+    },
+    {
+        "name": "query_loan",
+        "description": "查询当前用户贷款信息（剩余本金/月供/利率）。用户问“贷款还剩多少/月供多少/房贷余额”时调用。生产环境对接信贷管理系统。",
+        "parameters": {"type": "object", "properties": {}},
+    },
+    {
+        "name": "query_asset_overview",
+        "description": "查询当前用户资产总览（存款+理财+基金-负债=净资产）。用户问“我总资产多少/资产配置/净资产”时调用。生产环境对接数据中台/统一客户视图。",
+        "parameters": {"type": "object", "properties": {}},
+    },
+    {
+        "name": "query_order_status",
+        "description": "查询当前用户理财订单状态（申购/赎回处理进度）。用户问“申购成功了吗/赎回什么时候到账/订单状态”时调用。生产环境对接理财业务系统。",
+        "parameters": {"type": "object", "properties": {}},
+    },
 ]
 
 
@@ -130,6 +178,13 @@ EXECUTE_TOOLS = {
     "query_products": query_products,
     "check_suitability": check_suitability,
     "query_holdings": query_holdings,
+    # ── 银行核心系统对接预留接口 (只读查询, Mock实现) ──
+    "query_account_balance": query_account_balance,
+    "query_transactions": query_transactions,
+    "query_credit_card": query_credit_card,
+    "query_loan": query_loan,
+    "query_asset_overview": query_asset_overview,
+    "query_order_status": query_order_status,
 }
 
 # P8: 所有工具调用经安全拦截器 (越权防护 + 审计)

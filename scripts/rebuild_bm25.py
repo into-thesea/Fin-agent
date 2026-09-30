@@ -29,7 +29,7 @@ def main():
     print(f"  词汇量: {len(index.idf)}")
 
     # 测试检索
-    test_queries = ["比亚迪", "营收", "毛利率", "特斯拉", "2024"]
+    test_queries = ["存款保险", "代销", "风险测评", "赎回", "转人工"]
     print("\n🔍 测试检索:")
     for q in test_queries:
         results = index.search(q, top_k=3)

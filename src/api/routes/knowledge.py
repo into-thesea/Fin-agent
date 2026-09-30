@@ -11,6 +11,7 @@ Fin-Agent 知识库路由 (文档管理 + ETL 任务追踪)
 """
 
 import os
+import json
 import logging
 import asyncio
 import hashlib
@@ -420,3 +421,83 @@ async def serve_existing_file(filename: str):
     if not os.path.exists(file_path):
         raise HTTPException(status_code=404, detail=f"文件 '{safe_name}' 不存在")
     return FileResponse(file_path, media_type="application/pdf", filename=safe_name)
+
+
+# ──────────────────────────────────────────────
+# 内置知识库文件上传 (.md / .txt / .jsonl)
+# ──────────────────────────────────────────────
+
+KB_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
+    os.path.dirname(os.path.abspath(__file__))))), "data", "finance_kb")
+
+
+@router.post("/upload-kb")
+async def upload_kb_file(file: UploadFile = File(...)):
+    """上传内置知识库文件 (.md/.txt/.jsonl)，保存到 data/finance_kb/ 后由文件监听自动同步
+
+    - .md / .txt: 直接保存，文件监听5秒后触发 sync_kb 全量同步
+    - .jsonl: 识别类型后合并到对应文件（catalog.jsonl 或 kg_domain_triples.jsonl）
+    """
+    import shutil
+
+    os.makedirs(KB_DIR, exist_ok=True)
+
+    filename = file.filename or "unknown"
+    ext = os.path.splitext(filename)[1].lower()
+
+    if ext not in (".md", ".txt", ".jsonl"):
+        raise HTTPException(status_code=400, detail="仅支持 .md / .txt / .jsonl 文件")
+
+    safe_name = filename.replace(" ", "_").replace("/", "_")
+
+    if ext == ".jsonl":
+        content = await file.read()
+        lines = [l for l in content.decode("utf-8").splitlines() if l.strip()]
+        if not lines:
+            raise HTTPException(status_code=400, detail="JSONL 文件为空")
+
+        first = json.loads(lines[0])
+        if "head" in first and "relation" in first:
+            target = os.path.join(KB_DIR, "kg_domain_triples.jsonl")
+        elif "id" in first and "name" in first:
+            target = os.path.join(KB_DIR, "catalog.jsonl")
+        else:
+            target = os.path.join(KB_DIR, safe_name)
+            with open(target, "w", encoding="utf-8") as f:
+                f.write(content.decode("utf-8"))
+            return {"filename": safe_name, "status": "saved",
+                    "note": "文件监听将在5秒后自动触发知识库同步"}
+
+        # 合并去重
+        existing_keys = set()
+        if os.path.exists(target):
+            with open(target, "r", encoding="utf-8") as f:
+                for line in f:
+                    if line.strip():
+                        row = json.loads(line)
+                        existing_keys.add(row.get("id") or
+                                          (row.get("head"), row.get("relation"), row.get("tail")))
+
+        added = 0
+        with open(target, "a", encoding="utf-8") as f:
+            for line in lines:
+                row = json.loads(line)
+                key = row.get("id") or (row.get("head"), row.get("relation"), row.get("tail"))
+                if key not in existing_keys:
+                    f.write(line + "\n")
+                    existing_keys.add(key)
+                    added += 1
+
+        logger.info("知识库JSONL合并: file=%s target=%s added=%d",
+                    safe_name, os.path.basename(target), added)
+        return {"filename": safe_name, "status": "merged",
+                "target": os.path.basename(target), "added": added,
+                "note": "文件监听将在5秒后自动触发知识库同步"}
+    else:
+        dest = os.path.join(KB_DIR, safe_name)
+        with open(dest, "wb") as f:
+            shutil.copyfileobj(file.file, f)
+        logger.info("知识库文件已保存: %s", dest)
+        return {"filename": safe_name, "status": "saved",
+                "path": f"data/finance_kb/{safe_name}",
+                "note": "文件监听将在5秒后自动触发知识库同步"}

@@ -43,7 +43,7 @@ from src.memory.memory_store import memory_store
 from src.business import finance_services as fs  # 阶段二: 适当性门控 / 申购
 from src.analyst_agent import format_response  # 复用现有格式化器
 
-MAX_RETRY_ON_REJECT = 2
+MAX_RETRY_ON_REJECT = 1  # 限制重写次数: 第二次重写成功率低, 省3-8秒延迟
 
 # ── 意图分组 & 意图 → 领域节点 映射 ──────────────
 KB_INTENTS = {
@@ -67,6 +67,7 @@ INTENT_NODE_MAP = {
     QueryIntent.FEE_RULE: "finance_node",
     QueryIntent.FRAUD_REPORT: "handoff_node",
     QueryIntent.COMPLAINT: "handoff_node",
+    QueryIntent.SERVICE_POLICY: "finance_node",   # 服务规则在知识库里(转人工条件/隐私), 走 KB 依据
     QueryIntent.CHITCHAT: "chitchat_node",
 }
 
@@ -215,30 +216,113 @@ def build_graph(token_queue=None):
 
     # ── 2. 快速通道 (greeting / simple_fact) ──
     def greeting_node(state: dict) -> dict:
-        ans = create_client(cheap=True).chat([
+        messages = [
             {"role": "system", "content": "你是一个友好的金融理财产品客服助手。请用中文简洁回答。\n\n" + BOUNDARY_BLOCK_LIGHT},
             {"role": "user", "content": state["query"]},
-        ])
-        return {"answer": ans, "sources": [], "stage": "greeting"}
+        ]
+        if token_queue is not None:
+            # 流式: 逐token推送并累积, 结束后返回完整答案
+            _parts = []
+            for _tok in create_client(cheap=True).chat_stream(messages):
+                _parts.append(_tok)
+                token_queue.put({"type": "token", "token": _tok})
+            ans = "".join(_parts)
+        else:
+            ans = create_client(cheap=True).chat(messages)
+        return {"answer": ans, "sources": [], "stage": "greeting",
+                "intent": QueryIntent.CHITCHAT.value, "confidence": 0.9}
 
     def simple_fact_node(state: dict) -> dict:
-        r = retrieve_knowledge(state["query"], 5)
-        ans = create_client(cheap=True).chat([
+        r = retrieve_knowledge(state["query"], 8)
+        messages = [
             {"role": "system", "content": "你是理财客服助手。请基于知识库检索结果简要回答, 无法确定时明确说明。\n\n" + BOUNDARY_BLOCK_LIGHT + "\n\n" + r["text"]},
             {"role": "user", "content": state["query"]},
-        ])
-        return {"answer": ans, "sources": r["sources"], "contexts": r.get("contexts", {}), "stage": "simple_fact"}
+        ]
+        if token_queue is not None:
+            # 流式: 逐token推送并累积, 结束后返回完整答案
+            _parts = []
+            for _tok in create_client(cheap=True).chat_stream(messages):
+                _parts.append(_tok)
+                token_queue.put({"type": "token", "token": _tok})
+            ans = "".join(_parts)
+        else:
+            ans = create_client(cheap=True).chat(messages)
+        # 快速通道用LLM分类获取intent (方案A: 提升全链路意图准确率)
+        # router.route()内部先做强信号规则仲裁, 强信号命中零延迟, 其余走LLM分类
+        route_result = router.route(state["query"])
+        return {"answer": ans, "sources": r["sources"], "contexts": r.get("contexts", {}),
+                "stage": "simple_fact", "intent": route_result.intent.value,
+                "confidence": route_result.confidence}
 
     # ── 3. 复杂路径: 路由 + 检索 (并行) ──
+    def _build_dialog_context(state: dict) -> str:
+        """从会话状态构建多轮上下文摘要, 供路由模型做指代消解和意图延续判断"""
+        parts = []
+        slots = state.get("slots") or {}
+        product = slots.get("product")
+        if product:
+            parts.append(f"当前会话焦点产品: {product}")
+        amount = slots.get("amount")
+        if amount is not None:
+            parts.append(f"当前会话涉及金额: {amount}万")
+        risk = slots.get("risk_level")
+        if risk:
+            parts.append(f"当前会话涉及风险等级: {risk}")
+        if parts:
+            return "【多轮对话上下文】\n" + "\n".join(parts)
+        return ""
+
+    def _intent_retrieval_consistency_check(intent, confidence, contexts):
+        """意图-检索一致性校验: 路由置信度低且检索结果高度集中于另一主题时调整意图.
+        只在保守条件下调整: 路由置信度 < 0.7 且 top3 来源中 >=2 个属于同一主题.
+        返回 (调整后的intent, 是否调整, 调整理由).
+        """
+        if confidence >= 0.7:
+            return intent, False, ""
+        local = contexts.get("local", []) if contexts else []
+        if not local:
+            return intent, False, ""
+        theme_rules = [
+            (QueryIntent.DEPOSIT_INSURANCE, ["存款保险", "deposit_insurance", "偿付", "保障范围"]),
+            (QueryIntent.RISK_SUITABILITY, ["适当性", "风险等级", "risk_level", "测评"]),
+            (QueryIntent.FEE_RULE, ["费用", "费率", "fee", "手续费"]),
+            (QueryIntent.HOLD_REDEEM, ["赎回", "持有", "到期", "redeem", "hold"]),
+            (QueryIntent.BUY_PROCESS, ["购买", "申购", "流程", "buy", "冷静期", "双录"]),
+            (QueryIntent.INCOME_QUESTION, ["收益", "利息", "业绩比较基准", "income", "保本"]),
+        ]
+        theme_counts = {}
+        for chunk in local[:3]:
+            src = (chunk.get("source") or "").lower()
+            text = (chunk.get("text") or "")[:200].lower()
+            for theme_intent, keywords in theme_rules:
+                if any(kw.lower() in src or kw.lower() in text for kw in keywords):
+                    theme_counts[theme_intent] = theme_counts.get(theme_intent, 0) + 1
+                    break
+        if not theme_counts:
+            return intent, False, ""
+        dominant_theme, count = max(theme_counts.items(), key=lambda x: x[1])
+        if count >= 2 and dominant_theme != intent:
+            logger.info("意图-检索一致性调整: %s(%.0f%%) -> %s (检索top3中%d篇属该主题)",
+                        intent.value, confidence * 100, dominant_theme.value, count)
+            return dominant_theme, True, f"检索结果高度集中于{dominant_theme.value}主题"
+        return intent, False, ""
+
     def route_retrieve_node(state: dict) -> dict:
         from src.retrieval.retriever import HybridRetriever
         retriever = HybridRetriever()
+        dialog_ctx = _build_dialog_context(state)
         with concurrent.futures.ThreadPoolExecutor(max_workers=2) as pool:
-            route_future = pool.submit(router.route, state["query"])
+            route_future = pool.submit(router.route, state["query"], dialog_ctx)
             retrieve_future = pool.submit(retriever.hybrid_retrieve, state["query"])
             route_result = route_future.result()
             contexts = retrieve_future.result()
-        logger.info("P3 route: %s (%.0f%%)", route_result.intent.value, route_result.confidence * 100)
+        adjusted_intent, adjusted, reason = _intent_retrieval_consistency_check(
+            route_result.intent, route_result.confidence, contexts)
+        if adjusted:
+            route_result.intent = adjusted_intent
+            route_result.explanation = (route_result.explanation or "") + f" [一致性校验调整: {reason}]"
+        logger.info("P3 route: %s (%.0f%%) - %s", route_result.intent.value,
+                    route_result.confidence * 100, route_result.explanation)
         return {
             "intent": route_result.intent.value,
             "confidence": route_result.confidence,
@@ -353,9 +437,15 @@ def build_graph(token_queue=None):
         intent = QueryIntent(state.get("intent") or QueryIntent.UNKNOWN)
         quick = reviewer.quick_check(agent_result.get("answer", ""), contexts)
         # 路由置信度只代表"意图分对了没", 不代表"答案事实站得住", 不能当跳过事实审核的凭据。
-        # 只有本地 quick_check 通过(数字/来源可接地) 或 确定性静态节点 才跳过 LLM 复核。
+        # 跳过 LLM 复核的条件 (满足任一即可):
+        #   a) 本地 quick_check 通过 (数字/来源可接地)
+        #   b) 确定性静态节点 (转人工/申购门控)
+        #   c) 低风险意图: 闲聊/服务规则/未知兜底 — 这些回答不存在收益承诺等高危幻觉,
+        #      quick_check 的禁语+PII检查已足够, 不需要再调一次 LLM (省1-2秒)
+        _LOW_RISK_INTENTS = {QueryIntent.CHITCHAT, QueryIntent.SERVICE_POLICY, QueryIntent.UNKNOWN}
         skip_llm = (quick.verdict == "pass" or intent in HANDOFF_INTENTS
-                    or state.get("stage") in ("subscribe_node", "handoff_node"))
+                    or state.get("stage") in ("subscribe_node", "handoff_node")
+                    or intent in _LOW_RISK_INTENTS)
         if skip_llm:
             review = quick
             review.overall_score = 85

@@ -309,7 +309,7 @@ docker-compose -f deploy/monitoring/docker-compose.elk.yml up -d
   "level": "INFO",
   "logger": "src.retriever",
   "trace_id": "req_abc123",
-  "message": "三路召回: 比亚迪2024年营收...",
+  "message": "三路召回: 稳盈添利30天收益...",
   "latency_ms": 2340
 }
 ```

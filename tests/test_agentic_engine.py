@@ -57,19 +57,26 @@ def fake_tools(monkeypatch):
 
 def test_tool_loop_calls_tool_then_answers():
     script = [{"type": "tool_calls", "calls": [
-        {"id": "c1", "name": "retrieve_knowledge", "arguments": {"query": "比亚迪营收"}}]}]
+        {"id": "c1", "name": "retrieve_knowledge", "arguments": {"query": "稳盈添利收益"}}]}]
     agent, stub = make_agent(script)
-    result = agent.answer("比亚迪营收是多少?")
+    result = agent.answer("稳盈添利收益是多少?")
     assert result["answer"] == "最终答案"
     assert result["sources"] == ["X.pdf"]
     assert result["contexts"]["local"]
 
 
-def test_tool_loop_direct_answer_no_tool():
-    agent, stub = make_agent(script=[])
-    result = agent.answer("介绍下比亚迪")
-    assert result["answer"] == "最终答案"
-    assert result["sources"] == []
+def test_tool_loop_direct_answer_forces_retrieval():
+    """模型不调工具就作答 → 系统补一次检索, 答案与来源都来自真实检索。
+
+    旧断言是 `sources == []`(模型不调工具就放它过) —— 那正是 2026-09-22 线上实测的
+    故障: 复杂问题零依据, 而提示词要求"标注来源", 模型就照范例编了个来源名。
+    契约已改: 除闲聊/问候外, 一次工具都不调不许直接作答。
+    参数说明: 第一轮是模型"不调工具的直接作答", 补检索后需要第二轮文本, 故脚本两条。
+    """
+    agent, stub = make_agent(script=[{"type": "text", "text": "不调工具的初答"}])
+    result = agent.answer("介绍下稳盈添利30天")
+    assert result["answer"] == "最终答案"        # 用补检索后的重答
+    assert result["sources"] == ["X.pdf"]        # 来源来自真实检索, 不再为空
 
 
 def test_unknown_tool_does_not_crash():
@@ -88,9 +95,9 @@ def test_fallback_on_tool_loop_error(monkeypatch):
 
     # 回退路径统一走 retrieve_knowledge, 这里 mock 它 (确定性返回)
     fake_kr = {
-        "text": "【知识库检索结果】\n比亚迪相关片段 [来源: X.pdf]",
+        "text": "【知识库检索结果】\n理财产品相关片段 [来源: X.pdf]",
         "sources": ["X.pdf"],
-        "contexts": {"local": [{"content": "比亚迪相关片段", "source": "X.pdf"}],
+        "contexts": {"local": [{"content": "理财产品相关片段", "source": "X.pdf"}],
                      "global": [], "graph": []},
     }
     monkeypatch.setattr("src.tools.registry.retrieve_knowledge",
@@ -98,17 +105,17 @@ def test_fallback_on_tool_loop_error(monkeypatch):
 
     agent = aa.AgenticAgent(system_prompt="你是金融分析师。", intent="fact",
                             client=FailingClient([]))
-    result = agent.answer("比亚迪营收是多少?")
+    result = agent.answer("稳盈添利收益是多少?")
     assert result["answer"] == "回退回答"
     assert result["sources"] == ["X.pdf"]
 
 
 def test_gather_context_for_stream():
     script = [{"type": "tool_calls", "calls": [
-        {"id": "c1", "name": "retrieve_knowledge", "arguments": {"query": "比亚迪"}}]}]
+        {"id": "c1", "name": "retrieve_knowledge", "arguments": {"query": "存款保险"}}]}]
     agent, stub = make_agent(script)
     events = []
-    gathered = agent._gather_context("比亚迪营收", on_event=events.append)
+    gathered = agent._gather_context("稳盈添利收益", on_event=events.append)
     assert "X.pdf" in "".join(gathered["ctx_text"])
     assert gathered["sources"] == ["X.pdf"]
     assert any(e.get("type") == "stage" for e in events)
@@ -116,9 +123,9 @@ def test_gather_context_for_stream():
 
 def test_stream_yields_tokens_then_result():
     script = [{"type": "tool_calls", "calls": [
-        {"id": "c1", "name": "retrieve_knowledge", "arguments": {"query": "比亚迪"}}]}]
+        {"id": "c1", "name": "retrieve_knowledge", "arguments": {"query": "存款保险"}}]}]
     agent, stub = make_agent(script)
-    out = list(agent.answer_stream("比亚迪营收", on_event=lambda m: None))
+    out = list(agent.answer_stream("稳盈添利收益", on_event=lambda m: None))
     # 最后一个元素是 (result, True)
     token_txt = "".join(t for t, done in out if not done)
     final = out[-1][0]

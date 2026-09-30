@@ -484,6 +484,7 @@ class AnalystAgent:
                 QueryIntent.FEE_RULE: FINANCE_KB_SYSTEM_PROMPT,
                 QueryIntent.FRAUD_REPORT: GENERAL_SYSTEM_PROMPT,
                 QueryIntent.COMPLAINT: GENERAL_SYSTEM_PROMPT,
+                QueryIntent.SERVICE_POLICY: FINANCE_KB_SYSTEM_PROMPT,
                 QueryIntent.CHITCHAT: CS_CHITCHAT_SYSTEM_PROMPT,
             }
             domain_agent = AgenticAgent(
@@ -575,6 +576,7 @@ class AnalystAgent:
             QueryIntent.FEE_RULE: FINANCE_KB_SYSTEM_PROMPT,
             QueryIntent.FRAUD_REPORT: GENERAL_SYSTEM_PROMPT,
             QueryIntent.COMPLAINT: GENERAL_SYSTEM_PROMPT,
+            QueryIntent.SERVICE_POLICY: FINANCE_KB_SYSTEM_PROMPT,
             QueryIntent.CHITCHAT: CS_CHITCHAT_SYSTEM_PROMPT,
         }
         system_prompt = prompt_map.get(route.intent, GENERAL_SYSTEM_PROMPT)
@@ -713,9 +715,9 @@ if __name__ == "__main__":
     # 测试管道
     agent = AnalystAgent()
     tests = [
-        "比亚迪2024年的营收是多少？",
-        "对比比亚迪和特斯拉在2024年的经营表现",
-        "小米集团近3年毛利率变化趋势",
+        "存款保险保多少钱？",
+        "代销产品和自营理财有什么区别？",
+        "哪些情况应该转人工坐席？",
     ]
     for q in tests:
         print(f"\n\n{'='*60}")

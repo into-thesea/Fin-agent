@@ -363,8 +363,12 @@ async def chat_stream(req: ChatRequest, authorization: Optional[str] = Header(No
         from src.api.routes.auth import resolve_user_id
         user_id = resolve_user_id(authorization) or ""
 
+    # 流式延迟打点: t0 从**进入处理器**算起(含排队与改写), 首个 token 到时记 TTFB。
+    # 不能靠中间件测 SSE —— 那里只能测到「响应对象返回」(实测 ~1ms)。
+    timing = {"t0": time.time(), "ttfb": None}
     return StreamingResponse(
-        _stream_chat_response(req.query, session_id, user_id=user_id),
+        _timed_stream(_stream_chat_response(req.query, session_id, user_id=user_id,
+                                            timing=timing), timing),
         media_type="text/event-stream",
         headers={
             "Cache-Control": "no-cache",
@@ -374,10 +378,45 @@ async def chat_stream(req: ChatRequest, authorization: Optional[str] = Header(No
     )
 
 
-async def _stream_chat_response(query: str, session_id: str, user_id: str = ""):
+async def _timed_stream(gen, timing: dict):
+    """给 SSE 流打点: 流结束时记首 token 时间(TTFB)与总时长、成败。
+
+    客户端中断也会走到 finally, 此时记 ok=False —— 中断是真实结果, 不该被算成成功。
+    指标是旁路: 记录失败只记 debug, 异常照常向上抛(不吞)。
+    """
+    ok = False
+    try:
+        async for chunk in gen:
+            yield chunk
+        ok = True
+    finally:
+        ttfb = timing.get("ttfb")
+        total = round((time.time() - timing.get("t0", time.time())) * 1000)
+        # 同一组数字既进指标库(在线看板)也进日志(离线复盘) —— 两条路可对照
+        logger.info(
+            "POST /api/v1/chat/stream -> %d (ttfb %s / total %dms)",
+            200 if ok else 500, f"{ttfb}ms" if ttfb is not None else "-", total,
+            extra={"method": "POST", "path": "/api/v1/chat/stream",
+                   "status": 200 if ok else 500, "stream": True,
+                   "latency_ms": total, "ttfb_ms": ttfb},
+        )
+        try:
+            from src.monitor.metrics_store import metrics_store
+            metrics_store.record_stream(ttfb_ms=ttfb, total_ms=total, ok=ok)
+        except Exception as e:
+            logger.debug("流式指标记录失败 (可忽略): %s", e)
+
+
+async def _stream_chat_response(query: str, session_id: str, user_id: str = "",
+                                timing: Optional[dict] = None):
     """流式生成聊天响应"""
 
     def _event(event_type: str, **kwargs) -> str:
+        # 首个 token(或缓存命中直接出 result)到达时记 TTFB —— 这才是用户感知的首字时间;
+        # 前面的 stage/info 帧是秒回的, 拿它们当 TTFB 就又变成了假象。
+        if timing is not None and timing.get("ttfb") is None \
+                and event_type in ("token", "result"):
+            timing["ttfb"] = round((time.time() - timing["t0"]) * 1000)
         return f"data: {json.dumps({'type': event_type, **kwargs}, ensure_ascii=False)}\n\n"
 
     loop = asyncio.get_running_loop()
@@ -431,10 +470,15 @@ async def _stream_chat_response(query: str, session_id: str, user_id: str = ""):
     qclass = classify_query(query)
     if qclass == "greeting":
         from src.llm.llm_client import create_client
-        ans = await create_client(cheap=True).chat_async([
+        # 寒暄同样逐 token 流式推送 (首 token 也由 _event 计入 TTFB)
+        _gparts = []
+        async for _tok in create_client(cheap=True).chat_stream_async([
             {"role": "system", "content": "你是一个友好的客服助手。请用中文简洁回答。"},
             {"role": "user", "content": query},
-        ])
+        ]):
+            _gparts.append(_tok)
+            yield _event("token", token=_tok)
+        ans = "".join(_gparts)
         yield _event("result", answer=ans, sources=[], entities=None,
                      review={"score": 85, "verdict": "pass", "claims": 0})
         yield _event("done")

@@ -7,9 +7,14 @@ P2: 监控指标聚合 (Redis 原子计数 + 内存降级)
 
 用法 (单例):
     from src.monitor.metrics_store import metrics_store
-    metrics_store.record(status_code, duration_ms)   # 中间件每请求调用
+    metrics_store.record(status_code, duration_ms)   # 中间件每请求调用(非流式)
+    metrics_store.record_stream(ttfb_ms, total_ms, ok)  # SSE 流结束/中断时调用
     metrics_store.incr_cache_hit()                   # 缓存命中处调用
     metrics_store.snapshot(window="1h")              # SLI 接口读取
+
+流式请求单独成序列: 中间件测到的 SSE 耗时是「响应对象返回」的时间(~1ms), 不是用户感知的
+首 token 时间, 混进全局分位数会把 p99 拉低成假象 —— 所以流式走 record_stream, 存
+stream_ttfb / stream_total 两条序列, 不进全局 lat 序列(但仍计入 total / error)。
 """
 
 from __future__ import annotations
@@ -89,14 +94,14 @@ class MetricsStore:
                 self._use_redis = False
         with self._mem_lock:
             b = self._mem.setdefault(bucket, {
-                "total": 0, "cache_hit": 0, "error": 0, "timeout": 0, "latencies": [],
+                "total": 0, "cache_hit": 0, "error": 0, "timeout": 0, "lat": [],
             })
-            b[field] += n
+            b[field] = b.get(field, 0) + n
 
-    def _push_latency(self, bucket: int, ms: float) -> None:
+    def _push_latency(self, bucket: int, ms: float, field: str = "lat") -> None:
         if self._use_redis:
             try:
-                key = self._key(bucket, "lat")
+                key = self._key(bucket, field)
                 self._redis.client.rpush(key, int(ms))
                 self._redis.client.ltrim(key, -MAX_LATENCY_SAMPLES, -1)
                 self._redis.client.expire(key, METRICS_KEEP_BUCKETS * 3600)
@@ -106,16 +111,17 @@ class MetricsStore:
                 self._use_redis = False
         with self._mem_lock:
             b = self._mem.setdefault(bucket, {
-                "total": 0, "cache_hit": 0, "error": 0, "timeout": 0, "latencies": [],
+                "total": 0, "cache_hit": 0, "error": 0, "timeout": 0, "lat": [],
             })
-            b["latencies"].append(int(ms))
-            if len(b["latencies"]) > MAX_LATENCY_SAMPLES:
-                del b["latencies"][:-MAX_LATENCY_SAMPLES]
+            lst = b.setdefault(field, [])
+            lst.append(int(ms))
+            if len(lst) > MAX_LATENCY_SAMPLES:
+                del lst[:-MAX_LATENCY_SAMPLES]
 
     # ── 对外记录接口 ──────────────────────────────
 
     def record(self, status_code: int, duration_ms: float) -> None:
-        """中间件每请求调用: 计数 + 延迟采样"""
+        """中间件每请求调用(非流式): 计数 + 延迟采样"""
         bucket = self._bucket()
         self._incr(bucket, "total")
         if status_code == 504:
@@ -123,6 +129,24 @@ class MetricsStore:
         elif status_code >= 500:
             self._incr(bucket, "error")
         self._push_latency(bucket, duration_ms)
+
+    def record_stream(self, ttfb_ms: Optional[float], total_ms: float,
+                      ok: bool = True) -> None:
+        """流式请求结束时调用: 首 token 时间与总时长各自成序列。
+
+        ttfb_ms 为 None 表示整条流没产出过答案(超时/异常), 此时只记总时长。
+        流式请求仍计入 total(与 error), 因为它确实是请求 —— 进成功率的分子分母,
+        只是它的耗时不能进全局延迟样本(见文件头说明)。
+        """
+        bucket = self._bucket()
+        self._incr(bucket, "total")
+        self._incr(bucket, "stream_cnt")
+        if not ok:
+            self._incr(bucket, "error")
+            self._incr(bucket, "stream_error")
+        if ttfb_ms is not None:
+            self._push_latency(bucket, ttfb_ms, field="stream_ttfb")
+        self._push_latency(bucket, total_ms, field="stream_total")
 
     def incr_cache_hit(self) -> None:
         """缓存命中处调用 (chat.py 命中语义缓存时)"""
@@ -133,16 +157,22 @@ class MetricsStore:
     def snapshot(self, window: str = "1h") -> dict:
         """
         聚合快照。window: "1h"=当前小时桶 / "24h"=最近24个桶。
+        p*/avg_ms 只统计**非流式**请求; 流式见 stream_* 一组(ttfb / total 各自分位)。
         Returns: {"window", "buckets", "total", "qps", "success_rate",
                   "error_rate", "timeout_rate", "cache_hit_rate",
-                  "avg_ms", "p50_ms", "p90_ms", "p99_ms"}
+                  "avg_ms", "p50_ms", "p90_ms", "p99_ms", "samples",
+                  "stream_cnt", "stream_errors", "stream_samples",
+                  "stream_ttfb_p50/p90/p99_ms", "stream_total_p50/p90/p99_ms"}
         """
         now = time.time()
         cur = self._bucket(now)
         buckets = [cur] if window == "1h" else list(range(cur - 23, cur + 1))
 
         total = cache_hit = error = timeout = 0
+        stream_cnt = stream_error = 0
         latencies: list = []
+        ttfb: list = []
+        stream_total: list = []
         for b in buckets:
             if self._use_redis:
                 try:
@@ -150,7 +180,11 @@ class MetricsStore:
                     cache_hit += int(self._redis.client.get(self._key(b, "cache_hit")) or 0)
                     error += int(self._redis.client.get(self._key(b, "error")) or 0)
                     timeout += int(self._redis.client.get(self._key(b, "timeout")) or 0)
+                    stream_cnt += int(self._redis.client.get(self._key(b, "stream_cnt")) or 0)
+                    stream_error += int(self._redis.client.get(self._key(b, "stream_error")) or 0)
                     latencies += [int(x) for x in self._redis.client.lrange(self._key(b, "lat"), 0, -1)]
+                    ttfb += [int(x) for x in self._redis.client.lrange(self._key(b, "stream_ttfb"), 0, -1)]
+                    stream_total += [int(x) for x in self._redis.client.lrange(self._key(b, "stream_total"), 0, -1)]
                     continue
                 except Exception as e:
                     logger.warning("MetricsStore Redis 读取失败, 降级内存: %s", e)
@@ -162,9 +196,15 @@ class MetricsStore:
                     cache_hit += bd["cache_hit"]
                     error += bd["error"]
                     timeout += bd["timeout"]
-                    latencies += bd["latencies"]
+                    stream_cnt += bd.get("stream_cnt", 0)
+                    stream_error += bd.get("stream_error", 0)
+                    latencies += bd.get("lat", [])
+                    ttfb += bd.get("stream_ttfb", [])
+                    stream_total += bd.get("stream_total", [])
 
         latencies.sort()
+        ttfb.sort()
+        stream_total.sort()
         window_sec = 3600 if window == "1h" else min(24 * 3600, now - buckets[0] * 3600)
         window_sec = max(window_sec, 1)
         return {
@@ -181,6 +221,16 @@ class MetricsStore:
             "p90_ms": _percentile(latencies, 0.90),
             "p99_ms": _percentile(latencies, 0.99),
             "samples": len(latencies),
+            # 流式单独一组: 用户感知的是 TTFB, 总时长另有意义(见文件头说明)
+            "stream_cnt": stream_cnt,
+            "stream_errors": stream_error,
+            "stream_samples": len(stream_total),
+            "stream_ttfb_p50_ms": _percentile(ttfb, 0.50),
+            "stream_ttfb_p90_ms": _percentile(ttfb, 0.90),
+            "stream_ttfb_p99_ms": _percentile(ttfb, 0.99),
+            "stream_total_p50_ms": _percentile(stream_total, 0.50),
+            "stream_total_p90_ms": _percentile(stream_total, 0.90),
+            "stream_total_p99_ms": _percentile(stream_total, 0.99),
         }
 
 

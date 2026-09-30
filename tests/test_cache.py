@@ -74,9 +74,9 @@ class TestRedisCache:
     def test_semantic_cache_key(self):
         """验证语义缓存 key 生成"""
         from src.cache.redis_client import semantic_cache_key
-        key1 = semantic_cache_key("比亚迪2024年营收")
-        key2 = semantic_cache_key("比亚迪2024年营收")
-        key3 = semantic_cache_key("特斯拉2024年营收")
+        key1 = semantic_cache_key("稳盈添利30天收益")
+        key2 = semantic_cache_key("稳盈添利30天收益")
+        key3 = semantic_cache_key("安鑫纯债基金收益")
 
         assert key1 == key2  # 相同输入 → 相同 key
         assert key1 != key3  # 不同输入 → 不同 key
@@ -90,19 +90,25 @@ class TestSimilarity:
     def test_identical_texts(self):
         from src.cache.redis_client import RedisCache
         cache = RedisCache()
-        sim = cache._cosine_sim_float("比亚迪2024年营收", "比亚迪2024年营收")
+        sim = cache._cosine_sim_float("稳盈添利30天收益", "稳盈添利30天收益")
         assert sim == 1.0
 
     def test_similar_texts(self):
+        """近义文本应有正相似度。
+
+        用中文近义对: 嵌入模型是 bge-base-zh-v1.5 (中文模型), 实测中英对照对
+        ("存款保险保什么" vs "deposit insurance coverage") 余弦为 0.0000 ——
+        跨语言不下断言, 否则测的是模型不具备的能力。
+        """
         from src.cache.redis_client import RedisCache
         cache = RedisCache()
-        sim = cache._cosine_sim_float("比亚迪2024年营收", "BYD 2024 revenue")
+        sim = cache._cosine_sim_float("稳盈添利30天收益", "稳盈添利30天收益率")
         assert sim > 0  # 应有正相似度
 
     def test_different_texts(self):
         from src.cache.redis_client import RedisCache
         cache = RedisCache()
-        sim = cache._cosine_sim_float("比亚迪营收", "特斯拉毛利率")
+        sim = cache._cosine_sim_float("稳盈添利收益", "安鑫纯债风险")
         assert sim >= 0
 
     def test_empty_strings(self):

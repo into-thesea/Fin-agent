@@ -27,19 +27,33 @@ if sys.platform == "win32":
 BASE = "http://localhost:8001"
 
 # 覆盖三类路由: complex(完整管道带检索) / simple_fact(快速通道不检索) / greeting(问候)
+#
+# 问题必须与**当前知识库同域**(现在是银行理财客服语料, 见 data/output_analysis/chunks_processed.jsonl),
+# 否则测的是"检索到无关内容后仍作答"的时延, 数字没有意义 —— 2026-08 那批问题属旧语料时代,
+# 换语料时没同步, 结果全部失效。
+# 换语料时同步换这里, 或用 --queries-file 传一份外部问题集(一行一题, # 开头为注释)。
 DEFAULT_QUERIES = [
     # 复杂 → 完整 Pipeline (检索 + 领域Agent + 审核)
-    "比亚迪主要从事哪些业务？",
-    "对比比亚迪和特斯拉2024年的经营表现",
-    "小米集团近3年毛利率变化趋势",
-    "比亚迪2024年为什么业绩增长这么快",
+    "代销产品和自营理财有什么区别？",
+    "风险测评结果和产品风险等级不匹配，还能买吗？",
+    "哪些情况应该转人工坐席？",
+    "结构性存款保本吗？和大额存单哪个更适合保守型客户？",
+    "基金赎回的费用是怎么算的？",
+    "怎么判断一个高收益产品是不是飞单？",
     # 简单事实 → 快速通道 (仅LLM, 不检索)
-    "比亚迪2024年营收是多少？",
-    "特斯拉2023年净利润是多少？",
-    "茅台2024年分红是多少？",
+    "存款保险保多少钱？",
+    "私银聚享混合策略的风险等级是几级？",
+    "百万医疗保险的起购金额是多少？",
     # 问候 → 极速
     "你好",
 ]
+
+
+def load_queries(path: str) -> list:
+    """从文件读问题集: 一行一题, 空行与 # 开头跳过。"""
+    with open(path, encoding="utf-8") as f:
+        return [ln.strip() for ln in f
+                if ln.strip() and not ln.strip().startswith("#")]
 
 
 def sync_chat(query: str, timeout: float = 150) -> dict:
@@ -102,12 +116,19 @@ def stream_chat(query: str, timeout: float = 150) -> dict:
 def main():
     ap = argparse.ArgumentParser(description="Fin-Agent 问答时延基准")
     ap.add_argument("--query", default="", help="单条查询 (默认跑内置问题集)")
+    ap.add_argument("--queries-file", default="",
+                    help="外部问题集文件 (一行一题, # 开头为注释); 换语料时用这个, 别改代码")
     ap.add_argument("--repeat", type=int, default=1, help="每条重复次数")
     ap.add_argument("--stream", action="store_true", help="测流式 TTFB")
     ap.add_argument("--out", default="", help="保存结果 JSON")
     args = ap.parse_args()
 
-    queries = [args.query] if args.query else DEFAULT_QUERIES
+    if args.query:
+        queries = [args.query]
+    elif args.queries_file:
+        queries = load_queries(args.queries_file)
+    else:
+        queries = DEFAULT_QUERIES
     print(f"📋 基准问题数: {len(queries)} (重复 {args.repeat} 次)  模式: {'流式' if args.stream else '同步'}\n")
 
     rows = []

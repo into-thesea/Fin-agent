@@ -188,3 +188,119 @@ def subscribe_gate(user_id: str, product_name: str, amount_wan: float, code: str
             f"{insured}。产品具体收益以说明书为准：业绩比较基准仅为参考、不构成收益承诺。\n"
             f"已记入您的持仓，可随时问我“查看我的持仓”。")
     return {"success": True, "handoff": False, "need_code": False, "text": text, "product": product}
+
+
+# ── 银行核心系统对接预留接口 (只读查询工具) ──────────────────────────
+# 生产环境: 以下函数替换为对账户系统/交易系统/信用卡系统/信贷系统/数据中台的 API 调用。
+# 工具层已标准化输入输出, 上层 Agent 调用方式不变, 切换真实 API 时只需替换本层实现。
+
+def query_account_balance() -> dict:
+    """工具: 查询账户余额 (储蓄卡 + 定期存款)
+    生产环境对接: 银行核心账户系统 API"""
+    uid = get_current_user()
+    if not uid:
+        return _ok("【账户查询】未识别到登录用户，请先登录后再查询。")
+    acct = mock.get_account_balance(uid)
+    if not acct:
+        return _ok("【账户查询】未查询到您的账户信息。")
+    savings = acct.get("savings", {})
+    fixed = acct.get("fixed_deposits", [])
+    lines = [
+        f"储蓄卡（{savings.get('account_no', '')}）：{savings.get('balance', 0):,.2f} 元",
+    ]
+    if fixed:
+        lines.append("定期存款：")
+        for fd in fixed:
+            lines.append(f"  - {fd['amount']:,.0f} 元｜{fd['term']}｜利率 {fd['rate']}｜到期 {fd['maturity']}")
+    lines.append(f"存款合计：{acct.get('total_deposit', 0):,.2f} 元")
+    return _ok("【账户余额】\n" + "\n".join(lines))
+
+
+def query_transactions(limit: int = 10) -> dict:
+    """工具: 查询最近交易明细
+    生产环境对接: 交易流水系统 API"""
+    uid = get_current_user()
+    if not uid:
+        return _ok("【交易查询】未识别到登录用户，请先登录后再查询。")
+    txns = mock.get_transactions(uid, limit)
+    if not txns:
+        return _ok("【交易查询】近期无交易记录。")
+    lines = []
+    for t in txns:
+        sign = "+" if t["amount"] > 0 else ""
+        lines.append(f"{t['date']}｜{t['desc']}｜{sign}{t['amount']:,.2f} 元｜余额 {t['balance_after']:,.2f} 元")
+    return _ok("【最近交易】\n" + "\n".join(lines))
+
+
+def query_credit_card() -> dict:
+    """工具: 查询信用卡信息 (额度/账单/还款日)
+    生产环境对接: 信用卡核心系统 API"""
+    uid = get_current_user()
+    if not uid:
+        return _ok("【信用卡查询】未识别到登录用户，请先登录后再查询。")
+    card = mock.get_credit_card(uid)
+    if not card:
+        return _ok("【信用卡查询】您当前未绑定信用卡。")
+    lines = [
+        f"卡号：{card['card_no']}",
+        f"信用额度：{card['credit_limit']:,.0f} 元｜可用额度：{card['available_limit']:,.0f} 元",
+        f"本期账单：{card['current_bill']:,.2f} 元｜最低还款：{card['min_repayment']:,.2f} 元",
+        f"账单日：{card['bill_date']}｜到期还款日：{card['repayment_due']}",
+        f"状态：{card['status']}",
+    ]
+    return _ok("【信用卡信息】\n" + "\n".join(lines))
+
+
+def query_loan() -> dict:
+    """工具: 查询贷款信息 (余额/月供/利率)
+    生产环境对接: 信贷管理系统 API"""
+    uid = get_current_user()
+    if not uid:
+        return _ok("【贷款查询】未识别到登录用户，请先登录后再查询。")
+    loan = mock.get_loan(uid)
+    if not loan:
+        return _ok("【贷款查询】您当前无未结清贷款。")
+    lines = [
+        f"贷款类型：{loan['type']}",
+        f"剩余本金：{loan['principal_remaining']:,.2f} 元",
+        f"月供：{loan['monthly_repayment']:,.2f} 元｜利率：{loan['rate']}",
+        f"下次还款日：{loan['next_repayment_date']}｜剩余期限：{loan['term_remaining']}",
+        f"状态：{loan['status']}",
+    ]
+    return _ok("【贷款信息】\n" + "\n".join(lines))
+
+
+def query_asset_overview() -> dict:
+    """工具: 查询资产总览 (存款+理财+基金+保险-负债)
+    生产环境对接: 数据中台/统一客户视图 API"""
+    uid = get_current_user()
+    if not uid:
+        return _ok("【资产总览】未识别到登录用户，请先登录后再查询。")
+    overview = mock.get_asset_overview(uid)
+    lines = [
+        f"客户：{overview.get('user_name', '')}",
+        f"总资产：{overview['total_assets']:,.2f} 元",
+        f"  - 存款：{overview['total_deposit']:,.2f} 元",
+        f"  - 理财及基金：{overview['total_investment']:,.2f} 元",
+        f"总负债：{overview['total_liabilities']:,.2f} 元",
+        f"净资产：{overview['net_assets']:,.2f} 元",
+    ]
+    return _ok("【资产总览】\n" + "\n".join(lines))
+
+
+def query_order_status() -> dict:
+    """工具: 查询理财订单状态 (申购/赎回)
+    生产环境对接: 理财业务系统订单 API"""
+    uid = get_current_user()
+    if not uid:
+        return _ok("【订单查询】未识别到登录用户，请先登录后再查询。")
+    orders = mock.get_orders(uid)
+    if not orders:
+        return _ok("【订单查询】您当前无处理中的理财订单。")
+    lines = []
+    for o in orders:
+        lines.append(
+            f"订单号 {o['order_id']}｜{o['product_name']}｜{o['type']} {o['amount']:,.0f} 元｜"
+            f"状态 {o['status']}｜提交 {o['submit_time']}"
+        )
+    return _ok("【理财订单】\n" + "\n".join(lines))

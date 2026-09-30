@@ -82,3 +82,27 @@
 {"head": "意外险", "relation": "excludes", "tail": "猝死", "doc": "insurance_knowledge.md", "note": "猝死通常不属意外, 除非条款特别约定"}
 {"head": "家庭资产配置", "relation": "requires", "tail": "先保障后理财", "doc": "asset_allocation.md", "note": "标普四账户原则"}
 {"head": "家庭资产配置", "relation": "must_not", "tail": "把鸡蛋放在一个篮子里", "doc": "asset_allocation.md", "note": "分散投资"}
+{"head": "R1", "relation": "can_buy", "tail": "现金管理类理财", "doc": "risk_level.md", "note": "低风险保守型"}
+{"head": "R1", "relation": "can_buy", "tail": "货币市场基金", "doc": "risk_level.md"}
+{"head": "R2", "relation": "can_buy", "tail": "固定收益理财", "doc": "risk_level.md", "note": "中低风险稳健型"}
+{"head": "R2", "relation": "can_buy", "tail": "大额存单", "doc": "risk_level.md"}
+{"head": "R3", "relation": "can_buy", "tail": "固收增强理财", "doc": "risk_level.md", "note": "中风险平衡型"}
+{"head": "R3", "relation": "can_buy", "tail": "纯债基金", "doc": "risk_level.md"}
+{"head": "R4", "relation": "can_buy", "tail": "私银混合理财", "doc": "risk_level.md", "note": "中高风险进取型"}
+{"head": "R4", "relation": "can_buy", "tail": "偏股混合基金", "doc": "risk_level.md"}
+{"head": "R5", "relation": "can_buy", "tail": "股票型基金", "doc": "risk_level.md", "note": "高风险激进型"}
+{"head": "现金管理类理财", "relation": "redemption_rule", "tail": "T+0快速赎回", "doc": "hold_redeem.md", "note": "单日限额1万"}
+{"head": "固定收益理财", "relation": "redemption_rule", "tail": "到期自动赎回", "doc": "hold_redeem.md", "note": "封闭期内不可赎回"}
+{"head": "开放式理财", "relation": "redemption_rule", "tail": "T+1到账", "doc": "hold_redeem.md"}
+{"head": "理财产品", "relation": "has_fee", "tail": "管理费", "doc": "fee_rule.md", "note": "按日计提"}
+{"head": "理财产品", "relation": "has_fee", "tail": "托管费", "doc": "fee_rule.md"}
+{"head": "开放式理财", "relation": "has_fee", "tail": "赎回费", "doc": "fee_rule.md", "note": "持有时间越长费率越低"}
+{"head": "公募基金", "relation": "has_fee", "tail": "申购费", "doc": "fee_rule.md"}
+{"head": "公募基金", "relation": "has_fee", "tail": "赎回费", "doc": "fee_rule.md", "note": "持有<7天惩罚性费率1.5%"}
+{"head": "保险产品", "relation": "has_fee", "tail": "初始费用", "doc": "fee_rule.md", "note": "投资型保险扣除"}
+{"head": "理财产品", "relation": "has_period", "tail": "冷静期", "doc": "buy_process.md", "note": "私募/代销产品冷静期"}
+{"head": "理财产品", "relation": "requires", "tail": "风险测评有效期1年", "doc": "risk_level.md", "note": "过期需重新测评"}
+{"head": "首次购买理财", "relation": "requires", "tail": "面签或双录", "doc": "buy_process.md", "note": "监管要求"}
+{"head": "现金管理类理财", "relation": "compare_with", "tail": "活期存款", "doc": "product_compare.md", "note": "收益更高但非存款"}
+{"head": "固定收益理财", "relation": "compare_with", "tail": "大额存单", "doc": "product_compare.md", "note": "理财收益高但不保本，存单保本保息但受存款保险"}
+{"head": "结构性存款", "relation": "compare_with", "tail": "固定收益理财", "doc": "product_compare.md", "note": "结构性存款本金受存款保险，收益挂钩衍生品"}

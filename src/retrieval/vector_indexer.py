@@ -130,8 +130,10 @@ def rebuild_vector_index(chunks_file: str = None) -> int:
         chunks_file = CHUNKS_PROCESSED_PATH
 
     with open(chunks_file, "r", encoding="utf-8") as f:
-        all_chunks = [json.loads(line) for line in f if line.strip()]
-    logger.info(f"全量向量重建: {len(all_chunks)} 个分块")
+        raw_chunks = [json.loads(line) for line in f if line.strip()]
+    # 父子分块: Milvus只导入子块 (检索用小chunk, 命中后返回父块上下文)
+    all_chunks = [c for c in raw_chunks if c.get("chunk_type") != "parent"]
+    logger.info(f"全量向量重建: {len(all_chunks)} 个子块 (跳过 {len(raw_chunks)-len(all_chunks)} 个父块)")
 
     from src.vectorstore.milvus_manager import MilvusManager
     mgr = MilvusManager()
@@ -158,6 +160,8 @@ def rebuild_vector_index(chunks_file: str = None) -> int:
                 "document_id": c.get("source", "unknown"),
                 # retriever.vector_search 依赖 content 字段 (硬过滤), 必须写入 metadata
                 "content": c.get("content", ""),
+                # 父子分块: 带parent_id供检索后查找父块
+                "parent_id": c.get("parent_id", ""),
             }
             for c in batch
         ]

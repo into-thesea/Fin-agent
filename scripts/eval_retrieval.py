@@ -79,7 +79,7 @@ def chunk_key(item, prefix_index):
 
 
 def file_prefix(chunk_id):
-    """文档级宽松匹配: BYD_2024_Annual_Report.pdf_0114 -> BYD_2024_Annual_Report.pdf"""
+    """文档级宽松匹配: prod_p002.md_0114 -> prod_p002.md"""
     if not chunk_id:
         return chunk_id
     head, _, tail = chunk_id.rpartition("_")

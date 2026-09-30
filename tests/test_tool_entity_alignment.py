@@ -29,6 +29,11 @@ def test_execute_tools_is_finance_readonly_set():
 
 def test_tool_definitions_have_parameters():
     names = [t["name"] for t in TOOL_DEFINITIONS]
-    assert names == ["retrieve_knowledge", "query_products", "check_suitability", "query_holdings"]
+    # 4 个核心只读工具必须注册; 账户/交易/卡/贷款/资产/订单等只读查询可增, 不锁死列表
+    assert {"retrieve_knowledge", "query_products", "check_suitability", "query_holdings"} <= set(names)
+    # 定义与可执行集合同源, 防止只加定义忘了接线 (或反之)
+    assert set(names) == set(EXECUTE_TOOLS)
+    # 资金动账类不得开放给 agent 自由调用
+    assert "subscribe_product" not in names and "submit_refund" not in names
     for t in TOOL_DEFINITIONS:
         assert "parameters" in t and isinstance(t["parameters"], dict)

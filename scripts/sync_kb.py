@@ -47,7 +47,8 @@ BACKUP_ROOT = os.path.join(ROOT, "data", "_backup_kb_sync")
 BUILDER = os.path.join(ROOT, "scripts", "build_finance_kb.py")
 HISTORY = os.path.join(ROOT, "data", "eval", "history.jsonl")
 
-OFFLINE_KEYS = ("evidence_coverage", "path_structure_consistency", "graph_trigger_ratio")
+OFFLINE_KEYS = ("evidence_coverage", "chunk_info_hit_rate", "path_structure_consistency", "graph_trigger_ratio")
+ONLINE_KEYS = ("intent_accuracy", "compliance_pass_rate")
 
 
 # ── 指纹 ──────────────────────────────────────────────────────────
@@ -196,12 +197,16 @@ def reload_graph() -> None:
         print(f"  Neo4j 灌库跳过: {type(e).__name__}: {e}")
 
 
-def run_eval(version: str) -> tuple[dict, bool]:
+def run_eval(version: str, with_answers: bool = False, online_limit: int = 0) -> tuple[dict, bool]:
     import eval_finance
 
     rows = eval_finance.load_golden()
     report = {"golden_n": len(rows), "version": version,
               "offline": eval_finance.offline_metrics(rows)}
+
+    if with_answers:
+        limit = online_limit or len(rows)
+        report["online"] = eval_finance.answer_metrics(rows, limit)
 
     baseline = {}
     if os.path.exists(eval_finance.REPORT):
@@ -215,20 +220,32 @@ def run_eval(version: str) -> tuple[dict, bool]:
         json.dump(report, f, ensure_ascii=False, indent=2)
 
     o = report["offline"]
-    print(f"\n回归: Golden={o['n']} 证据覆盖={o['evidence_coverage']} "
+    print(f"\n回归[离线]: Golden={o['n']} 证据覆盖={o['evidence_coverage']} "
+          f"chunk信息命中={o.get('chunk_info_hit_rate')} "
           f"路径结构一致={o['path_structure_consistency']} 图谱触发={o['graph_trigger_ratio']}")
+    if "online" in report:
+        on = report["online"]
+        print(f"回归[在线]: 意图准确率={on['intent_accuracy']} 合规通过率={on['compliance_pass_rate']}")
     eval_finance.diff_against_baseline(baseline, report)
 
     os.makedirs(os.path.dirname(HISTORY), exist_ok=True)
-    summary = {k: v for k, v in o.items() if k != "rows"}  # 明细留在 report, 历史只留汇总量
+    summary = {k: v for k, v in o.items() if k != "rows"}
+    if "online" in report:
+        summary.update({f"online_{k}": v for k, v in report["online"].items()})
     with open(HISTORY, "a", encoding="utf-8") as f:
         f.write(json.dumps({"at": datetime.now().isoformat(timespec="seconds"),
                             "version": version, **summary}, ensure_ascii=False) + "\n")
 
-    old = baseline.get("offline") or {}
-    dropped = [k for k in OFFLINE_KEYS
-               if isinstance(old.get(k), (int, float)) and isinstance(o.get(k), (int, float))
-               and o[k] < old[k]]
+    dropped = []
+    old_offline = baseline.get("offline") or {}
+    for k in OFFLINE_KEYS:
+        if isinstance(old_offline.get(k), (int, float)) and isinstance(o.get(k), (int, float)) and o[k] < old_offline[k]:
+            dropped.append(k)
+    if "online" in report:
+        old_online = baseline.get("online") or {}
+        for k in ONLINE_KEYS:
+            if isinstance(old_online.get(k), (int, float)) and isinstance(report["online"].get(k), (int, float)) and report["online"][k] < old_online[k]:
+                dropped.append(f"online_{k}")
     if dropped:
         print(f"  ⚠️  指标变差: {', '.join(dropped)}")
     return report, not dropped
@@ -240,6 +257,8 @@ def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--force", action="store_true", help="源没变也重建")
     ap.add_argument("--no-eval", action="store_true", help="跳过回归")
+    ap.add_argument("--with-answers", action="store_true", help="回归时跑在线评测（意图准确率+合规通过率，需LLM）")
+    ap.add_argument("--online-limit", type=int, default=0, help="在线评测条数限制（0=全部）")
     args = ap.parse_args()
 
     fp = fingerprint()
@@ -290,7 +309,8 @@ def main() -> int:
 
     eval_ok = True
     if not args.no_eval:
-        _, eval_ok = run_eval(version)
+        _, eval_ok = run_eval(version, with_answers=args.with_answers,
+                               online_limit=args.online_limit)
 
     new_chunks = _read_chunk_hashes()
     report_chunk_changes(old.get("chunks", {}), new_chunks)

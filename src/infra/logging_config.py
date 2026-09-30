@@ -13,7 +13,7 @@ Fin-Agent 结构化日志系统
 
   logger = get_logger(__name__)
   set_trace_id("req_abc123")
-  logger.info("查询开始", extra={"query": "比亚迪营收", "user": "u_001"})
+  logger.info("查询开始", extra={"query": "稳盈添利30天收益", "user": "u_001"})
 """
 
 import os
@@ -92,8 +92,11 @@ class JSONFormatter(logging.Formatter):
         }
 
         # 注入 extra 字段
+        # ttfb_ms / stream: 流式请求的首 token 时间与流式标记 —— 有它们才能把 SSE 的
+        # 中间件耗时(到响应对象返回, ~1ms)与真实首字时间分开算(见 metrics_store 文件头)
         for key in ("query", "user_id", "latency_ms", "tokens", "cache_hit",
-                     "entity", "task_id", "doc_id", "status", "duration", "stage"):
+                     "entity", "task_id", "doc_id", "status", "duration", "stage",
+                     "ttfb_ms", "stream"):
             val = getattr(record, key, None)
             if val is not None:
                 log_entry[key] = val

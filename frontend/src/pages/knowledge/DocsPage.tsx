@@ -412,7 +412,11 @@ export const DocsPage: React.FC = () => {
   const handleFileSelected = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
-    handleBatchUpload(Array.from(files));
+    const fileList = Array.from(files);
+    const pdfFiles = fileList.filter((f) => f.name.endsWith('.pdf'));
+    const kbFiles = fileList.filter((f) => /\.(md|txt|jsonl)$/i.test(f.name));
+    if (pdfFiles.length > 0) handleBatchUpload(pdfFiles);
+    if (kbFiles.length > 0) handleKbUpload(kbFiles);
     e.target.value = '';
   };
 
@@ -431,12 +435,37 @@ export const DocsPage: React.FC = () => {
     e.stopPropagation();
     setDragOver(false);
     if (batchUploading) return;
-    const files = Array.from(e.dataTransfer.files).filter((f) => f.name.endsWith('.pdf'));
-    if (files.length === 0) {
-      message.warning('目前仅支持 PDF 文件');
-      return;
+
+    const files = Array.from(e.dataTransfer.files);
+    const pdfFiles = files.filter((f) => f.name.endsWith('.pdf'));
+    const kbFiles = files.filter((f) => /\.(md|txt|jsonl)$/i.test(f.name));
+
+    if (pdfFiles.length > 0) {
+      handleBatchUpload(pdfFiles);
     }
-    handleBatchUpload(files);
+    if (kbFiles.length > 0) {
+      handleKbUpload(kbFiles);
+    }
+    if (pdfFiles.length === 0 && kbFiles.length === 0) {
+      message.warning('仅支持 PDF / Markdown / TXT / JSONL 文件');
+    }
+  };
+
+  // ── 内置知识库文件上传 (.md/.txt/.jsonl) ──
+  const handleKbUpload = async (files: File[]) => {
+    for (const file of files) {
+      try {
+        const res = await api.uploadKbFile(file);
+        if (res.status === 'merged') {
+          message.success(`${file.name}: 已合并到 ${res.target}，新增 ${res.added} 条`);
+        } else {
+          message.success(`${file.name}: 已保存，5秒后自动同步`);
+        }
+      } catch (err: any) {
+        message.error(`${file.name} 上传失败: ${err?.response?.data?.detail || err?.message}`);
+      }
+    }
+    loadData();
   };
 
   return (
@@ -445,7 +474,7 @@ export const DocsPage: React.FC = () => {
         ref={fileInputRef}
         type="file"
         multiple
-        accept=".pdf"
+        accept=".pdf,.md,.txt,.jsonl"
         style={{ display: 'none' }}
         onChange={handleFileSelected}
       />
@@ -556,9 +585,11 @@ export const DocsPage: React.FC = () => {
         <div style={{ textAlign: 'center', padding: '40px 0', pointerEvents: 'none' }}>
           <InboxOutlined style={{ fontSize: 48, color: dragOver ? PALETTE.primary : PALETTE.textMuted }} />
           <p style={{ marginTop: 16, fontSize: 16, color: dragOver ? PALETTE.primary : PALETTE.text }}>
-            {dragOver ? '松开以上传文件' : '点击或拖拽文档到此处 (PDF)'}
+            {dragOver ? '松开以上传文件' : '点击或拖拽文档到此处'}
           </p>
-          <p style={{ color: PALETTE.textMuted }}>支持多文件批量上传 · 每文件最大 50MB · 上传后自动执行 ETL 流水线</p>
+          <p style={{ color: PALETTE.textMuted }}>
+            PDF 走 ETL 解析入库 · Markdown/TXT/JSONL 保存到内置知识库后自动同步 · 每文件最大 50MB
+          </p>
         </div>
       </Card>
 

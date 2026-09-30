@@ -1,0 +1,290 @@
+{
+  "mode": "sync",
+  "rows": [
+    {
+      "query": "代销产品和自营理财有什么区别？",
+      "ok": true,
+      "latency": 29.94256901741028,
+      "data": {
+        "answer": "自营理财和代销产品的主要区别如下：\n\n1. **发行主体与责任归属**：\n   - 自营理财和存款由本行直接发行或吸收，责任主体是本行，若涉及本金损失，银行需承担相应责任。\n   - 代销产品（如公募基金、保险等）的发行与管理方是外部机构（如基金公司、保险公司），银行仅作为销售渠道，不承担投资损失。[来源: agency_products.md]\n\n2. **产品性质与保障**：\n   - 自营理财和存款属于本行产品，其中存款在单家银行50万元限额内受存款保险保障；自营理财为非保本浮动收益产品，不受存款保险保障。\n   - 代销产品无论名称如何，均为非保本浮动收益产品，不受存款保险保障，投资损失由客户自行承担。[来源: agency_products.md][来源: prod_p009.md]\n\n3. **风险揭示与适当性管理**：\n   - 购买代销产品前必须进行风险测评，确保与客户的风险承受能力匹配，并完成风险揭示。[来源: agency_products.md]\n   - 银行不得将代销产品表述为“本行产品”或暗示保本***，避免误导客户。[来源: agency_products.md]\n\n4. **合规警示**：\n   - 销售人员不得私自推荐或销售未经审批的非本机构代销产品（即“飞单”），也不得以“内部渠道”“高收益”等话术诱导客户购买非法理财产品。[来源: fraud_report.md]\n\n综上：  \n- 自营理财由本行发行，责任主体明确，部分产品（如存款）受存款保险保障；  \n- 代销产品由外部机构发行，银行仅为销售渠道，不****，不受存款保险保障，客户需自行承担投资风险。\n\n[来源: agency_products.md]  \n[来源: prod_p009.md]  \n[来源: fraud_report.md]\n\n---\n**📚 溯源证据链**\n\n1. 📄 `agency_products.md`\n2. 📄 `fraud_report.md`\n3. 📄 `prod_p009.md`\n\n**🎯 信心指数**: 🟡 中等可信度 (78/100)\n**💡 审查备注**: 修正第1条断言：删除‘若涉及本金损失，银行需承担相应责任’的表述，因原文未支持此说法，且与‘非保本’产品属性冲突。应改为‘责任主体是本行，但不****，投资风险由客户承担’以符合事实。",
+        "entities": null,
+        "entities_raw": [
+          {
+            "name": "代销产品",
+            "type": "ProductType"
+          },
+          {
+            "name": "自营理财",
+            "type": "ProductType"
+          }
+        ],
+        "_intent": "product_compare",
+        "_confidence": 0.95,
+        "_rule_result": "complex",
+        "sources": [
+          "agency_products.md",
+          "fraud_report.md",
+          "prod_p009.md"
+        ],
+        "review": {
+          "score": 78,
+          "verdict": "flag",
+          "claims": 7
+        },
+        "handoff": false,
+        "compliance": {
+          "clean": false,
+          "hits": [
+            "保收益",
+            "承诺保本"
+          ],
+          "pii": []
+        },
+        "trace_id": "req_a82ac1383b7d"
+      }
+    },
+    {
+      "query": "风险测评结果和产品风险等级不匹配，还能买吗？",
+      "ok": true,
+      "latency": 4.592735290527344,
+      "data": {
+        "answer": "当您的风险测评结果与产品风险等级不匹配时，根据监管要求和适当性管理规定：\n\n- 若您的测评等级低于产品风险等级（如您为R2，产品为R3或更高），系统将**无法直接购买**。\n- 您需先重新进行风险测评，或选择与您风险等级相匹配的产品（如R2及以下）。\n- 若您坚持购买不匹配的产品，**必须转人工坐席**，由专业人员完成风险揭示、双录确认等流程后方可操作。\n\n请注意：理财产品非存款，不保本，收益有波动风险。我们建议您根据自身风险承受能力理性投资。",
+        "session_id": "f70f13d7-cd91-4947-bb90-1dc9dd41d7b2",
+        "entities": null,
+        "entities_raw": [],
+        "_intent": "simple_fact",
+        "_confidence": 0.85,
+        "_rule_result": "simple_fact",
+        "sources": [
+          "prod_p004.md",
+          "risk_level.md",
+          "prod_p009.md",
+          "agency_products.md"
+        ],
+        "review": {
+          "score": 85,
+          "verdict": "pass",
+          "claims": 0
+        },
+        "rewritten": null,
+        "trace_id": "req_70a36e668b72"
+      }
+    },
+    {
+      "query": "哪些情况应该转人工坐席？",
+      "ok": true,
+      "latency": 8.34374451637268,
+      "data": {
+        "answer": "以下情况建议转人工坐席处理：\n\n1. **涉及资金操作**：如申购、赎回、撤单等需动账的操作，系统会通过短信验证码二次确认，若用户无法完成验证或有异常操作需求，需转人工。\n2. **产品适当性不匹配**：如用户风险测评等级与产品风险等级不匹配（例如R3产品但测评结果为R1），系统将提示“不建议购买”，此时应转人工评估。\n3. **大额交易或高风险产品**：单笔金额较大或涉及R4/R5级高风险产品，需人工审核并进行风险揭示。\n4. **疑似诈骗或“飞单”行为**：若用户提及非本行推荐的产品、要求私下转账、提供账户密码等，应立即提醒风险并转人工核实。\n5. **复杂咨询或个性化需求**：如资产配置建议、多产品组合规划、特殊理财目标（教育金、养老规划）等，建议由专业理财经理协助。\n6. **系统无法响应或工具调用失败**：如查询无结果、工具超时、数据异常等情况。\n\n> 请放心，所有涉及资金和风险的环节，我们都会确保合规与安全。如有疑问，欢迎随时联系人工客服，我们将竭诚为您服务！\n\n---\n**📚 溯源证据链**\n\n\n**🎯 信心指数**: 🟢 高可信度 (85/100)",
+        "entities": null,
+        "entities_raw": [],
+        "_intent": "chitchat",
+        "_confidence": 0.9,
+        "_rule_result": "complex",
+        "sources": [],
+        "review": {
+          "score": 85,
+          "verdict": "pass",
+          "claims": 0
+        },
+        "handoff": false,
+        "trace_id": "req_f1000be57b22"
+      }
+    },
+    {
+      "query": "结构性存款保本吗？和大额存单哪个更适合保守型客户？",
+      "ok": true,
+      "latency": 5.47174334526062,
+      "data": {
+        "answer": "结构性存款**不**本金**，其收益与挂钩的金融衍生品表现相关，存在本金损失的可能性，尽管部分产品可能提供保本结构（如保本型结构性存款），但需以具体产品合同为准。\n\n大额存单属于存款类金融产品，**受存款保险制度保障**，在50万元人民币限额内本金和利息均安全，具有明确的固定利率和到期还本付息的特点。\n\n对于**保守型客户**而言，**大额存单更适合**。因其本金安全性高、收益稳定可预期，风险极低，更符合保守型投资者对资金安全和收益确定性的需求。\n\n如需进一步了解具体产品的条款或选择建议，建议联系银行人工客服或理财经理进行专业评估。",
+        "session_id": "0b58a048-0857-4e76-b376-b62df49e86fd",
+        "entities": null,
+        "entities_raw": [],
+        "_intent": "simple_fact",
+        "_confidence": 0.85,
+        "_rule_result": "simple_fact",
+        "sources": [],
+        "review": {
+          "score": 85,
+          "verdict": "pass",
+          "claims": 0
+        },
+        "rewritten": null,
+        "compliance": {
+          "clean": false,
+          "hits": [
+            "保证"
+          ],
+          "pii": []
+        },
+        "trace_id": "req_faef5303fcc3"
+      }
+    },
+    {
+      "query": "基金赎回的费用是怎么算的？",
+      "ok": true,
+      "latency": 11.52519178390503,
+      "data": {
+        "answer": "基金赎回费用的计算方式如下：\n\n1. **赎回费**：根据基金合同规定，赎回费通常与持有时间相关，持有时间越短，赎回费率越高。具体费率以产品说明书或基金合同为准 [来源: redeem_and_fee.md]。\n\n2. **管理费、托管费、销售服务费**：这些费用从基金资产中每日计提，客户无需另行支付，不计入赎回费用 [来源: prod_p014.md][来源: prod_p012.md]。\n\n3. **申购费**：若为代销基金，可能收取申购费，但部分货币基金或特定产品可能免收。申购费也需参考基金合同 [来源: prod_p008.md]。\n\n综上，基金赎回费用主要指**赎回费**，由基金合同约定，按持有期限浮动；其他费用（如管理费、托管费）已从净值中扣除，客户不额外支付。\n\n如需确认具体产品的赎回费率，请提供产品名称，以便查询其合同条款。\n\n---\n**📚 溯源证据链**\n\n1. 📄 `redeem_and_fee.md`\n2. 📄 `prod_p014.md`\n3. 📄 `prod_p012.md`\n4. 📄 `prod_p008.md`\n\n**🎯 信心指数**: 🟢 高可信度 (85/100)",
+        "entities": null,
+        "entities_raw": [],
+        "_intent": "fee_rule",
+        "_confidence": 0.95,
+        "_rule_result": "complex",
+        "sources": [
+          "redeem_and_fee.md",
+          "prod_p014.md",
+          "prod_p012.md",
+          "prod_p008.md"
+        ],
+        "review": {
+          "score": 85,
+          "verdict": "pass",
+          "claims": 0
+        },
+        "handoff": false,
+        "trace_id": "req_09354aa700f9"
+      }
+    },
+    {
+      "query": "怎么判断一个高收益产品是不是飞单？",
+      "ok": true,
+      "latency": 7.010119199752808,
+      "data": {
+        "answer": "判断一个高收益产品是否为“飞单”，可从以下几个关键信号综合判断：\n\n1. **产品来源异常**：  \n   - 该产品并非由您所在银行或金融机构**官方发行或代销**，销售人员私下推荐。\n   - 无法提供**产品登记编码**（如理财登记系统可查的编号），或无法在监管指定平台查询真伪。\n\n2. **销售行为可疑**：  \n   - 销售人员强调“内部渠道”“名额有限”“限时抢购”等话术，制造紧迫感。\n   - 要求资金转入**个人账户**或非本行对公账户，而非通过正规交易渠道。\n   - 不出具正式合同、产品说明书或无明确产品名称与编码。\n\n3. **收益承诺过高**：  \n   - 宣称“*****”（如年化超过8%且****），远高于市场同类产品水平。\n   - 所谓“业绩比较基准”被当作实际收益承诺，例如说“基准4%就**能拿到4%”。\n\n4. **资质与合规问题**：  \n   - 销售人员无法出示**合规销售资质**，或其身份未在银行系统备案。\n   - 产品未在基金业协会官网（公募基金）或理财登记系统（银行理财）中备案。\n\n✅ **正确做法**：  \n- 任何理财产品都应通过**官方渠道购买**，并核验产品登记编码。  \n- 若怀疑是飞单，请立即停止操作，并联系银行**官方客服或网点核实**，必要时可向监管部门举报。\n\n⚠️ 温馨提示：  \n所有“业绩比较基准”仅为参考，**不等于实际收益，更不构成收益承诺**。任何“****”的高收益宣传都需高度警惕。\n\n如您不确定，建议转人工客服进一步核实。",
+        "session_id": "34bcc9c4-c3cc-44e1-8f3e-7b4b30224fb3",
+        "entities": null,
+        "entities_raw": [],
+        "_intent": "simple_fact",
+        "_confidence": 0.85,
+        "_rule_result": "simple_fact",
+        "sources": [
+          "fraud_report.md",
+          "prod_p002.md",
+          "terms_faq.md"
+        ],
+        "review": {
+          "score": 85,
+          "verdict": "pass",
+          "claims": 0
+        },
+        "rewritten": null,
+        "compliance": {
+          "clean": false,
+          "hits": [
+            "一定",
+            "稳赚不赔",
+            "稳赚",
+            "保本高收益"
+          ],
+          "pii": []
+        },
+        "trace_id": "req_dbf0d5bba0f4"
+      }
+    },
+    {
+      "query": "存款保险保多少钱？",
+      "ok": true,
+      "latency": 4.160971164703369,
+      "data": {
+        "answer": "根据存款保险制度，同一存款人在同一家银行所有被保险存款账户的本金和利息合计，单家银行最高保障限额为50万元人民币。超过部分不享受存款保险保障。\n\n请注意：存款保险仅覆盖存款类产品，不包括理财、基金、保险、信托等非存款产品，也不保障账户黄金等贵金属投资。",
+        "session_id": "21825b34-42f8-41fe-b8dd-47cb650ef177",
+        "entities": null,
+        "entities_raw": [],
+        "_intent": "simple_fact",
+        "_confidence": 0.85,
+        "_rule_result": "simple_fact",
+        "sources": [
+          "agency_products.md",
+          "prod_p018.md",
+          "deposit_insurance.md",
+          "terms_faq.md",
+          "prod_p007.md",
+          "知识图谱-deposit_insurance.md",
+          "知识图谱-gold_knowledge.md",
+          "知识图谱-trust_knowledge.md"
+        ],
+        "review": {
+          "score": 85,
+          "verdict": "pass",
+          "claims": 0
+        },
+        "rewritten": null,
+        "trace_id": "req_e2e36c0f0925"
+      }
+    },
+    {
+      "query": "私银聚享混合策略的风险等级是几级？",
+      "ok": true,
+      "latency": 3.5422098636627197,
+      "data": {
+        "answer": "私银聚享混合策略（P005）的风险等级为 R4（中高风险）。",
+        "session_id": "07131eae-5919-4161-8e0e-e0a37c3817b1",
+        "entities": null,
+        "entities_raw": [],
+        "_intent": "simple_fact",
+        "_confidence": 0.85,
+        "_rule_result": "simple_fact",
+        "sources": [
+          "prod_p005.md",
+          "risk_level.md"
+        ],
+        "review": {
+          "score": 85,
+          "verdict": "pass",
+          "claims": 0
+        },
+        "rewritten": null,
+        "trace_id": "req_829ca978b42c"
+      }
+    },
+    {
+      "query": "百万医疗保险的起购金额是多少？",
+      "ok": true,
+      "latency": 3.7181806564331055,
+      "data": {
+        "answer": "百万医疗保险的起购金额为0.03万元（即300元）。",
+        "session_id": "eedada3b-756c-4c0e-b7e7-dbf2ae473655",
+        "entities": null,
+        "entities_raw": [],
+        "_intent": "simple_fact",
+        "_confidence": 0.85,
+        "_rule_result": "simple_fact",
+        "sources": [
+          "prod_p017.md",
+          "prod_p011.md",
+          "知识图谱-prod_p017.md"
+        ],
+        "review": {
+          "score": 85,
+          "verdict": "pass",
+          "claims": 0
+        },
+        "rewritten": null,
+        "trace_id": "req_5877bd154cb1"
+      }
+    },
+    {
+      "query": "你好",
+      "ok": true,
+      "latency": 3.570958375930786,
+      "data": {
+        "answer": "您好！我是您的金融理财助手，可以为您解答关于理财产品、存款、基金、保险等方面的咨询。请问您需要了解哪方面的信息呢？",
+        "session_id": "5324375c-f8c6-4a6a-a8da-204cc85c1380",
+        "entities": null,
+        "entities_raw": [],
+        "_intent": "greeting",
+        "_confidence": 0.85,
+        "_rule_result": "greeting",
+        "sources": [],
+        "review": {
+          "score": 85,
+          "verdict": "pass",
+          "claims": 0
+        },
+        "rewritten": null,
+        "trace_id": "req_d4bc0f191776"
+      }
+    }
+  ]
+}

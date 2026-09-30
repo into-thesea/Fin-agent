@@ -25,6 +25,15 @@ from typing import Optional, Any
 os.environ.setdefault("HF_HUB_OFFLINE", "1")
 os.environ.setdefault("TRANSFORMERS_OFFLINE", "1")
 
+# 设备引导: 默认强制CPU。Windows首次 torch.cuda.is_available() 探测CUDA驱动实测14s+;
+# import torch 前设 CUDA_VISIBLE_DEVICES=-1, 跳过CUDA库加载, bge冷启动降到约0.3s。
+# 需要GPU: .env 设 EMBED_DEVICE=cuda (不写入-1, 允许探测)。
+from dotenv import load_dotenv as _load_dotenv
+_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+_load_dotenv(os.path.join(_ROOT, ".env"), override=False)
+if os.getenv("EMBED_DEVICE", "cpu").strip().lower() == "cpu":
+    os.environ.setdefault("CUDA_VISIBLE_DEVICES", "-1")
+
 import numpy as np
 from dotenv import load_dotenv
 
@@ -119,8 +128,10 @@ class HybridRetriever:
         self.cache = RedisCache()
 
         # 3. 加载 bge-base-zh-v1.5 模型 (进程级缓存, 惰性设备检测)
+        import threading
         self._model = None
-        self._device = None  # 首次编码时检测（避免 torch.cuda 阻塞启动）
+        self._device = None  # 由 EMBED_DEVICE 决定; cpu 时不做 cuda 探测
+        self._model_lock = threading.Lock()  # 双检锁: 预热与早期请求不重复加载
 
         # 4. BM25 稀疏检索
         self.bm25 = None
@@ -133,6 +144,9 @@ class HybridRetriever:
         self.rerank_pool = 0
         if _s.rerank_enabled:
             logger.info("检测到 RERANK_ENABLED=true（.env）; 线上以 data/kb_settings.json 为准")
+
+        # 6. 父子文档分块: parent_id → parent chunk 映射 (懒加载, 首次检索时构建)
+        self._parent_map = None
 
     def _reranker_for(self, cfg: dict):
         """按配置取重排器。配置里关掉了就返回 None。
@@ -203,28 +217,36 @@ class HybridRetriever:
     def model(self) -> Any:
         """延迟加载 bge-base-zh-v1.5 模型（首次编码时才加载）"""
         if self._model is None:
-            from sentence_transformers import SentenceTransformer
-            cache_dir = os.getenv(
-                "MODEL_CACHE_DIR",
-                os.path.join(PROJECT_ROOT, "models")
-            )
-            logger.info("延迟加载 bge-base-zh-v1.5 模型...")
-            # 惰性检测设备 — torch.cuda.is_available() 在 Windows 上可能耗时 50s
-            if self._device is None:
-                import torch
-                self._device = "cuda" if torch.cuda.is_available() else "cpu"
-            # 搜索本地缓存
-            model_path = self._find_local_model(cache_dir)
-            if model_path:
-                logger.info("加载本地模型: %s", model_path)
-                self._model = SentenceTransformer(model_path, device=self._device)
-            else:
-                logger.info("未找到本地模型, 尝试从 huggingface.co 下载 (cache=%s)", cache_dir)
-                self._model = SentenceTransformer(
-                    "BAAI/bge-base-zh-v1.5",
-                    device=self._device,
-                    cache_folder=cache_dir,
+            with self._model_lock:
+                if self._model is not None:      # 双检: 等待期间可能已被预热加载
+                    return self._model
+                from sentence_transformers import SentenceTransformer
+                cache_dir = os.getenv(
+                    "MODEL_CACHE_DIR",
+                    os.path.join(PROJECT_ROOT, "models")
                 )
+                logger.info("延迟加载 bge-base-zh-v1.5 模型...")
+                # 设备: 尊重 EMBED_DEVICE。cpu(默认)直接用, 不触发 Windows 上极慢的
+                # torch.cuda.is_available() 探测(实测14s+); 仅显式 cuda/auto 才探测。
+                if self._device is None:
+                    pref = os.getenv("EMBED_DEVICE", "cpu").strip().lower()
+                    if pref == "cpu":
+                        self._device = "cpu"
+                    else:
+                        import torch
+                        self._device = "cuda" if torch.cuda.is_available() else "cpu"
+                # 搜索本地缓存
+                model_path = self._find_local_model(cache_dir)
+                if model_path:
+                    logger.info("加载本地模型: %s", model_path)
+                    self._model = SentenceTransformer(model_path, device=self._device)
+                else:
+                    logger.info("未找到本地模型, 尝试从 huggingface.co 下载 (cache=%s)", cache_dir)
+                    self._model = SentenceTransformer(
+                        "BAAI/bge-base-zh-v1.5",
+                        device=self._device,
+                        cache_folder=cache_dir,
+                    )
         if self._model is not None:
             global EMBEDDING_MODEL_LOADED
             EMBEDDING_MODEL_LOADED = True
@@ -377,6 +399,52 @@ class HybridRetriever:
             self._graph_retriever = gr
         return gr.retrieve(query)
 
+
+    def _load_parent_map(self) -> dict:
+        """从分块文件加载所有父块, 构建 chunk_id → parent chunk 映射 (懒加载, 进程内缓存)"""
+        if self._parent_map is not None:
+            return self._parent_map
+        import json as _json
+        from src.infra.paths import CHUNKS_PROCESSED_PATH
+        parent_map = {}
+        try:
+            with open(CHUNKS_PROCESSED_PATH, "r", encoding="utf-8") as f:
+                for line in f:
+                    line = line.strip()
+                    if line:
+                        c = _json.loads(line)
+                        if c.get("chunk_type") == "parent":
+                            parent_map[c["chunk_id"]] = c
+        except FileNotFoundError:
+            logger.warning("分块文件不存在, 父块映射为空")
+        self._parent_map = parent_map
+        logger.info("加载父块映射: %d 个父块", len(parent_map))
+        return parent_map
+
+    def _expand_to_parents(self, chunks: list) -> list:
+        """子块命中后展开为父块完整内容, 同一父块去重
+
+        父子文档分块的核心: 用小chunk精准检索, 返回父章节完整上下文给LLM。
+        没有parent_id的chunk (如上传文档的chunk) 原样保留。
+        """
+        parent_map = self._load_parent_map()
+        result = []
+        seen_parent_ids = set()
+        for c in chunks:
+            parent_id = c.get("parent_id")
+            if parent_id and parent_id in parent_map:
+                if parent_id in seen_parent_ids:
+                    continue  # 同一父块已展开过, 去重
+                seen_parent_ids.add(parent_id)
+                result.append(parent_map[parent_id])
+            else:
+                # 无parent_id (上传文档或旧格式chunk), 原样保留
+                pid = c.get("chunk_id")
+                if pid not in seen_parent_ids:
+                    seen_parent_ids.add(pid)
+                    result.append(c)
+        return result
+
     def hybrid_retrieve(
         self, query: str, entity_hint: Optional[str] = None, top_k: Optional[int] = None
     ) -> dict:
@@ -483,6 +551,9 @@ class HybridRetriever:
             existing_srcs = {c.get("source") for c in local_context}
             added = [e for e in graph_context if e.get("source") not in existing_srcs]
             local_context = list(local_context) + added[:3]
+
+        # 父子文档分块: 子块检索命中后展开为父块完整内容 (同一父块去重)
+        local_context = self._expand_to_parents(local_context)
 
         return {
             "local": local_context,
