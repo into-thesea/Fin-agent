@@ -158,12 +158,38 @@ class CsState(TypedDict):
     stage: str
 
 
+def _emotion_prompt(base_prompt: str, state: dict) -> str:
+    """按上一轮情绪给 System Prompt 追加共情/转人工建议.
+
+    情绪只影响措辞, 不改变业务逻辑 (见 src/core/emotion.py 的设计原则)。
+    """
+    from src.core.emotion import build_emotion_instruction, should_suggest_handoff
+    emotion = state.get("emotion") or "normal"
+    extra = build_emotion_instruction(emotion)
+    if should_suggest_handoff(emotion, state.get("turn_count", 0), state.get("negative_turns", 0)):
+        extra += "\n用户已连续多轮未解决或情绪负面，请在回答末尾主动提示：可回复「转人工」接入人工坐席。"
+    return f"{base_prompt}\n\n{extra}" if extra else base_prompt
+
+
 def _empty_state(query: str, session_id: str = "", user_id: str = "", slots: Optional[dict] = None) -> dict:
+    # 情绪上下文来自上一轮 (dialog_state.update 在回答后写回), 读取失败不阻塞对话
+    emotion, negative_turns, turn_count = "normal", 0, 0
+    if session_id:
+        try:
+            from src.core.dialog_state import get_state_manager
+            ds = get_state_manager().get_or_create(session_id)
+            emotion = getattr(ds, "emotion", None) or "normal"
+            negative_turns = getattr(ds, "negative_turns", 0) or 0
+            turn_count = getattr(ds, "turn_count", 0) or 0
+        except Exception as e:
+            logger.debug("情绪上下文读取失败 (可忽略): %s", e)
+
     return {
         "query": query, "session_id": session_id, "user_id": user_id, "slots": dict(slots or {}),
         "qclass": "", "intent": "", "confidence": 0.0, "entities": [],
         "contexts": {}, "memory_context": "",
         "agent_result": {}, "review": {}, "answer": "", "sources": [], "handoff": False,
+        "emotion": emotion, "negative_turns": negative_turns, "turn_count": turn_count,
         "retry_count": 0, "stage": "start",
     }
 
@@ -442,7 +468,7 @@ def build_graph(token_queue=None):
             # P8: 图节点流转绑定 user_id (工具调用经拦截器读取 thread-local)
             from src.business.context import set_current_user
             set_current_user(state.get("user_id") or None)
-            agent = AgenticAgent(system_prompt=prompt, intent=intent)
+            agent = AgenticAgent(system_prompt=_emotion_prompt(prompt, state), intent=intent)
             q = _with_memory(state)  # P4: 前置记忆上下文
             if token_queue is not None:
                 # 流式: 工具循环收集上下文 → 逐 token 推送

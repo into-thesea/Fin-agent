@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, Table, Tabs, Tag, Button, Space, Typography, Form, Input, Modal, message, Switch, Descriptions } from 'antd';
-import { UserOutlined, SettingOutlined, SafetyOutlined, PlusOutlined, DeleteOutlined } from '@ant-design/icons';
+import { UserOutlined, SettingOutlined, SafetyOutlined, PlusOutlined, DeleteOutlined, NodeIndexOutlined, CheckOutlined, CloseOutlined, ReloadOutlined } from '@ant-design/icons';
 import { useAuthStore } from '../stores/authStore';
 
 const { Title, Text } = Typography;
@@ -22,6 +22,48 @@ export const AdminPage: React.FC = () => {
   const { user } = useAuthStore();
   const [users] = useState(DEMO_USERS);
   const [addModalOpen, setAddModalOpen] = useState(false);
+
+  // ── 知识图谱三元组审核 ──
+  const [pendingTriples, setPendingTriples] = useState<any[]>([]);
+  const [triplesLoading, setTriplesLoading] = useState(false);
+
+  const loadPendingTriples = async () => {
+    setTriplesLoading(true);
+    try {
+      const resp = await fetch('/api/v1/kb/triples/pending');
+      const data = await resp.json();
+      setPendingTriples(data.items || []);
+    } catch (e) {
+      message.error('加载待审核三元组失败');
+    } finally {
+      setTriplesLoading(false);
+    }
+  };
+
+  const auditTriple = async (id: string, action: 'approve' | 'reject') => {
+    try {
+      const resp = await fetch('/api/v1/kb/triples/audit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, action }),
+      });
+      const data = await resp.json();
+      if (data.status === 'approved') {
+        message.success(`已通过并入库 Neo4j (${data.neo4j})`);
+      } else if (data.status === 'rejected') {
+        message.info('已拒绝');
+      } else if (data.status === 'duplicate') {
+        message.warning('三元组已存在，自动跳过');
+      }
+      loadPendingTriples();
+    } catch (e) {
+      message.error('审核操作失败');
+    }
+  };
+
+  useEffect(() => {
+    if (user?.role === 'admin') loadPendingTriples();
+  }, [user?.role]);
 
   if (user?.role !== 'admin') {
     return (
@@ -117,6 +159,45 @@ export const AdminPage: React.FC = () => {
                 <Descriptions.Item label="ETL 并发">Celery</Descriptions.Item>
                 <Descriptions.Item label="API 版本">v4.0.0</Descriptions.Item>
               </Descriptions>
+            </Card>
+          ),
+        },
+        {
+          key: 'kg-audit',
+          label: <span><NodeIndexOutlined /> 图谱审核 ({pendingTriples.length})</span>,
+          children: (
+            <Card size="small"
+              title="LLM 抽取三元组待审核"
+              extra={
+                <Button icon={<ReloadOutlined />} size="small" onClick={loadPendingTriples} loading={triplesLoading}>
+                  刷新
+                </Button>
+              }
+            >
+              {pendingTriples.length === 0 ? (
+                <Text type="secondary">暂无待审核三元组。运行 scripts/extract_triples.py 抽取后会出现在这里。</Text>
+              ) : (
+                <Table dataSource={pendingTriples} columns={[
+                  { title: '主体', dataIndex: 'head', key: 'head', width: 140 },
+                  { title: '关系', dataIndex: 'relation', key: 'relation', width: 130,
+                    render: (r: string) => <Tag color="blue">{r}</Tag> },
+                  { title: '客体', dataIndex: 'tail', key: 'tail', width: 140 },
+                  { title: '来源文档', dataIndex: 'doc', key: 'doc', width: 160 },
+                  { title: '证据片段', dataIndex: 'source_text', key: 'source_text',
+                    ellipsis: true, render: (t: string) => <Text type="secondary">{t}</Text> },
+                  {
+                    title: '操作', key: 'action', width: 140,
+                    render: (_: any, record: any) => (
+                      <Space>
+                        <Button type="primary" size="small" icon={<CheckOutlined />}
+                          onClick={() => auditTriple(record.id, 'approve')}>通过</Button>
+                        <Button danger size="small" icon={<CloseOutlined />}
+                          onClick={() => auditTriple(record.id, 'reject')}>拒绝</Button>
+                      </Space>
+                    ),
+                  },
+                ]} rowKey="id" size="small" pagination={{ pageSize: 10 }} />
+              )}
             </Card>
           ),
         },
