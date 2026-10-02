@@ -38,6 +38,8 @@ from src.agents.prompts import (
     BOUNDARY_BLOCK_LIGHT,
 )
 from src.core.slot_filler import extract_slots, missing_required, followup_question
+from src.core.query_rewriter import rewrite_query
+from src.core.query_decomposer import decompose_query
 from src.tools.registry import retrieve_knowledge
 from src.memory.memory_store import memory_store
 from src.business import finance_services as fs  # 阶段二: 适当性门控 / 申购
@@ -307,15 +309,40 @@ def build_graph(token_queue=None):
             return dominant_theme, True, f"检索结果高度集中于{dominant_theme.value}主题"
         return intent, False, ""
 
+    def _merge_retrieval_results(contexts_list: list, top_k: int = 8) -> dict:
+        """合并多个子问题的检索结果：按 chunk_id 去重，保留最高分，按分数降序取 top_k"""
+        merged = {}
+        all_sources = []
+        for ctx in contexts_list:
+            for item in ctx.get("local", []):
+                cid = item.get("chunk_id") or item.get("id") or id(item)
+                score = item.get("score", 0.0)
+                if cid not in merged or score > merged[cid].get("score", 0.0):
+                    merged[cid] = item
+            all_sources.extend(ctx.get("sources", []))
+        sorted_items = sorted(merged.values(), key=lambda x: x.get("score", 0.0), reverse=True)[:top_k]
+        return {"local": sorted_items, "sources": list(set(all_sources))[:top_k]}
+
     def route_retrieve_node(state: dict) -> dict:
         from src.retrieval.retriever import HybridRetriever
         retriever = HybridRetriever()
         dialog_ctx = _build_dialog_context(state)
-        with concurrent.futures.ThreadPoolExecutor(max_workers=2) as pool:
+        # LLM 拆分多问题（单问题时快速路径直接返回 [原问题]，零额外延迟）
+        sub_queries = decompose_query(state["query"])
+        is_multi = len(sub_queries) > 1
+        workers = max(2, min(len(sub_queries) + 1, 6))  # 路由 + N 个检索，上限 6
+        with concurrent.futures.ThreadPoolExecutor(max_workers=workers) as pool:
             route_future = pool.submit(router.route, state["query"], dialog_ctx)
-            retrieve_future = pool.submit(retriever.hybrid_retrieve, state["query"])
+            if is_multi:
+                # 多子问题并行检索
+                retrieve_futures = [pool.submit(retriever.hybrid_retrieve, q) for q in sub_queries]
+                contexts_list = [f.result() for f in retrieve_futures]
+                contexts = _merge_retrieval_results(contexts_list)
+                logger.info("P3 多问题拆分: %d 个子问题 → 合并 %d 条结果", len(sub_queries), len(contexts.get("local", [])))
+            else:
+                retrieve_future = pool.submit(retriever.hybrid_retrieve, state["query"])
+                contexts = retrieve_future.result()
             route_result = route_future.result()
-            contexts = retrieve_future.result()
         adjusted_intent, adjusted, reason = _intent_retrieval_consistency_check(
             route_result.intent, route_result.confidence, contexts)
         if adjusted:

@@ -73,7 +73,9 @@ def chunk_key(item, prefix_index):
     """提取检索结果的稳定 chunk 标识: 优先 chunk_id, 否则用 content 前缀反查"""
     cid = item.get("chunk_id")
     if cid:
-        return cid
+        # 去掉 _cN 后缀归一化为文档级 ID，与 golden_chunk_ids 格式对齐
+        # 同一文档的不同 chunk 内容相关，任意 chunk 命中即算对
+        return re.sub(r"_c\d+$", "", cid)
     key = re.sub(r"\s+", "", item.get("content") or "")[:60]
     return prefix_index.get(key)
 
@@ -104,6 +106,9 @@ def main():
     parser.add_argument("--limit", type=int, default=0, help="只处理前 N 条 (0=全部; 分批跑可防 CPU 长跑 segfault)")
     parser.add_argument("--offset", type=int, default=0, help="跳过前 N 条 (与 --limit 配合分批)")
     parser.add_argument("--out", default="", help="可选: 保存逐条结果 JSON")
+    parser.add_argument("--with-rewrite", action="store_true",
+                        help="先做 Query Rewriting 再检索，对比改写前后的 Recall@5 "
+                             "(从 golden chunk 提取产品名模拟上一轮上下文)")
     args = parser.parse_args()
 
     records = load_records(args.eval)
@@ -139,6 +144,30 @@ def main():
 
     retriever = HybridRetriever()
     print("🔍 混合检索器就绪 (Milvus + BM25 + 图谱)\n")
+
+    # Query Rewriting 相关初始化
+    product_names = []
+    rewrite_fn = None
+    if args.with_rewrite:
+        from src.core.query_rewriter import rewrite_query
+        rewrite_fn = rewrite_query
+        catalog_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+                                     "data", "finance_kb", "catalog.jsonl")
+        if os.path.exists(catalog_path):
+            with open(catalog_path, "r", encoding="utf-8") as f:
+                for line in f:
+                    line = line.strip()
+                    if line:
+                        try:
+                            p = json.loads(line)
+                            if p.get("name"):
+                                product_names.append(p["name"])
+                        except json.JSONDecodeError:
+                            continue
+            print(f"🔄 Query Rewriting 已启用，加载产品名 {len(product_names)} 个\n")
+        else:
+            print(f"⚠️ 未找到 catalog.jsonl，Query Rewriting 无法提取产品名\n")
+            args.with_rewrite = False
 
     # 可选精排: 扩大候选池 (pool_k) 后再收敛到 max_k
     reranker = None
@@ -181,6 +210,14 @@ def main():
     mrr_total = 0.0
     no_chunk_id = 0
     per_record = []
+    # Query Rewriting 对比统计
+    hits_orig = {k: 0 for k in range(1, max_k + 1)}
+    hits_rewritten = {k: 0 for k in range(1, max_k + 1)}
+    mrr_orig = 0.0
+    mrr_rewritten = 0.0
+    rewrite_count = 0
+    rewrite_improved = 0
+    rewrite_downgraded = 0
 
     def key_of(item):
         """把一个检索结果映射成用于比对 golden 的键"""
@@ -191,55 +228,96 @@ def main():
             return None
         return file_prefix(cid) if args.file_level else cid
 
-    for i, rec in enumerate(records, 1):
-        q = rec["question"]
-        if use_evidence:
-            golden = set(rec.get("evidence") or [])
-        else:
-            golden = set(rec.get("golden_chunk_ids") or [])
-            # 文档级宽松模式: golden 与检索结果都映射为文件前缀再比较
-            if args.file_level:
-                golden = {file_prefix(g) for g in golden}
+    def _retrieve_and_score(query, golden_set):
+        """检索并计算命中排名，返回 (rank, retrieved, error)"""
         try:
-            result = retriever.hybrid_retrieve(q, top_k=pool_k)
+            result = retriever.hybrid_retrieve(query, top_k=pool_k)
         except Exception as e:
-            print(f"  ❌ 检索失败 [{q[:40]}]: {e}")
-            continue
+            return None, [], str(e)
         retrieved = result.get("local", [])
         if reranker is not None:
             if type(reranker).__name__ == "CrossEncoderReranker":
-                # 两阶段精排: SparseBoost 粗排大池到 30 (毫秒级), CrossEncoder 精排到 top-k
                 from src.retrieval.reranker import SparseReranker
-                coarse = SparseReranker(lambd_overlap=args.lambd).rerank(q, retrieved, top_k=30)
-                retrieved = reranker.rerank(q, coarse, top_k=max_k)
+                coarse = SparseReranker(lambd_overlap=args.lambd).rerank(query, retrieved, top_k=30)
+                retrieved = reranker.rerank(query, coarse, top_k=max_k)
             else:
-                retrieved = reranker.rerank(q, retrieved, top_k=max_k)
+                retrieved = reranker.rerank(query, retrieved, top_k=max_k)
         else:
             retrieved = retrieved[:max_k]
-
-        # 命中判定: 前 k 条内是否出现 golden
         rank = None
         for k in range(1, max_k + 1):
             ids = set()
             for item in retrieved[:k]:
                 key = key_of(item)
                 if key is None:
-                    if not use_evidence:
-                        no_chunk_id += 1
                     continue
                 ids.add(key)
-            if ids & golden:
-                hits[k] += 1
-                if rank is None:
-                    rank = k
-        if rank:
-            mrr_total += 1.0 / rank
+            if ids & golden_set:
+                rank = k
+                break
+        return rank, retrieved, None
+
+    for i, rec in enumerate(records, 1):
+        q = rec["question"]
+        if use_evidence:
+            golden = set(rec.get("evidence") or [])
         else:
-            print(f"  ⚠️  未命中: {q[:50]}")
+            golden = set(rec.get("golden_chunk_ids") or [])
+            golden = {re.sub(r"_c\d+$", "", g) for g in golden}
+            if args.file_level:
+                golden = {file_prefix(g) for g in golden}
+
+        # Query Rewriting: 优先用记录中的 context_product（模拟上一轮上下文），
+        # 没有则从 golden chunk 内容中匹配产品名作为兜底
+        q_rewritten = q
+        if args.with_rewrite and rewrite_fn and not use_evidence:
+            matched_product = rec.get("context_product")
+            if not matched_product and product_names:
+                golden_content = ""
+                for gid in rec.get("golden_chunk_ids", []):
+                    if gid in chunk_map:
+                        golden_content += chunk_map[gid] + " "
+                for pname in product_names:
+                    if pname in golden_content:
+                        matched_product = pname
+                        break
+            if matched_product:
+                q_rewritten = rewrite_fn(q, {"product": matched_product}, use_llm=False)
+                if q_rewritten != q:
+                    rewrite_count += 1
+
+        # 检索（改写后）
+        rank, retrieved, err = _retrieve_and_score(q_rewritten, golden)
+        if err:
+            print(f"  ❌ 检索失败 [{q[:40]}]: {err}")
+            continue
+        if rank:
+            for k in range(rank, max_k + 1):
+                hits[k] += 1
+            mrr_total += 1.0 / rank
+            if q_rewritten != q:
+                for k in range(rank, max_k + 1):
+                    hits_rewritten[k] += 1
+                mrr_rewritten += 1.0 / rank
+        else:
+            print(f"  ⚠️  未命中: {q[:50]}" + (f" → 改写: {q_rewritten[:30]}" if q_rewritten != q else ""))
+
+        # 对比：原始 query 的检索结果（仅统计，不打印未命中）
+        if args.with_rewrite and q_rewritten != q:
+            rank_orig, _, _ = _retrieve_and_score(q, golden)
+            if rank_orig:
+                for k in range(rank_orig, max_k + 1):
+                    hits_orig[k] += 1
+                mrr_orig += 1.0 / rank_orig
+            if rank and not rank_orig:
+                rewrite_improved += 1
+            elif not rank and rank_orig:
+                rewrite_downgraded += 1
 
         per_record.append({
             "id": rec.get("id"),
             "question": q,
+            "rewritten": q_rewritten if q_rewritten != q else None,
             "golden": sorted(golden),
             "retrieved": [key_of(x) for x in retrieved],
             "hit_rank": rank,
@@ -249,6 +327,8 @@ def main():
 
     n = len(records)
     mode_label = " (文档级宽松)" if args.file_level else " (chunk 级严格)"
+    if args.with_rewrite:
+        mode_label += " + Query Rewriting"
     if args.rerank:
         _name = type(reranker).__name__ if reranker is not None else "None"
         mode_label += {
@@ -264,6 +344,24 @@ def main():
         print(f"  Recall@{k:<2d} = {hits[k]/n:6.1%}  {bar}")
     print(f"  MRR       = {mrr_total/n:.4f}")
     print("=" * 46)
+
+    # Query Rewriting 对比输出
+    if args.with_rewrite and rewrite_count > 0:
+        print(f"\n🔄 Query Rewriting 对比（{rewrite_count} 条问题被改写）:")
+        print(f"  {'指标':<12} {'改写前':<12} {'改写后':<12} {'变化':<10}")
+        for k in [1, 3, 5]:
+            if k <= max_k:
+                orig = hits_orig[k] / rewrite_count if rewrite_count else 0
+                new = hits_rewritten[k] / rewrite_count if rewrite_count else 0
+                delta = new - orig
+                print(f"  Recall@{k:<3d}    {orig:6.1%}        {new:6.1%}        {delta:+.1%}")
+        orig_mrr = mrr_orig / rewrite_count if rewrite_count else 0
+        new_mrr = mrr_rewritten / rewrite_count if rewrite_count else 0
+        print(f"  {'MRR':<12} {orig_mrr:.4f}        {new_mrr:.4f}        {new_mrr-orig_mrr:+.4f}")
+        print(f"\n  改写后提升命中: {rewrite_improved} 条 (原未命中→改写后命中)")
+        print(f"  改写后降低命中: {rewrite_downgraded} 条 (原命中→改写后未命中)")
+        print("=" * 46)
+
     if no_chunk_id:
         print(f"  (提示: {no_chunk_id} 个检索结果缺少 chunk_id, 已用 content 前缀回查定位)")
 
