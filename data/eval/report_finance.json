@@ -1264,7 +1264,7 @@
     ]
   },
   "online": {
-    "intent_accuracy": 0.886,
-    "compliance_pass_rate": 0.962
+    "intent_accuracy": 0.905,
+    "compliance_pass_rate": 0.943
   }
 }
