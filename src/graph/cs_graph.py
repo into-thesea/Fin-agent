@@ -368,17 +368,25 @@ def build_graph(token_queue=None):
         ])
         return {"answer": ans, "sources": [], "stage": "unknown"}
 
-    # ── 4. 槽位抽取 + 缺失追问 (阶段二接入资金动账流程后在此补必填槽位) ──
+    # ── 4. 槽位抽取 + 缺失追问 (仅在构成可执行下单指令时追问, 见 missing_required) ──
     def slot_check_node(state: dict) -> dict:
         intent = QueryIntent(state["intent"])
-        slots = dict(state["slots"])
+        slots = dict(state.get("slots") or {})
         slots.update(extract_slots(state["query"], state.get("entities", [])))
+
         missing = missing_required(intent.value, slots)
+
         if missing:
             logger.info("P3 slot 预检: 意图=%s 缺 %s → 追问", intent.value, missing)
-            return {"slots": slots, "answer": followup_question(missing),
-                    "sources": [], "stage": "slot_followup", "intent": intent.value}
-        return {"slots": slots, "stage": "slot_check"}
+            return {
+                "slots": slots,
+                "answer": followup_question(missing),
+                "sources": [],
+                "stage": "slot_followup",
+                "intent": intent.value,
+                "awaiting_slot": missing[0],
+            }
+        return {"slots": slots, "stage": "slot_check", "awaiting_slot": None}
 
     def _slot_next(state: dict) -> str:
         return END if state.get("stage") == "slot_followup" else "orchestrator_node"

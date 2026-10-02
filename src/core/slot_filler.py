@@ -116,14 +116,21 @@ def extract_slots(query: str = "", entities: list = None) -> dict:
     return slots
 
 
-def missing_required(intent: str, slots: dict) -> list:
+def missing_required(intent: str = "", slots: dict = None) -> list:
     """返回当前意图缺失的必需槽位名列表.
 
-    阶段一: 咨询/查询类无强制槽位 (产品缺失时可据目录澄清)。阶段二接入资金动账工具后,
-    购买/赎回流程在此补充 product/amount/verification 等必需槽位。
+    必填槽位**只在执行流生效**: 只有当用户这一轮构成了可执行的下单指令
+    (购买意图 + 已给出金额), 却没说买哪款产品时, 才追问产品名。
+
+    咨询/查询类一律不追问 —— 信息型问题本来就不保证带得出产品名,
+    按产品域硬性要求会拦掉绝大多数正常提问 (实测 105 条 Golden 中 75 条)。
+    与 cs_graph._should_enter_subscribe 的激活条件同源: 该函数要求
+    product + amount 同时具备才进门控, 缺产品时本就落回产品分析, 这里补齐缺口。
     """
-    required = {}  # 阶段二扩展: e.g. {"subscribe": ["product", "amount"]}
-    return [s for s in required.get(intent, []) if not slots.get(s)]
+    slots = slots or {}
+    if intent != "buy_process" or slots.get("amount") is None:
+        return []
+    return [] if slots.get("product") else ["product"]
 
 
 def followup_question(missing: list) -> str:

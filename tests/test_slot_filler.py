@@ -42,10 +42,44 @@ def test_entities_supplement():
     assert s["risk_level"] == "R2"
 
 
-def test_missing_required_no_mandatory_in_stage1():
-    # 阶段一咨询类无强制槽位; 阶段二资金动账流程再补 product/amount/verification
+def test_missing_required_only_in_execute_flow():
+    # 咨询类一律不追问: 信息型问题本来就不保证带得出产品名
+    for intent in ["product_consult", "product_compare", "income_question",
+                   "fee_rule", "risk_suitability", "hold_redeem", "deposit_insurance"]:
+        assert missing_required(intent, {}) == [], f"{intent} 不该追问"
+        assert missing_required(intent, extract_slots("稳盈添利30天收益多少")) == []
+
+    # 有购买意图但没有金额 → 还不构成可执行指令, 不追问
     assert missing_required("buy_process", {}) == []
-    assert missing_required("product_consult", {}) == []
+    assert missing_required("buy_process", {"amount": None}) == []
+
+    # 购买意图 + 金额 + 没点名产品 → 追问产品
+    assert missing_required("buy_process", {"amount": 50.0}) == ["product"]
+    assert missing_required("buy_process", extract_slots("我想买50万")) == ["product"]
+
+    # 购买意图 + 金额 + 有产品 → 不追问
+    assert missing_required("buy_process", {"amount": 50.0, "product": "稳盈添利30天"}) == []
+
+
+def test_golden_never_triggers_followup():
+    """回归护栏: 105 条 Golden 没有一条会被槽位闸拦成追问.
+
+    这条曾经被"按产品域强制 product"的规则打破 (75/105 被反问),
+    它保护的是线上意图准确率基线 (88.6%)。
+    """
+    import json
+    from pathlib import Path
+
+    golden = Path(__file__).resolve().parent.parent / "data" / "eval" / "finance_qa_golden.jsonl"
+    rows = [json.loads(line) for line in golden.read_text(encoding="utf-8").splitlines() if line.strip()]
+    assert len(rows) >= 100, "Golden 集缺失或过小"
+
+    triggered = []
+    for r in rows:
+        slots = extract_slots(r.get("question", ""), r.get("entities") or [])
+        if missing_required(r.get("intent", ""), slots):
+            triggered.append(r.get("id"))
+    assert triggered == [], f"这些 Golden 用例被误判为缺槽位: {triggered}"
 
 
 def test_followup_question():
