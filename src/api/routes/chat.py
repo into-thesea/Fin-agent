@@ -180,10 +180,12 @@ async def chat_sync(req: ChatRequest, authorization: Optional[str] = Header(None
                 "entities": entities_raw[0]["name"] if entities_raw else None,
                 "entities_raw": entities_raw,
                 "_intent": qclass,
-                "_confidence": 0.85,
+                "_confidence": None,   # greeting 没有真实置信度, 不编
                 "_rule_result": qclass,
                 "sources": sources,
-                "review": {"score": 85, "verdict": "pass", "claims": 0},
+                # greeting 不经 reviewer: 如实标注 skipped, 分数给 null 而不是写死一个 pass 分数
+                # (前端 types/api.ts 把 score 声明为必填的 number|null, 省略会让它变 undefined)
+                "review": {"score": None, "verdict": "skipped", "claims": 0},
                 "rewritten": rewritten if rewritten != original_query else None,
             }
             _apply_compliance(result)
@@ -480,7 +482,7 @@ async def _stream_chat_response(query: str, session_id: str, user_id: str = "",
             yield _event("token", token=_tok)
         ans = "".join(_gparts)
         yield _event("result", answer=ans, sources=[], entities=None,
-                     review={"score": 85, "verdict": "pass", "claims": 0})
+                     review={"score": None, "verdict": "skipped", "claims": 0})
         yield _event("done")
         return
 
