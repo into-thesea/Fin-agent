@@ -67,10 +67,16 @@ def test_gates_are_conjunctive():
 
 def test_route_class_forces_complex_on_handoff():
     assert fp.route_class("你好") == "greeting"
-    # classify 收窄后不再有 simple_fact 这一档: 难度判定已整体移交五道闸,
+    # classify 收窄后不再有 simple_fact 这一档: 难度判定已整体移交闸门,
     # route_class 只回 greeting|complex (见 plan Pre-flight ruling)
     assert fp.route_class("稳盈添利30天收益多少") == "complex"
-    assert fp.route_class("客服让我把钱转到安全账户是真的吗", strong_intent="fraud_report") == "complex"
+
+
+def test_route_class_does_not_duplicate_handoff_decision():
+    """HANDOFF 判定只该在 evaluate 一处 —— route_class 不得再抄一份"""
+    import inspect
+    assert "strong_intent" not in inspect.signature(fp.route_class).parameters, \
+        "route_class 的 strong_intent 参数在生产中无人传入, 是重复的判定入口"
 
 
 def test_route_class_forces_complex_on_private_data():

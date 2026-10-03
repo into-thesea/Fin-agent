@@ -39,7 +39,6 @@ from src.agents.prompts import (
 )
 from src.core.slot_filler import extract_slots, missing_required, followup_question, is_executable_order
 from src.core.query_decomposer import decompose_query
-from src.tools.registry import retrieve_knowledge
 from src.memory.memory_store import memory_store
 from src.business import finance_services as fs  # 阶段二: 适当性门控 / 申购
 from src.analyst_agent import format_response  # 复用现有格式化器

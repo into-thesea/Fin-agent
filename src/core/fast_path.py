@@ -67,19 +67,19 @@ def should_answer_fast(intent: str, contexts: dict, query: str,
     return evaluate(intent, contexts, query, strong_intent)[0]
 
 
-def route_class(query: str, strong_intent: str = None) -> str:
-    """查询分类的**唯一入口**: 规则分类 + 硬前置拦截.
+def route_class(query: str) -> str:
+    """查询分类的**唯一入口**: 规则分类 + 私有数据硬前置.
 
     greeting 优先判定 (greeting 不查 KB、不需意图, 不受其他闸影响);
-    命中 HANDOFF 强信号或含私有数据措辞一律强制走完整管道。
+    含私有数据措辞一律强制走完整管道。
+
+    这里**不做** HANDOFF 判定 —— 那需要强信号意图, 而强信号是 triage 算的。
+    诈骗/投诉的拦截统一在 evaluate 的闸①, 判定入口只有一个 (见 spec §3.2)。
     """
     from src.llm.query_router import classify as kw_classify
     qclass = kw_classify(query)
     if qclass == "greeting":
         return "greeting"
-    if strong_intent in HANDOFF_INTENTS:
-        logger.info("硬前置: 诈骗/投诉强信号 → 强制完整管道")
-        return "complex"
     if any(m in (query or "") for m in PRIVATE_DATA_MARKERS):
         logger.info("硬前置: 私有数据措辞 → 强制完整管道")
         return "complex"
