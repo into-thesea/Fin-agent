@@ -37,8 +37,7 @@ from src.agents.prompts import (
     CS_CHITCHAT_SYSTEM_PROMPT, UNKNOWN_SYSTEM_PROMPT,
     BOUNDARY_BLOCK_LIGHT,
 )
-from src.core.slot_filler import extract_slots, missing_required, followup_question
-from src.core.query_rewriter import rewrite_query
+from src.core.slot_filler import extract_slots, missing_required, followup_question, is_executable_order
 from src.core.query_decomposer import decompose_query
 from src.tools.registry import retrieve_knowledge
 from src.memory.memory_store import memory_store
@@ -112,8 +111,7 @@ def _should_enter_subscribe(intent: QueryIntent, slots: dict, query: str = "") -
     slots = slots or {}
     code_hit = bool(_CODE_RE.search(query or ""))
     product = slots.get("product")
-    amount_given = slots.get("amount") is not None
-    order = intent == QueryIntent.BUY_PROCESS and amount_given
+    order = is_executable_order(intent.value, slots)   # 判据唯一定义在 slot_filler
     confirm = intent == QueryIntent.PRODUCT_CONSULT and code_hit  # 索码后的补码轮
     return bool(product) and (order or confirm)
 
@@ -261,23 +259,27 @@ def build_graph(token_queue=None):
                 "intent": QueryIntent.CHITCHAT.value, "confidence": 0.9}
 
     def simple_fact_node(state: dict) -> dict:
-        r = retrieve_knowledge(state["query"], 8)
-        messages = [
-            {"role": "system", "content": "你是理财客服助手。请基于知识库检索结果简要回答, 无法确定时明确说明。\n\n" + BOUNDARY_BLOCK_LIGHT + "\n\n" + r["text"]},
-            {"role": "user", "content": state["query"]},
-        ]
-        if token_queue is not None:
-            # 流式: 逐token推送并累积, 结束后返回完整答案
-            _parts = []
-            for _tok in create_client(cheap=True).chat_stream(messages):
-                _parts.append(_tok)
-                token_queue.put({"type": "token", "token": _tok})
-            ans = "".join(_parts)
-        else:
-            ans = create_client(cheap=True).chat(messages)
-        # 快速通道用LLM分类获取intent (方案A: 提升全链路意图准确率)
-        # router.route()内部先做强信号规则仲裁, 强信号命中零延迟, 其余走LLM分类
-        route_result = router.route(state["query"])
+        # 路由只用于补齐 intent 指标, 与检索/答案生成并发发出,
+        # 不再排在答案之后白等一个 LLM 往返 (覆盖 75% 流量)
+        with concurrent.futures.ThreadPoolExecutor(max_workers=1) as pool:
+            route_future = pool.submit(router.route, state["query"])
+            r = retrieve_knowledge(state["query"], 8)
+            messages = [
+                {"role": "system", "content": "你是理财客服助手。请基于知识库检索结果简要回答, 无法确定时明确说明。\n\n" + BOUNDARY_BLOCK_LIGHT + "\n\n" + r["text"]},
+                {"role": "user", "content": state["query"]},
+            ]
+            if token_queue is not None:
+                # 流式: 逐token推送并累积, 结束后返回完整答案
+                _parts = []
+                for _tok in create_client(cheap=True).chat_stream(messages):
+                    _parts.append(_tok)
+                    token_queue.put({"type": "token", "token": _tok})
+                ans = "".join(_parts)
+            else:
+                ans = create_client(cheap=True).chat(messages)
+            # 快速通道用LLM分类获取intent (方案A: 提升全链路意图准确率)
+            # router.route()内部先做强信号规则仲裁, 强信号命中零延迟, 其余走LLM分类
+            route_result = route_future.result()
         return {"answer": ans, "sources": r["sources"], "contexts": r.get("contexts", {}),
                 "stage": "simple_fact", "intent": route_result.intent.value,
                 "confidence": route_result.confidence}
@@ -334,6 +336,7 @@ def build_graph(token_queue=None):
                         intent.value, confidence * 100, dominant_theme.value, count)
             return dominant_theme, True, f"检索结果高度集中于{dominant_theme.value}主题"
         return intent, False, ""
+
 
     def _merge_retrieval_results(contexts_list: list, top_k: int = 8) -> dict:
         """合并多个子问题的检索结果：按 chunk_id 去重，保留最高分，按分数降序取 top_k"""
