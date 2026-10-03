@@ -38,7 +38,7 @@ class DialogState:
     focal_year: Optional[str] = None                   # 焦点年份 (保留兼容)
     last_intent: Optional[str] = None                  # 上轮意图 (12类平面结构, 兼容旧代码)
     # ── 意图分层 (L0/L1/L2) ──
-    current_l0: Optional[str] = None                   # 当前产品域: deposit/wealth/fund/insurance/common/out_of_scope
+    current_l0: Optional[str] = None                   # 当前产品域, 取值见 slot_filler.L0_DOMAINS
     current_l1: Optional[str] = None                   # 当前问询类型: product_info/income/fee/risk/buy_process/redeem/compare/compliance
     current_l2: Optional[str] = None                   # LLM 动态提取的具体操作 (可选)
     # ── 槽位 ──
