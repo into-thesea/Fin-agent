@@ -47,8 +47,12 @@ def decompose_query(query: str, max_sub: int = MAX_SUB_QUERIES) -> list[str]:
     Returns:
         子问题列表。单问题时返回 [query]。LLM 失败时降级返回 [query]。
     """
-    # 快速路径: 没有问号/分号/连接词，大概率单问题，跳过 LLM 调用省延迟
-    if not any(sep in query for sep in ["？", "?", "；", ";", "还有", "另外", "以及", "，再"]):
+    # 快速路径: 单个句末问号**不是**多问题信号 —— 用户提问几乎都以 ？ 结尾,
+    # 原来的 "句中含 ？ 就调 LLM" 会让 98% 的普通问题白花一次 LLM 往返
+    # (golden 105 条里 103 条命中, 其中 98 条只是单个问号)。
+    # 只有出现两个及以上问号, 或明确的多问连接词, 才值得花这次调用。
+    qmarks = query.count("？") + query.count("?")
+    if qmarks < 2 and not any(sep in query for sep in ["；", ";", "还有", "另外", "以及", "，再"]):
         return [query]
 
     try:
