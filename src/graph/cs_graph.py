@@ -27,7 +27,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspa
 
 logger = logging.getLogger(__name__)
 
-from src.core.fast_path import route_class
+from src.core.fast_path import route_class, should_answer_fast
 from src.llm.llm_client import create_client
 from src.agents.router_agent import RouterAgent, QueryIntent
 from src.agents.agentic_agent import AgenticAgent
@@ -236,7 +236,9 @@ def build_graph(token_queue=None):
         return {"qclass": qclass, "stage": "classify"}
 
     def _classify_next(state: dict) -> str:
-        return {"greeting": "greeting_node", "simple_fact": "simple_fact_node"}.get(state["qclass"], "route_retrieve_node")
+        # 只有 greeting 在这里分流。快答与否由 route_retrieve_node 之后的五道闸决定,
+        # 不再由关键词表直接决定 (见 src/core/fast_path.py)
+        return "greeting_node" if state.get("qclass") == "greeting" else "route_retrieve_node"
 
     # ── 1.5 分层记忆注入 (P4): 会话窗口 + 用户画像 + 向量语义记忆 → memory_context ──
     def memory_node(state: dict) -> dict:
@@ -266,30 +268,27 @@ def build_graph(token_queue=None):
                 "intent": QueryIntent.CHITCHAT.value, "confidence": 0.9}
 
     def simple_fact_node(state: dict) -> dict:
-        # 路由只用于补齐 intent 指标, 与检索/答案生成并发发出,
-        # 不再排在答案之后白等一个 LLM 往返 (覆盖 75% 流量)
-        with concurrent.futures.ThreadPoolExecutor(max_workers=1) as pool:
-            route_future = pool.submit(router.route, state["query"])
-            r = retrieve_knowledge(state["query"], 8)
-            messages = [
-                {"role": "system", "content": "你是理财客服助手。请基于知识库检索结果简要回答, 无法确定时明确说明。\n\n" + BOUNDARY_BLOCK_LIGHT + "\n\n" + r["text"]},
-                {"role": "user", "content": state["query"]},
-            ]
-            if token_queue is not None:
-                # 流式: 逐token推送并累积, 结束后返回完整答案
-                _parts = []
-                for _tok in create_client(cheap=True).chat_stream(messages):
-                    _parts.append(_tok)
-                    token_queue.put({"type": "token", "token": _tok})
-                ans = "".join(_parts)
-            else:
-                ans = create_client(cheap=True).chat(messages)
-            # 快速通道用LLM分类获取intent (方案A: 提升全链路意图准确率)
-            # router.route()内部先做强信号规则仲裁, 强信号命中零延迟, 其余走LLM分类
-            route_result = route_future.result()
-        return {"answer": ans, "sources": r["sources"], "contexts": r.get("contexts", {}),
-                "stage": "simple_fact", "intent": route_result.intent.value,
-                "confidence": route_result.confidence}
+        """快答: 复用 triage 已拿到的 KB 原文 (含产品对齐守卫), 不重复检索也不重复路由。
+
+        意图/置信度/kb_text 都由 route_retrieve_node 产出 —— 这里只生成答案。
+        """
+        messages = [
+            {"role": "system", "content": "你是理财客服助手。请基于知识库检索结果简要回答, 无法确定时明确说明。\n\n"
+                                          + BOUNDARY_BLOCK_LIGHT + "\n\n" + (state.get("kb_text") or "")},
+            {"role": "user", "content": state["query"]},
+        ]
+        if token_queue is not None:
+            # 流式: 逐token推送并累积, 结束后返回完整答案
+            _parts = []
+            for _tok in create_client(cheap=True).chat_stream(messages):
+                _parts.append(_tok)
+                token_queue.put({"type": "token", "token": _tok})
+            ans = "".join(_parts)
+        else:
+            ans = create_client(cheap=True).chat(messages)
+        return {"answer": ans,
+                "sources": (state.get("contexts") or {}).get("sources", []),
+                "stage": "simple_fact"}
 
     # ── 3. 复杂路径: 路由 + 检索 (并行) ──
     def _build_dialog_context(state: dict) -> str:
@@ -400,10 +399,17 @@ def build_graph(token_queue=None):
             "contexts": contexts,
             "kb_text": kb_text,
             "strong_intent": strong_intent,
+            # 五道闸判定集中在这里, triage 只负责产出事实
+            "fast_path": should_answer_fast(
+                route_result.intent.value, route_result.confidence, contexts,
+                state["query"], strong_intent),
             "stage": "route_retrieve",
         }
 
     def _route_next(state: dict) -> str:
+        # 过闸 → 快答; 不过闸 → 升级到完整管道 (unknown 仍走 unknown_node)
+        if state.get("fast_path"):
+            return "simple_fact_node"
         return "unknown_node" if state.get("intent") == QueryIntent.UNKNOWN.value else "slot_check_node"
 
     def unknown_node(state: dict) -> dict:
@@ -622,12 +628,14 @@ def build_graph(token_queue=None):
     g.add_edge(START, "classify_node")
     g.add_edge("classify_node", "memory_node")  # P4: 路由前注入记忆
     g.add_conditional_edges("memory_node", _classify_next,
-                            {"greeting_node": "greeting_node", "simple_fact_node": "simple_fact_node",
+                            {"greeting_node": "greeting_node",
                              "route_retrieve_node": "route_retrieve_node"})
     g.add_edge("greeting_node", END)
     g.add_edge("simple_fact_node", END)
     g.add_conditional_edges("route_retrieve_node", _route_next,
-                            {"unknown_node": "unknown_node", "slot_check_node": "slot_check_node"})
+                            {"simple_fact_node": "simple_fact_node",
+                             "unknown_node": "unknown_node",
+                             "slot_check_node": "slot_check_node"})
     g.add_edge("unknown_node", END)
     g.add_conditional_edges("slot_check_node", _slot_next,
                             {END: END, "orchestrator_node": "orchestrator_node"})
