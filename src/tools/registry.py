@@ -66,26 +66,29 @@ def _fmt_local(local: list) -> tuple:
     return lines, sources
 
 
-def retrieve_knowledge(query: str, top_k: int = 5) -> dict:
-    """检索理财知识库 (产品说明书/政策条款/规则口径), 返回格式化原文 + 来源"""
-    from src.retrieval.retriever import HybridRetriever
-    res = HybridRetriever().hybrid_retrieve(query, top_k=top_k)
-    lines, sources = _fmt_local(res.get("local", []))
+def format_kb_text(query: str, contexts: dict) -> dict:
+    """把检索结果格式化成给模型看的原文, 并施加产品对齐守卫.
+
+    守卫: 查询点名的产品若在检索内容里一个都没命中, 整份丢弃 (fail closed) ——
+    防的是"拿别的产品的内容冒充它"。但判定必须**逐产品**且认口语简称:
+      1) 命中判定用「目录全名 or 别名」—— 检索文本里写的通常是"大额存单"这种简称,
+         只认目录全名会把明明找到的产品判成"未检索到";
+      2) 只缺一个产品时保留已找到的内容(只标注缺的那个), 不做一票否决 ——
+         否则问"A 和 B 哪个好"而只缺 B 时, 连 A 都答不了。
+
+    独立成函数是为了让完整管道也能用上这道守卫 —— 图里 route_retrieve_node
+    原本直接调 HybridRetriever, 绕过了它。
+    """
+    local = (contexts or {}).get("local") or []
+    lines, sources = _fmt_local(local)
     if lines:
         text = "【知识库检索结果】\n" + "\n".join(lines)
     else:
         text = "【知识库检索结果】\n(未检索到相关文档)"
 
-    # 对齐检查: 查询点名的产品若在检索内容里找不到, 要明确告知模型 —— 防的是
-    # "拿别的产品的内容冒充它"。但判定必须**逐产品**且认口语简称:
-    #   1) 命中判定用「目录全名 or 别名」—— 检索文本里写的通常是"大额存单"这种简称,
-    #      只认目录全名会把明明找到的产品判成"未检索到";
-    #   2) 只缺一个产品时保留已找到的内容(只标注缺的那个), 不做一票否决 ——
-    #      否则问"A 和 B 哪个好"而只缺 B 时, 连 A 都答不了。
-    # 只有在点名产品**一个都没命中**时才整份丢弃(fail closed)。
     names = _query_product_names(query)
     if names:
-        all_content = " ".join((c.get("content") or "") for c in res.get("local", []))
+        all_content = " ".join((c.get("content") or "") for c in local)
         found, missing = [], []
         for name in names:
             alias = _PRODUCT_ALIASES.get(name)
@@ -94,14 +97,22 @@ def retrieve_knowledge(query: str, top_k: int = 5) -> dict:
             else:
                 missing.append(name)
         if not found:
-            text = (f"【知识库检索结果】\n知识库中未检索到「{'、'.join(missing)}」的相关内容，"
-                    f"命中的内容与其无关、不应采用。如仍无法获取，请如实告知用户"
-                    f"知识库暂无该产品资料，不要用其他内容冒充，可建议转人工坐席。")
-            return {"text": text, "sources": [], "contexts": res}
+            return {"text": (f"【知识库检索结果】\n知识库中未检索到「{'、'.join(missing)}」的相关内容，"
+                             f"命中的内容与其无关、不应采用。如仍无法获取，请如实告知用户"
+                             f"知识库暂无该产品资料，不要用其他内容冒充，可建议转人工坐席。"),
+                    "sources": []}
         if missing:
             text = (f"【注意】知识库中未检索到「{'、'.join(missing)}」的相关内容，"
                     f"不要用其他产品的内容替代它作答，可建议转人工坐席。\n" + text)
-    return {"text": text, "sources": sources, "contexts": res}
+    return {"text": text, "sources": sources}
+
+
+def retrieve_knowledge(query: str, top_k: int = 5) -> dict:
+    """检索理财知识库 (产品说明书/政策条款/规则口径), 返回格式化原文 + 来源"""
+    from src.retrieval.retriever import HybridRetriever
+    res = HybridRetriever().hybrid_retrieve(query, top_k=top_k)
+    out = format_kb_text(query, res)
+    return {"text": out["text"], "sources": out["sources"], "contexts": res}
 
 
 TOOL_DEFINITIONS = [
