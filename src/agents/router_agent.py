@@ -290,7 +290,7 @@ class RouterAgent:
                               "受存款保障"],
     }
 
-    def _strong_signal_rule(self, query: str):
+    def strong_signal_rule(self, query: str):
         """强信号规则仲裁: 命中强信号关键词直接返回意图, 不调 LLM.
         返回 (RoutingResult|None, 命中的意图名|None)
         """
@@ -326,7 +326,7 @@ class RouterAgent:
         result = RoutingResult(original_query=query)
 
         # 规则混合仲裁: 强信号意图直接返回, 不调 LLM (零延迟)
-        strong_result, strong_intent = self._strong_signal_rule(query)
+        strong_result, strong_intent = self.strong_signal_rule(query)
         if strong_result is not None:
             return strong_result
 

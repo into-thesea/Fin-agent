@@ -146,6 +146,9 @@ class CsState(TypedDict):
     confidence: float
     entities: list
     contexts: dict
+    kb_text: str            # 带产品对齐守卫的 KB 原文 (只由 triage 产出, 快答复用)
+    strong_intent: str      # 强信号规则命中的意图 (供 fast_path 闸①)
+    fast_path: bool         # triage 的五道闸判定结果
     memory_context: str
     agent_result: dict
     review: dict
@@ -185,7 +188,8 @@ def _empty_state(query: str, session_id: str = "", user_id: str = "", slots: Opt
     return {
         "query": query, "session_id": session_id, "user_id": user_id, "slots": dict(slots or {}),
         "qclass": "", "intent": "", "confidence": 0.0, "entities": [],
-        "contexts": {}, "memory_context": "",
+        "contexts": {}, "kb_text": "", "strong_intent": None, "fast_path": False,
+        "memory_context": "",
         "agent_result": {}, "review": {}, "answer": "", "sources": [], "handoff": False,
         "emotion": emotion, "negative_turns": negative_turns, "turn_count": turn_count,
         "retry_count": 0, "stage": "start",
@@ -357,6 +361,7 @@ def build_graph(token_queue=None):
 
     def route_retrieve_node(state: dict) -> dict:
         from src.retrieval.retriever import HybridRetriever
+        from src.tools.registry import format_kb_text
         retriever = HybridRetriever()
         dialog_ctx = _build_dialog_context(state)
         # LLM 拆分多问题（单问题时快速路径直接返回 [原问题]，零额外延迟）
@@ -375,6 +380,12 @@ def build_graph(token_queue=None):
                 retrieve_future = pool.submit(retriever.hybrid_retrieve, state["query"])
                 contexts = retrieve_future.result()
             route_result = route_future.result()
+        # 强信号规则是纯内存字典扫描 (无 I/O, 微秒级), 直接调不必进线程池
+        _strong_result, strong_intent = router.strong_signal_rule(state["query"])
+        # KB 原文一律经 format_kb_text 施加产品对齐守卫 —— 完整管道此前直接调
+        # hybrid_retrieve 绕过了它, 只有快速通道有这道保护 (见 spec Review Focus #3)。
+        # 注意 top_k 仍走 hybrid_retrieve 的配置默认值, 不在这里改成硬编码, 免得静默改动完整管道。
+        kb_text = format_kb_text(state["query"], contexts)["text"]
         adjusted_intent, adjusted, reason = _intent_retrieval_consistency_check(
             route_result.intent, route_result.confidence, contexts)
         if adjusted:
@@ -387,6 +398,8 @@ def build_graph(token_queue=None):
             "confidence": route_result.confidence,
             "entities": route_result.entities,
             "contexts": contexts,
+            "kb_text": kb_text,
+            "strong_intent": strong_intent,
             "stage": "route_retrieve",
         }
 
