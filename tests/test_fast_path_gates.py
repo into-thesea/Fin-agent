@@ -75,7 +75,9 @@ def test_gates_are_conjunctive():
 
 def test_route_class_forces_complex_on_handoff():
     assert fp.route_class("你好") == "greeting"
-    assert fp.route_class("稳盈添利30天收益多少") == "simple_fact"
+    # classify 收窄后不再有 simple_fact 这一档: 难度判定已整体移交五道闸,
+    # route_class 只回 greeting|complex (见 plan Pre-flight ruling)
+    assert fp.route_class("稳盈添利30天收益多少") == "complex"
     assert fp.route_class("客服让我把钱转到安全账户是真的吗", strong_intent="fraud_report") == "complex"
 
 
