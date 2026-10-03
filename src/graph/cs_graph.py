@@ -27,7 +27,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspa
 
 logger = logging.getLogger(__name__)
 
-from src.llm.query_router import classify as rule_classify
+from src.core.fast_path import route_class
 from src.llm.llm_client import create_client
 from src.agents.router_agent import RouterAgent, QueryIntent
 from src.agents.agentic_agent import AgenticAgent
@@ -224,7 +224,10 @@ def build_graph(token_queue=None):
 
     # ── 1. 规则路由 (毫秒级, 决定快速通道 vs 完整管道) ──
     def classify_node(state: dict) -> dict:
-        qclass = rule_classify(state["query"])
+        # 唯一入口: 规则分类 + HANDOFF/私有数据硬前置 (见 src/core/fast_path.py)。
+        # 此处拿不到强信号意图 (那要等 route_retrieve_node), 所以只传 query;
+        # 诈骗类的强信号拦截由 route_retrieve_node → _route_next 承担, 判定入口只有一个。
+        qclass = route_class(state["query"])
         logger.info("P3 classify: %s", qclass)
         return {"qclass": qclass, "stage": "classify"}
 

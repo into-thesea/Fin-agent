@@ -73,6 +73,21 @@ def test_gates_are_conjunctive():
                           "query": "我的持仓"})[0] is False
 
 
+def test_route_class_forces_complex_on_handoff():
+    assert fp.route_class("你好") == "greeting"
+    assert fp.route_class("稳盈添利30天收益多少") == "simple_fact"
+    assert fp.route_class("客服让我把钱转到安全账户是真的吗", strong_intent="fraud_report") == "complex"
+
+
+def test_route_class_forces_complex_on_private_data():
+    assert fp.route_class("我的持仓收益怎么样") == "complex"
+
+
+def test_route_class_keeps_greeting_ahead_of_private_marker():
+    # 问候优先: 问候语本身不带私有数据措辞时不受影响
+    assert fp.route_class("你好") == "greeting"
+
+
 if __name__ == "__main__":
     for name, fn in sorted(globals().items()):
         if name.startswith("test_"):

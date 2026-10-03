@@ -107,7 +107,7 @@ async def chat_sync(req: ChatRequest, authorization: Optional[str] = Header(None
     from src.core.dialog_state import get_state_manager
     from src.llm.query_rewriter import rewrite_query
     from src.core.answer_cache import get_cached as cache_get, set_cache as cache_set
-    from src.llm.query_router import classify as classify_query
+    from src.core.fast_path import route_class
     from src.llm.llm_client import create_client
     from src.agents.prompts import BOUNDARY_BLOCK_LIGHT
 
@@ -150,7 +150,7 @@ async def chat_sync(req: ChatRequest, authorization: Optional[str] = Header(None
         return cached
 
     # ── 3. 规则路由 (同步, <0.1ms) ──────────────
-    qclass = classify_query(final_query)
+    qclass = route_class(final_query)
 
     if qclass in ("greeting", "simple_fact"):
         _t0 = time.time()
@@ -466,8 +466,8 @@ async def _stream_chat_response(query: str, session_id: str, user_id: str = "",
         logger.info("流式缓存命中: %s", query[:30])
         return
 
-    from src.llm.query_router import classify as classify_query
-    qclass = classify_query(query)
+    from src.core.fast_path import route_class
+    qclass = route_class(query)
     if qclass == "greeting":
         from src.llm.llm_client import create_client
         # 寒暄同样逐 token 流式推送 (首 token 也由 _event 计入 TTFB)
