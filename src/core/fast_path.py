@@ -1,17 +1,20 @@
-"""快速通道准入判定 (五道闸串联).
+"""快速通道准入判定 (四道闸串联).
 
 做法参考四家的通行模式 —— Amazon Lex 的 nluIntentConfidenceThreshold +
 AMAZON.FallbackIntent、Dialogflow CX 的 ML Classification Threshold +
 sys.no-match-default、Rasa 的 FallbackClassifier + nlu_fallback、语义路由的相似度阈值。
 共同点是「模型有多确定」而非「句子里有没有某个词」，且低确定时升级到更强路径。
 
-本项目按实测做了调整 (105 条 golden, 见 spec §4.1):
-  - LLM 自报的 confidence 饱和在 0.95 (93% 样本 >= 0.95), 阈值区分度弱;
-  - 有区分度的是检索 top1 分数 (<0.60 区间意图错 37.5%, >=0.70 为 0)。
-所以闸④是主闸, 闸③保留但可关闭 (CONFIDENCE_THRESHOLD = None)。
+**与四家的差异 (实测得出, 非偏好)**: 那四家都有一道置信度阈值闸, 本项目**没有** ——
+router 自报的 confidence 饱和在 0.95 (105 条 golden 里 93% 在 0.95 以上, 0.95 档里错 6 条、
+低于 0.95 的 4 条里错 3 条: 方向对但没区分度)。阈值从 0.70 扫到 0.85 结果一字不差,
+0.90/0.95/0.98 只减覆盖不减错误。全链路实测: 关闭 = 0.905、T=0.90 = 0.895, 差 1.0pp
+落在 ±2pp 抖动带内, 按事先定死的规则判无差异, 于是**整道闸被移除而不是留一个恒真的开关**。
+有区分度的是检索 top1 分数 (<0.60 区间意图错 37.5%, >=0.70 为 0)。
+详见 docs/superpowers/specs/2026-10-03-fast-path-confidence-gate-design.md §4
 
-**换 router 模型后必须重跑 scripts/calibrate_fast_path.py 重标阈值** —— 阈值不跨模型迁移。
-设计见 docs/superpowers/specs/2026-10-03-fast-path-confidence-gate-design.md
+**换 router 模型后必须重跑 scripts/calibrate_fast_path.py 重标 KB_SCORE_THRESHOLD** ——
+阈值不跨模型迁移。若换了校准更好的分类器, 置信度闸可以重新加回来。
 """
 
 import logging
@@ -31,8 +34,7 @@ HANDOFF_INTENTS = frozenset({"fraud_report", "complaint"})
 # 例: 「我的风险测评等级是多少」意图置信度很高, 但 KB 答不了。
 PRIVATE_DATA_MARKERS = ("我的", "查一下", "查查", "查询", "持仓", "我买", "我持有")
 
-CONFIDENCE_THRESHOLD = 0.90   # 闸③; None = 关闭
-KB_SCORE_THRESHOLD = 0.60     # 闸④
+KB_SCORE_THRESHOLD = 0.60     # 闸④, 主闸
 
 
 def top1_score(contexts: dict) -> float:
@@ -46,25 +48,23 @@ def top1_score(contexts: dict) -> float:
         return 0.0
 
 
-def evaluate(intent: str, confidence: float, contexts: dict, query: str,
+def evaluate(intent: str, contexts: dict, query: str,
              strong_intent: str = None) -> tuple:
-    """五道闸串联 → (是否走快答, 未过的闸名); 全过时闸名为 "pass"."""
+    """四道闸串联 → (是否走快答, 未过的闸名); 全过时闸名为 "pass"."""
     if strong_intent in HANDOFF_INTENTS:
         return False, "handoff"
     if any(m in (query or "") for m in PRIVATE_DATA_MARKERS):
         return False, "private_data"
     if intent not in INFORMATIONAL_INTENTS:
         return False, "intent_not_informational"
-    if CONFIDENCE_THRESHOLD is not None and (confidence or 0.0) < CONFIDENCE_THRESHOLD:
-        return False, "low_confidence"
     if top1_score(contexts) < KB_SCORE_THRESHOLD:
         return False, "no_kb_evidence"
     return True, "pass"
 
 
-def should_answer_fast(intent: str, confidence: float, contexts: dict, query: str,
+def should_answer_fast(intent: str, contexts: dict, query: str,
                        strong_intent: str = None) -> bool:
-    return evaluate(intent, confidence, contexts, query, strong_intent)[0]
+    return evaluate(intent, contexts, query, strong_intent)[0]
 
 
 def route_class(query: str, strong_intent: str = None) -> str:

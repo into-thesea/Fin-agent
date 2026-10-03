@@ -399,10 +399,9 @@ def build_graph(token_queue=None):
             "contexts": contexts,
             "kb_text": kb_text,
             "strong_intent": strong_intent,
-            # 五道闸判定集中在这里, triage 只负责产出事实
+            # 四道闸判定集中在这里, triage 只负责产出事实
             "fast_path": should_answer_fast(
-                route_result.intent.value, route_result.confidence, contexts,
-                state["query"], strong_intent),
+                route_result.intent.value, contexts, state["query"], strong_intent),
             "stage": "route_retrieve",
         }
 

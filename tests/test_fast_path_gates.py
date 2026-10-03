@@ -7,7 +7,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import src.core.fast_path as fp
 
 CTX = {"local": [{"score": 0.72, "content": "x"}], "sources": ["prod_p002.md"]}
-OK = dict(intent="product_consult", confidence=0.98, contexts=CTX, query="稳盈添利30天的风险等级")
+OK = dict(intent="product_consult", contexts=CTX, query="稳盈添利30天的风险等级")
 
 
 def test_all_gates_pass():
@@ -30,17 +30,10 @@ def test_gate2_non_informational_blocks():
     assert fp.evaluate(**{**OK, "intent": "chitchat"}) == (False, "intent_not_informational")
 
 
-def test_gate3_low_confidence_blocks():
-    assert fp.evaluate(**{**OK, "confidence": 0.50}) == (False, "low_confidence")
-
-
-def test_gate3_can_be_disabled():
-    saved = fp.CONFIDENCE_THRESHOLD
-    fp.CONFIDENCE_THRESHOLD = None
-    try:
-        assert fp.evaluate(**{**OK, "confidence": 0.10})[0] is True
-    finally:
-        fp.CONFIDENCE_THRESHOLD = saved
+def test_confidence_gate_is_gone():
+    """置信度闸实测无区分度, 已被整体移除 (不是留一个恒真的开关) —— 见 spec §4.2"""
+    assert not hasattr(fp, "CONFIDENCE_THRESHOLD")
+    assert "confidence" not in fp.evaluate.__code__.co_varnames
 
 
 def test_gate4_no_kb_evidence_blocks():
@@ -67,10 +60,9 @@ def test_top1_score_handles_missing_shapes():
 
 
 def test_gates_are_conjunctive():
-    """五闸是 AND: 任一条不过, 结果就是不过."""
+    """四闸是 AND: 任一条不过, 结果就是不过."""
     assert fp.evaluate(**{**OK, "strong_intent": "complaint", "intent": "chitchat",
-                          "confidence": 0.1, "contexts": {},
-                          "query": "我的持仓"})[0] is False
+                          "contexts": {}, "query": "我的持仓"})[0] is False
 
 
 def test_route_class_forces_complex_on_handoff():

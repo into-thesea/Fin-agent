@@ -1,11 +1,12 @@
-"""闸门阈值标定: 在 golden 上扫描 T/S, 产出覆盖率-错误率表.
+"""闸门阈值标定: 在 golden 上扫描 KB 分数阈值, 产出覆盖率-错误率表.
 
 用法:
     python scripts/calibrate_fast_path.py
     python scripts/calibrate_fast_path.py --limit 20
 
-**阈值不跨模型迁移** —— 换 router 模型后必须重跑本脚本 (见 spec §4.2)。
-扫描期间 S 固定、T 单独扫, 不同时调两个参数, 否则等于对着评测集拟合。
+**阈值不跨模型迁移** —— 换 router / embedding 模型后必须重跑本脚本 (见 spec §4.2)。
+
+注: 原本还扫一个置信度阈值 T, 实测无区分度后那道闸已被整体移除, 故此处只扫 S。
 """
 import argparse
 import json
@@ -22,31 +23,27 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 OUT = os.path.join(ROOT, "data", "eval", "fast_path_calibration.json")
 
 
-def sweep(rows: list, Ts: list, Ss: list) -> list:
-    """扫 T/S 组合 → [{T, S, fast, coverage, wrong, wrong_rate}]"""
+def sweep(rows: list, Ss: list) -> list:
+    """扫 KB 分数阈值 S → [{S, fast, coverage, wrong, wrong_rate}]"""
     out = []
-    saved_T, saved_S = fp.CONFIDENCE_THRESHOLD, fp.KB_SCORE_THRESHOLD
+    saved_S = fp.KB_SCORE_THRESHOLD
     try:
-        for T in Ts:
-            for S in Ss:
-                fp.CONFIDENCE_THRESHOLD = T
-                fp.KB_SCORE_THRESHOLD = S
-                passed = []
-                for r in rows:
-                    ctx = {"local": [{"score": r["top1"]}]}
-                    ok, _ = fp.evaluate(r["intent"], r["confidence"], ctx,
-                                        r["query"], r["strong"])
-                    if ok:
-                        passed.append(r)
-                wrong = sum(1 for r in passed if not r["correct"])
-                out.append({
-                    "T": T, "S": S, "fast": len(passed),
-                    "coverage": round(len(passed) / max(1, len(rows)), 4),
-                    "wrong": wrong,
-                    "wrong_rate": round(wrong / max(1, len(passed)), 4),
-                })
+        for S in Ss:
+            fp.KB_SCORE_THRESHOLD = S
+            passed = []
+            for r in rows:
+                ctx = {"local": [{"score": r["top1"]}]}
+                if fp.should_answer_fast(r["intent"], ctx, r["query"], r["strong"]):
+                    passed.append(r)
+            wrong = sum(1 for r in passed if not r["correct"])
+            out.append({
+                "S": S, "fast": len(passed),
+                "coverage": round(len(passed) / max(1, len(rows)), 4),
+                "wrong": wrong,
+                "wrong_rate": round(wrong / max(1, len(passed)), 4),
+            })
     finally:
-        fp.CONFIDENCE_THRESHOLD, fp.KB_SCORE_THRESHOLD = saved_T, saved_S
+        fp.KB_SCORE_THRESHOLD = saved_S
     return out
 
 
@@ -62,7 +59,7 @@ def collect(path: str) -> list:
         kb = retrieve_knowledge(q, 8)
         rows.append({
             "id": rec["id"], "query": q, "expected": rec["intent"],
-            "intent": res.intent.value, "confidence": float(res.confidence),
+            "intent": res.intent.value,
             "top1": fp.top1_score(kb["contexts"]), "strong": strong,
             "personal": any(m in q for m in fp.PRIVATE_DATA_MARKERS),
             "correct": res.intent.value == rec["intent"],
@@ -81,12 +78,11 @@ def main():
     rows = collect(args.eval)
     if args.limit:
         rows = rows[:args.limit]
-    table = sweep(rows, Ts=[0.90, 0.95, 0.98, None], Ss=[0.55, 0.60, 0.65])
+    table = sweep(rows, Ss=[0.50, 0.55, 0.60, 0.65, 0.70])
     print(f"\n样本 {len(rows)} 条")
-    print("   T      S     快答数  覆盖   意图错  错误率")
+    print("   S     快答数  覆盖   意图错  错误率")
     for r in table:
-        t = "off " if r["T"] is None else f'{r["T"]:.2f}'
-        print(f'  {t}  {r["S"]:.2f}   {r["fast"]:3d}   {r["coverage"]:5.0%}    '
+        print(f'  {r["S"]:.2f}   {r["fast"]:3d}   {r["coverage"]:5.0%}    '
               f'{r["wrong"]:2d}   {r["wrong_rate"]:5.1%}')
     os.makedirs(os.path.dirname(OUT), exist_ok=True)
     json.dump({"rows": rows, "sweep": table}, open(OUT, "w", encoding="utf-8"),
