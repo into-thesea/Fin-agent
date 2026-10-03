@@ -152,37 +152,26 @@ async def chat_sync(req: ChatRequest, authorization: Optional[str] = Header(None
     # ── 3. 规则路由 (同步, <0.1ms) ──────────────
     qclass = route_class(final_query)
 
-    if qclass in ("greeting", "simple_fact"):
+    # 只有 greeting 保留内联: 它不查 KB、不需要意图, 走图反而要过 memory_node 更慢。
+    # simple_fact 已收进图 —— 检索与五道闸判定统一在 route_retrieve_node,
+    # 此前内联那条走 top-5 检索、不做意图分类、还伪造 review 分数, 与流式路径不一致。
+    if qclass == "greeting":
         _t0 = time.time()
         try:
-            # simple_fact: 先检索知识库, 再基于检索上下文作答 (避免答出与KB矛盾的答案)
-            sources = []
-            context_note = ""
-            if qclass == "simple_fact":
-                from src.tools.registry import retrieve_knowledge
-                r = await asyncio.to_thread(retrieve_knowledge, final_query, 5)
-                context_note = r["text"]
-                sources = r["sources"]
-            prompt_map = {
-                "greeting": "你是一个友好的客服助手。请用中文简洁回答。\n\n" + BOUNDARY_BLOCK_LIGHT,
-                "simple_fact": "你是客服助手。请基于知识库检索结果简要回答, 无法确定时明确说明。\n\n" + BOUNDARY_BLOCK_LIGHT + "\n\n" + context_note,
-            }
             # ☆ ASYNC LLM 调用 — 不占用任何线程 ☆
             answer = await create_client(cheap=True).chat_async([
-                {"role": "system", "content": prompt_map[qclass]},
+                {"role": "system", "content": "你是一个友好的客服助手。请用中文简洁回答。\n\n" + BOUNDARY_BLOCK_LIGHT},
                 {"role": "user", "content": final_query},
             ])
-            # 提取实体 (客服场景 Phase 1 先留空, Phase 2 由 slot_filler 填充订单号/产品等)
-            entities_raw = []
             result = {
                 "answer": answer,
                 "session_id": session_id,
-                "entities": entities_raw[0]["name"] if entities_raw else None,
-                "entities_raw": entities_raw,
-                "_intent": qclass,
+                "entities": None,
+                "entities_raw": [],
+                "_intent": "chitchat",
                 "_confidence": None,   # greeting 没有真实置信度, 不编
                 "_rule_result": qclass,
-                "sources": sources,
+                "sources": [],
                 # greeting 不经 reviewer: 如实标注 skipped, 分数给 null 而不是写死一个 pass 分数
                 # (前端 types/api.ts 把 score 声明为必填的 number|null, 省略会让它变 undefined)
                 "review": {"score": None, "verdict": "skipped", "claims": 0},
@@ -198,11 +187,11 @@ async def chat_sync(req: ChatRequest, authorization: Optional[str] = Header(None
                 final_query, result, session_id, state_mgr,
                 rewritten, original_query, time.time() - _t0, qclass
             ))
-            logger.info("快速通道 (async, qclass=%s): session=%s, query=%s",
-                        qclass, session_id[:8], original_query[:40])
+            logger.info("快速通道 greeting (async): session=%s, query=%s",
+                        session_id[:8], original_query[:40])
             return result
         except Exception as e:
-            logger.warning("快速通道失败, 降级到完整Pipeline: %s", e)
+            logger.warning("greeting 内联失败, 降级到完整Pipeline: %s", e)
             # 继续走完整 Pipeline
 
     # ── 4. 完整 Pipeline (WorkerPool, 限 2 线程) ──
