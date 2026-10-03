@@ -149,7 +149,9 @@ def main():
     product_names = []
     rewrite_fn = None
     if args.with_rewrite:
-        from src.core.query_rewriter import rewrite_query
+        # 与线上 chat.py 同一份实现 (src/core/query_rewriter.py 曾在此重复一份, 已删)
+        from src.llm.query_rewriter import rewrite_query
+        from src.core.dialog_state import DialogState
         rewrite_fn = rewrite_query
         catalog_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
                                      "data", "finance_kb", "catalog.jsonl")
@@ -282,7 +284,11 @@ def main():
                         matched_product = pname
                         break
             if matched_product:
-                q_rewritten = rewrite_fn(q, {"product": matched_product}, use_llm=False)
+                # 线上实现在多轮下才改写, 这里模拟"上一轮已提到该产品" (history 条目同 dialog_state 真实结构)
+                q_rewritten = rewrite_fn(q, DialogState(
+                    slots={"product": matched_product},
+                    history=[{"role": "user", "query": "（上一轮）", "answer": ""}],
+                ))
                 if q_rewritten != q:
                     rewrite_count += 1
 
