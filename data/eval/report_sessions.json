@@ -1,7 +1,7 @@
 {
   "sessions": 8,
   "turns": 19,
-  "intent_accuracy": 0.947,
+  "intent_accuracy": 0.842,
   "compliance_pass_rate": 1.0,
   "followup_intent_accuracy": 1.0,
   "followup_turns": 11,
@@ -24,7 +24,7 @@
       "emotion_after": "normal",
       "negative_turns_before": 0,
       "turn_count_before": 0,
-      "latency": 23.76
+      "latency": 23.94
     },
     {
       "session": "sess-pronoun-wealth",
@@ -42,7 +42,7 @@
       "emotion_after": "normal",
       "negative_turns_before": 0,
       "turn_count_before": 1,
-      "latency": 6.02
+      "latency": 5.79
     },
     {
       "session": "sess-pronoun-wealth",
@@ -60,7 +60,7 @@
       "emotion_after": "anxiety",
       "negative_turns_before": 0,
       "turn_count_before": 2,
-      "latency": 6.2
+      "latency": 6.11
     },
     {
       "session": "sess-pronoun-deposit",
@@ -77,8 +77,8 @@
       "emotion_before": "normal",
       "emotion_after": "normal",
       "negative_turns_before": 0,
-      "turn_count_before": 10,
-      "latency": 5.96
+      "turn_count_before": 12,
+      "latency": 6.05
     },
     {
       "session": "sess-pronoun-deposit",
@@ -95,26 +95,26 @@
       "emotion_before": "normal",
       "emotion_after": "normal",
       "negative_turns_before": 0,
-      "turn_count_before": 11,
-      "latency": 11.43
+      "turn_count_before": 13,
+      "latency": 10.24
     },
     {
       "session": "sess-emotion-anxiety",
       "turn": 1,
       "query": "我买的理财亏了，怎么办？",
       "rewritten": "我买的理财亏了，怎么办？",
-      "intent": "hold_redeem",
+      "intent": "complaint",
       "expect_intent": "hold_redeem",
-      "intent_hit": true,
+      "intent_hit": false,
       "compliance_pass": true,
-      "handoff": false,
+      "handoff": true,
       "needs_context": false,
       "rewrite_product_hit": null,
       "emotion_before": "normal",
       "emotion_after": "anxiety",
       "negative_turns_before": 0,
-      "turn_count_before": 14,
-      "latency": 12.83
+      "turn_count_before": 17,
+      "latency": 4.6
     },
     {
       "session": "sess-emotion-anxiety",
@@ -131,8 +131,8 @@
       "emotion_before": "anxiety",
       "emotion_after": "normal",
       "negative_turns_before": 1,
-      "turn_count_before": 15,
-      "latency": 17.21
+      "turn_count_before": 18,
+      "latency": 9.95
     },
     {
       "session": "sess-emotion-anxiety",
@@ -149,8 +149,8 @@
       "emotion_before": "normal",
       "emotion_after": "normal",
       "negative_turns_before": 0,
-      "turn_count_before": 16,
-      "latency": 6.37
+      "turn_count_before": 19,
+      "latency": 6.74
     },
     {
       "session": "sess-complaint",
@@ -167,8 +167,8 @@
       "emotion_before": "normal",
       "emotion_after": "complaint",
       "negative_turns_before": 0,
-      "turn_count_before": 8,
-      "latency": 3.32
+      "turn_count_before": 10,
+      "latency": 3.31
     },
     {
       "session": "sess-complaint",
@@ -185,8 +185,8 @@
       "emotion_before": "complaint",
       "emotion_after": "normal",
       "negative_turns_before": 1,
-      "turn_count_before": 9,
-      "latency": 8.99
+      "turn_count_before": 11,
+      "latency": 9.03
     },
     {
       "session": "sess-subscribe",
@@ -203,8 +203,8 @@
       "emotion_before": "normal",
       "emotion_after": "normal",
       "negative_turns_before": 0,
-      "turn_count_before": 3,
-      "latency": 5.25
+      "turn_count_before": 5,
+      "latency": 4.57
     },
     {
       "session": "sess-subscribe",
@@ -221,8 +221,8 @@
       "emotion_before": "normal",
       "emotion_after": "normal",
       "negative_turns_before": 0,
-      "turn_count_before": 4,
-      "latency": 3.29
+      "turn_count_before": 6,
+      "latency": 2.76
     },
     {
       "session": "sess-insurance",
@@ -239,8 +239,8 @@
       "emotion_before": "normal",
       "emotion_after": "normal",
       "negative_turns_before": 0,
-      "turn_count_before": 12,
-      "latency": 6.3
+      "turn_count_before": 15,
+      "latency": 6.32
     },
     {
       "session": "sess-insurance",
@@ -257,8 +257,8 @@
       "emotion_before": "normal",
       "emotion_after": "normal",
       "negative_turns_before": 0,
-      "turn_count_before": 13,
-      "latency": 8.14
+      "turn_count_before": 16,
+      "latency": 8.46
     },
     {
       "session": "sess-insurance",
@@ -275,8 +275,8 @@
       "emotion_before": "normal",
       "emotion_after": "normal",
       "negative_turns_before": 0,
-      "turn_count_before": 14,
-      "latency": 6.64
+      "turn_count_before": 17,
+      "latency": 6.52
     },
     {
       "session": "sess-deposit-insurance",
@@ -293,8 +293,8 @@
       "emotion_before": "normal",
       "emotion_after": "normal",
       "negative_turns_before": 0,
-      "turn_count_before": 8,
-      "latency": 4.69
+      "turn_count_before": 10,
+      "latency": 4.35
     },
     {
       "session": "sess-deposit-insurance",
@@ -311,17 +311,17 @@
       "emotion_before": "normal",
       "emotion_after": "normal",
       "negative_turns_before": 0,
-      "turn_count_before": 9,
-      "latency": 4.67
+      "turn_count_before": 11,
+      "latency": 4.65
     },
     {
       "session": "sess-fund",
       "turn": 1,
       "query": "安鑫纯债基金是你们银行发行的吗？",
       "rewritten": "安鑫纯债基金是你们银行发行的吗？",
-      "intent": "deposit_insurance",
+      "intent": "product_consult",
       "expect_intent": "deposit_insurance",
-      "intent_hit": true,
+      "intent_hit": false,
       "compliance_pass": true,
       "handoff": false,
       "needs_context": false,
@@ -329,8 +329,8 @@
       "emotion_before": "normal",
       "emotion_after": "normal",
       "negative_turns_before": 0,
-      "turn_count_before": 8,
-      "latency": 7.04
+      "turn_count_before": 10,
+      "latency": 5.63
     },
     {
       "session": "sess-fund",
@@ -347,8 +347,8 @@
       "emotion_before": "normal",
       "emotion_after": "normal",
       "negative_turns_before": 0,
-      "turn_count_before": 9,
-      "latency": 5.96
+      "turn_count_before": 11,
+      "latency": 5.58
     }
   ]
 }
