@@ -156,6 +156,8 @@ class CsState(TypedDict):
     handoff: bool
     retry_count: int
     stage: str
+    last_intent: str           # 上一轮意图 (续轮继承用, 来自 dialog_state)
+    awaiting_slot: str       # 上一轮待补槽位 (纯金额续轮用)
 
 
 def _emotion_prompt(base_prompt: str, state: dict) -> str:
@@ -174,6 +176,7 @@ def _emotion_prompt(base_prompt: str, state: dict) -> str:
 def _empty_state(query: str, session_id: str = "", user_id: str = "", slots: Optional[dict] = None) -> dict:
     # 情绪上下文来自上一轮 (dialog_state.update 在回答后写回), 读取失败不阻塞对话
     emotion, negative_turns, turn_count = "normal", 0, 0
+    last_intent, awaiting_slot = None, None
     if session_id:
         try:
             from src.core.dialog_state import get_state_manager
@@ -181,8 +184,10 @@ def _empty_state(query: str, session_id: str = "", user_id: str = "", slots: Opt
             emotion = getattr(ds, "emotion", None) or "normal"
             negative_turns = getattr(ds, "negative_turns", 0) or 0
             turn_count = getattr(ds, "turn_count", 0) or 0
+            last_intent = getattr(ds, "last_intent", None)
+            awaiting_slot = getattr(ds, "awaiting_slot", None)
         except Exception as e:
-            logger.debug("情绪上下文读取失败 (可忽略): %s", e)
+            logger.debug("会话上下文读取失败 (可忽略): %s", e)
 
     return {
         "query": query, "session_id": session_id, "user_id": user_id, "slots": dict(slots or {}),
@@ -191,6 +196,7 @@ def _empty_state(query: str, session_id: str = "", user_id: str = "", slots: Opt
         "memory_context": "",
         "agent_result": {}, "review": {}, "answer": "", "sources": [], "handoff": False,
         "emotion": emotion, "negative_turns": negative_turns, "turn_count": turn_count,
+        "last_intent": last_intent, "awaiting_slot": awaiting_slot,
         "retry_count": 0, "stage": "start",
     }
 
@@ -360,14 +366,28 @@ def build_graph(token_queue=None):
     def route_retrieve_node(state: dict) -> dict:
         from src.retrieval.retriever import HybridRetriever
         from src.tools.registry import format_kb_text
+        from src.core.intent_inheritance import try_inherit_intent
+        from src.agents.router_agent import RoutingResult
         retriever = HybridRetriever()
         dialog_ctx = _build_dialog_context(state)
         # LLM 拆分多问题（单问题时快速路径直接返回 [原问题]，零额外延迟）
         sub_queries = decompose_query(state["query"])
         is_multi = len(sub_queries) > 1
+        # 续轮意图继承: 确定性规则, 命中则跳过路由 LLM (零延迟)
+        inherited, inherited_intent = try_inherit_intent(
+            state["query"], state.get("last_intent"), state.get("awaiting_slot"))
         workers = max(2, min(len(sub_queries) + 1, 6))  # 路由 + N 个检索，上限 6
         with concurrent.futures.ThreadPoolExecutor(max_workers=workers) as pool:
-            route_future = pool.submit(router.route, state["query"], dialog_ctx)
+            if inherited:
+                route_result = RoutingResult(original_query=state["query"])
+                route_result.intent = QueryIntent(inherited_intent)
+                route_result.confidence = 1.0
+                route_result.entities = []
+                route_result.explanation = f"[规则继承] 续轮沿用 {inherited_intent}"
+                route_future = None
+                logger.info("P3 意图继承: %s (上一轮=%s)", inherited_intent, state.get("last_intent"))
+            else:
+                route_future = pool.submit(router.route, state["query"], dialog_ctx)
             if is_multi:
                 # 多子问题并行检索
                 retrieve_futures = [pool.submit(retriever.hybrid_retrieve, q) for q in sub_queries]
@@ -377,7 +397,8 @@ def build_graph(token_queue=None):
             else:
                 retrieve_future = pool.submit(retriever.hybrid_retrieve, state["query"])
                 contexts = retrieve_future.result()
-            route_result = route_future.result()
+            if route_future:
+                route_result = route_future.result()
         # 强信号规则是纯内存字典扫描 (无 I/O, 微秒级), 直接调不必进线程池
         _strong_result, strong_intent = router.strong_signal_rule(state["query"])
         # KB 原文一律经 format_kb_text 施加产品对齐守卫 —— 完整管道此前直接调

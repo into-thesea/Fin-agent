@@ -1,9 +1,9 @@
 {
   "sessions": 8,
   "turns": 19,
-  "intent_accuracy": 0.684,
+  "intent_accuracy": 0.947,
   "compliance_pass_rate": 1.0,
-  "followup_intent_accuracy": 0.727,
+  "followup_intent_accuracy": 1.0,
   "followup_turns": 11,
   "coreference_resolved_rate": 1.0,
   "coreference_cases": 2,
@@ -24,7 +24,7 @@
       "emotion_after": "normal",
       "negative_turns_before": 0,
       "turn_count_before": 0,
-      "latency": 17.53
+      "latency": 23.76
     },
     {
       "session": "sess-pronoun-wealth",
@@ -42,7 +42,7 @@
       "emotion_after": "normal",
       "negative_turns_before": 0,
       "turn_count_before": 1,
-      "latency": 5.96
+      "latency": 6.02
     },
     {
       "session": "sess-pronoun-wealth",
@@ -60,7 +60,7 @@
       "emotion_after": "anxiety",
       "negative_turns_before": 0,
       "turn_count_before": 2,
-      "latency": 7.11
+      "latency": 6.2
     },
     {
       "session": "sess-pronoun-deposit",
@@ -74,11 +74,11 @@
       "handoff": false,
       "needs_context": false,
       "rewrite_product_hit": null,
-      "emotion_before": null,
+      "emotion_before": "normal",
       "emotion_after": "normal",
       "negative_turns_before": 0,
-      "turn_count_before": 0,
-      "latency": 6.88
+      "turn_count_before": 10,
+      "latency": 5.96
     },
     {
       "session": "sess-pronoun-deposit",
@@ -95,26 +95,26 @@
       "emotion_before": "normal",
       "emotion_after": "normal",
       "negative_turns_before": 0,
-      "turn_count_before": 1,
-      "latency": 6.74
+      "turn_count_before": 11,
+      "latency": 11.43
     },
     {
       "session": "sess-emotion-anxiety",
       "turn": 1,
       "query": "我买的理财亏了，怎么办？",
       "rewritten": "我买的理财亏了，怎么办？",
-      "intent": "complaint",
-      "expect_intent": "income_question",
-      "intent_hit": false,
+      "intent": "hold_redeem",
+      "expect_intent": "hold_redeem",
+      "intent_hit": true,
       "compliance_pass": true,
-      "handoff": true,
+      "handoff": false,
       "needs_context": false,
       "rewrite_product_hit": null,
-      "emotion_before": null,
+      "emotion_before": "normal",
       "emotion_after": "anxiety",
       "negative_turns_before": 0,
-      "turn_count_before": 0,
-      "latency": 6.63
+      "turn_count_before": 14,
+      "latency": 12.83
     },
     {
       "session": "sess-emotion-anxiety",
@@ -131,8 +131,8 @@
       "emotion_before": "anxiety",
       "emotion_after": "normal",
       "negative_turns_before": 1,
-      "turn_count_before": 1,
-      "latency": 19.11
+      "turn_count_before": 15,
+      "latency": 17.21
     },
     {
       "session": "sess-emotion-anxiety",
@@ -140,8 +140,8 @@
       "query": "你们这个到底靠不靠谱？",
       "rewritten": "你们这个到底靠不靠谱？",
       "intent": "unknown",
-      "expect_intent": "service_policy",
-      "intent_hit": false,
+      "expect_intent": "unknown",
+      "intent_hit": true,
       "compliance_pass": true,
       "handoff": false,
       "needs_context": true,
@@ -149,8 +149,8 @@
       "emotion_before": "normal",
       "emotion_after": "normal",
       "negative_turns_before": 0,
-      "turn_count_before": 2,
-      "latency": 7.11
+      "turn_count_before": 16,
+      "latency": 6.37
     },
     {
       "session": "sess-complaint",
@@ -164,11 +164,11 @@
       "handoff": true,
       "needs_context": false,
       "rewrite_product_hit": null,
-      "emotion_before": null,
+      "emotion_before": "normal",
       "emotion_after": "complaint",
       "negative_turns_before": 0,
-      "turn_count_before": 0,
-      "latency": 3.78
+      "turn_count_before": 8,
+      "latency": 3.32
     },
     {
       "session": "sess-complaint",
@@ -185,35 +185,35 @@
       "emotion_before": "complaint",
       "emotion_after": "normal",
       "negative_turns_before": 1,
-      "turn_count_before": 1,
-      "latency": 6.73
+      "turn_count_before": 9,
+      "latency": 8.99
     },
     {
       "session": "sess-subscribe",
       "turn": 1,
       "query": "我想买稳盈添利30天，50万",
       "rewritten": "我想买稳盈添利30天，50万",
-      "intent": "product_consult",
+      "intent": "buy_process",
       "expect_intent": "buy_process",
-      "intent_hit": false,
+      "intent_hit": true,
       "compliance_pass": true,
       "handoff": false,
       "needs_context": false,
       "rewrite_product_hit": null,
-      "emotion_before": null,
+      "emotion_before": "normal",
       "emotion_after": "normal",
       "negative_turns_before": 0,
-      "turn_count_before": 0,
-      "latency": 14.08
+      "turn_count_before": 3,
+      "latency": 5.25
     },
     {
       "session": "sess-subscribe",
       "turn": 2,
       "query": "验证码 123456",
       "rewritten": "验证码 123456",
-      "intent": "unknown",
+      "intent": "buy_process",
       "expect_intent": "buy_process",
-      "intent_hit": false,
+      "intent_hit": true,
       "compliance_pass": true,
       "handoff": false,
       "needs_context": true,
@@ -221,8 +221,8 @@
       "emotion_before": "normal",
       "emotion_after": "normal",
       "negative_turns_before": 0,
-      "turn_count_before": 1,
-      "latency": 6.87
+      "turn_count_before": 4,
+      "latency": 3.29
     },
     {
       "session": "sess-insurance",
@@ -236,11 +236,11 @@
       "handoff": false,
       "needs_context": false,
       "rewrite_product_hit": null,
-      "emotion_before": null,
+      "emotion_before": "normal",
       "emotion_after": "normal",
       "negative_turns_before": 0,
-      "turn_count_before": 0,
-      "latency": 8.42
+      "turn_count_before": 12,
+      "latency": 6.3
     },
     {
       "session": "sess-insurance",
@@ -257,8 +257,8 @@
       "emotion_before": "normal",
       "emotion_after": "normal",
       "negative_turns_before": 0,
-      "turn_count_before": 1,
-      "latency": 9.93
+      "turn_count_before": 13,
+      "latency": 8.14
     },
     {
       "session": "sess-insurance",
@@ -275,8 +275,8 @@
       "emotion_before": "normal",
       "emotion_after": "normal",
       "negative_turns_before": 0,
-      "turn_count_before": 2,
-      "latency": 6.65
+      "turn_count_before": 14,
+      "latency": 6.64
     },
     {
       "session": "sess-deposit-insurance",
@@ -290,11 +290,11 @@
       "handoff": false,
       "needs_context": false,
       "rewrite_product_hit": null,
-      "emotion_before": null,
+      "emotion_before": "normal",
       "emotion_after": "normal",
       "negative_turns_before": 0,
-      "turn_count_before": 0,
-      "latency": 5.27
+      "turn_count_before": 8,
+      "latency": 4.69
     },
     {
       "session": "sess-deposit-insurance",
@@ -311,8 +311,8 @@
       "emotion_before": "normal",
       "emotion_after": "normal",
       "negative_turns_before": 0,
-      "turn_count_before": 1,
-      "latency": 4.97
+      "turn_count_before": 9,
+      "latency": 4.67
     },
     {
       "session": "sess-fund",
@@ -326,11 +326,11 @@
       "handoff": false,
       "needs_context": false,
       "rewrite_product_hit": null,
-      "emotion_before": null,
+      "emotion_before": "normal",
       "emotion_after": "normal",
       "negative_turns_before": 0,
-      "turn_count_before": 0,
-      "latency": 7.26
+      "turn_count_before": 8,
+      "latency": 7.04
     },
     {
       "session": "sess-fund",
@@ -338,8 +338,8 @@
       "query": "那它的风险等级是多少？",
       "rewritten": "那安鑫纯债基金的风险等级是多少？",
       "intent": "product_consult",
-      "expect_intent": "risk_suitability",
-      "intent_hit": false,
+      "expect_intent": "product_consult",
+      "intent_hit": true,
       "compliance_pass": true,
       "handoff": false,
       "needs_context": true,
@@ -347,8 +347,8 @@
       "emotion_before": "normal",
       "emotion_after": "normal",
       "negative_turns_before": 0,
-      "turn_count_before": 1,
-      "latency": 6.6
+      "turn_count_before": 9,
+      "latency": 5.96
     }
   ]
 }
