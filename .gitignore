@@ -140,3 +140,6 @@ bash.exe.stackdump
 
 # 本地运行期库文件 (0 字节占位/临时)
 data/platform.db
+
+# A/B 对照用 git worktree (detached 基线检出, 非本工作区源码)
+_ab_baseline/

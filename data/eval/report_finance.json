@@ -5,7 +5,7 @@
     "evidence_coverage": 0.99,
     "chunk_info_hit_rate": 0.98,
     "path_structure_consistency": 0.833,
-    "graph_trigger_ratio": 0.457,
+    "graph_trigger_ratio": 0.467,
     "rows": [
       {
         "id": "g001",
@@ -1224,8 +1224,10 @@
         "evidence_covered": true,
         "chunk_info_hit": true,
         "path_consistent": null,
-        "graph_hit": false,
-        "entities": []
+        "graph_hit": true,
+        "entities": [
+          "账户黄金(积存金)"
+        ]
       },
       {
         "id": "g103",
@@ -1262,9 +1264,5 @@
         ]
       }
     ]
-  },
-  "online": {
-    "intent_accuracy": 0.895,
-    "compliance_pass_rate": 0.943
   }
 }
