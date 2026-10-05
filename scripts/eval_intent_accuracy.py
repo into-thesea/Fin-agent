@@ -1,4 +1,5 @@
-"""意图准确率在线评测 - 对Golden QA每条问题调用RouterAgent，对比标注意图"""
+"""意图准确率在线评测 - 对指定文件每条问题调用RouterAgent，对比标注意图"""
+import argparse
 import json
 import os
 import sys
@@ -8,11 +9,20 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from src.agents.router_agent import RouterAgent
 
-GOLDEN = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
-                      "data", "eval", "finance_qa_golden.jsonl")
+DEFAULT_GOLDEN = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+                              "data", "eval", "finance_qa_golden.jsonl")
 
-with open(GOLDEN, "r", encoding="utf-8") as f:
+parser = argparse.ArgumentParser(description="意图准确率评测")
+parser.add_argument("--file", default=DEFAULT_GOLDEN, help="评测集 jsonl 路径")
+parser.add_argument("--output", default=None, help="结果输出 json 路径 (默认同目录 intent_accuracy_result.json)")
+parser.add_argument("--few-shot", action="store_true", default=False, help="启用动态few-shot (默认关闭)")
+args = parser.parse_args()
+
+with open(args.file, "r", encoding="utf-8") as f:
     golden = [json.loads(line) for line in f if line.strip()]
+
+out_path = args.output or os.path.join(os.path.dirname(os.path.abspath(args.file)),
+                                       "intent_accuracy_result.json")
 
 router = RouterAgent()
 
@@ -31,7 +41,7 @@ for i, item in enumerate(golden):
 
     t0 = time.time()
     try:
-        result = router.route(question)
+        result = router.route(question, use_few_shot=args.few_shot)
         latency = time.time() - t0
         latencies.append(latency)
         got = result.intent.value
@@ -54,7 +64,7 @@ for i, item in enumerate(golden):
                 "got": got,
                 "confidence": result.confidence,
                 "rule": is_rule,
-                "explanation": (result.explanation or "")[:80],
+                "explanation": (result.explanation or "")[:120],
             })
 
         # 按意图统计
@@ -82,13 +92,15 @@ for i, item in enumerate(golden):
 
 print()
 print("=" * 60)
-print(f"意图准确率评测结果 (共{total}条)")
+print(f"意图准确率评测结果 (共{total}条, 文件={os.path.basename(args.file)})")
 print("=" * 60)
 print(f"总体准确率: {correct}/{total} = {correct/total:.1%}")
 print(f"规则直出: {rule_hit}条 ({rule_hit/total:.1%}), LLM调用: {llm_called}条")
-print(f"平均延迟: {sum(latencies)/len(latencies):.2f}s")
-print(f"延迟P50: {sorted(latencies)[len(latencies)//2]:.2f}s")
-print(f"延迟P95: {sorted(latencies)[int(len(latencies)*0.95)]:.2f}s")
+if latencies:
+    print(f"平均延迟: {sum(latencies)/len(latencies):.2f}s")
+    print(f"延迟P50: {sorted(latencies)[len(latencies)//2]:.2f}s")
+    print(f"延迟P95: {sorted(latencies)[int(len(latencies)*0.95)]:.2f}s")
+
 print()
 print("--- 各意图准确率 ---")
 for intent in sorted(per_intent.keys()):
@@ -105,17 +117,16 @@ for e in errors:
 
 # 保存结果
 result = {
+    "eval_file": os.path.basename(args.file),
     "total": total,
     "correct": correct,
     "accuracy": correct / total,
     "rule_hit": rule_hit,
     "llm_called": llm_called,
-    "avg_latency": sum(latencies) / len(latencies),
+    "avg_latency": sum(latencies) / len(latencies) if latencies else 0,
     "per_intent": per_intent,
     "errors": errors,
 }
-out_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
-                        "data", "eval", "intent_accuracy_result.json")
 with open(out_path, "w", encoding="utf-8") as f:
     json.dump(result, f, ensure_ascii=False, indent=2)
 print(f"\n结果已保存: {out_path}")

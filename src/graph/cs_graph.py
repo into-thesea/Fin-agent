@@ -367,7 +367,7 @@ def build_graph(token_queue=None):
         from src.retrieval.retriever import HybridRetriever
         from src.tools.registry import format_kb_text
         from src.core.intent_inheritance import try_inherit_intent
-        from src.agents.router_agent import RoutingResult
+        from src.agents.router_agent import RoutingResult, INTENT_CATEGORY
         retriever = HybridRetriever()
         dialog_ctx = _build_dialog_context(state)
         # LLM 拆分多问题（单问题时快速路径直接返回 [原问题]，零额外延迟）
@@ -379,8 +379,10 @@ def build_graph(token_queue=None):
         workers = max(2, min(len(sub_queries) + 1, 6))  # 路由 + N 个检索，上限 6
         with concurrent.futures.ThreadPoolExecutor(max_workers=workers) as pool:
             if inherited:
+                inherited_qintent = QueryIntent(inherited_intent)
                 route_result = RoutingResult(original_query=state["query"])
-                route_result.intent = QueryIntent(inherited_intent)
+                route_result.intent = inherited_qintent
+                route_result.category = INTENT_CATEGORY.get(inherited_qintent)
                 route_result.confidence = 1.0
                 route_result.entities = []
                 route_result.explanation = f"[规则继承] 续轮沿用 {inherited_intent}"
@@ -409,6 +411,7 @@ def build_graph(token_queue=None):
             route_result.intent, route_result.confidence, contexts)
         if adjusted:
             route_result.intent = adjusted_intent
+            route_result.category = INTENT_CATEGORY.get(adjusted_intent)
             route_result.explanation = (route_result.explanation or "") + f" [一致性校验调整: {reason}]"
         logger.info("P3 route: %s (%.0f%%) - %s", route_result.intent.value,
                     route_result.confidence * 100, route_result.explanation)
