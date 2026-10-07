@@ -75,7 +75,7 @@ def add_chunks_to_index(
     document_id: str = None,
 ) -> int:
     """
-    为新增分块生成向量，增量更新 FAISS 索引
+    为新增分块生成向量，增量更新 Milvus 索引
 
     Args:
         new_chunks: [{"chunk_id": str, "content": str, "source": str, ...}, ...]

@@ -4,7 +4,7 @@ Fin-Agent 企业级缓存层
 多级缓存架构:
   L1: 客户端缓存 (React Query, staleTime=5min)
   L2: Redis 缓存 (当前实现)
-  L3: 数据层 (Neo4j / FAISS / PostgreSQL)
+  L3: 数据层 (Neo4j / PostgreSQL)
 
 缓存类型:
   1. 向量检索缓存 — 相同 query embedding 直接返回 TOP-K 结果

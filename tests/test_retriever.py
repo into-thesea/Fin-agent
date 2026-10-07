@@ -22,35 +22,6 @@ class TestHybridRetriever:
             # sentence_transformers 不可用 — 跳过 (CI/Docker 环境会有)
             pytest.skip(f"依赖缺失: {e}")
 
-    def test_faiss_manager_singleton(self):
-        """验证 FaissIndexManager 单例"""
-        from src.cache.faiss_manager import FaissIndexManager
-        m1 = FaissIndexManager()
-        m2 = FaissIndexManager()
-        assert m1 is m2  # 同一实例
-
-    def test_faiss_manager_noop(self):
-        """验证 FAISS 检索安全 (bge-base-zh-v1.5 = 768 维; 索引存在返回列表, 否则空)"""
-        from src.cache.faiss_manager import FaissIndexManager
-        mgr = FaissIndexManager()
-        results = mgr.search(np.array([[0.1] * 768], dtype="float32"), top_k=3)
-        assert isinstance(results, list)
-
-    def test_faiss_manager_reset(self):
-        """验证重置"""
-        from src.cache.faiss_manager import FaissIndexManager
-        mgr = FaissIndexManager()
-        mgr.reset()
-        assert mgr.total_count == 0
-
-    def test_faiss_manager_reload(self):
-        """验证重新加载 (无文件时安全)"""
-        from src.cache.faiss_manager import FaissIndexManager
-        mgr = FaissIndexManager()
-        mgr.reload()  # 不抛出异常即可
-        assert True
-
-
 class TestRetrievalConfigWiring:
     """策略页上可编辑的每个检索参数都必须真的驱动行为"""
 
@@ -170,3 +141,36 @@ class TestRetrieveDebug:
 
         assert "Neo4j 连不上" in out["graph"]["error"]
         assert out["fused"][0]["chunk_id"] == "a"  # 图谱挂了不影响两路检索结果
+
+
+class TestMmrIndexAlignment:
+    """MMR 取下标必须与 results 一一对位: 缺 id 时整体退回, 不得越界"""
+
+    @staticmethod
+    def _mgr(vecs: dict):
+        class _M:
+            def get_vectors(self, indices):
+                return np.array([vecs[i] for i in indices], dtype="float32")
+        return _M()
+
+    def test_reranks_when_all_have_id(self):
+        """每条都带 Milvus 主键 id → 正常做 MMR, 返回 top_k 条"""
+        from src.retrieval.retriever import HybridRetriever
+        vecs = {1: [1.0, 0.0], 2: [0.0, 1.0], 3: [0.7, 0.7]}
+        results = [{"id": i, "content": str(i)} for i in (1, 2, 3)]
+
+        out = HybridRetriever.mmr_rerank(
+            results, np.array([[1.0, 0.0]], dtype="float32"), self._mgr(vecs), top_k=2)
+
+        assert len(out) == 2
+        assert all(r["content"] for r in out)
+
+    def test_falls_back_when_any_id_missing(self):
+        """任一条缺 id → 不做 MMR, 原样返回前 top_k (原先会 IndexError 越界)"""
+        from src.retrieval.retriever import HybridRetriever
+        results = [{"id": 1, "content": "a"}, {"content": "b"}, {"id": 3, "content": "c"}]
+
+        out = HybridRetriever.mmr_rerank(
+            results, np.array([[1.0, 0.0]], dtype="float32"), self._mgr({1: [1.0, 0.0]}), top_k=2)
+
+        assert out == results[:2]

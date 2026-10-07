@@ -365,7 +365,7 @@ curl -X POST http://localhost:8000/api/v1/admin/rebuild-index
 | API 返回 503 | Neo4j 或 Redis 不可用 | `docker-compose ps` 检查服务状态 |
 | 上传卡住 | Celery Worker 未运行 | `docker-compose logs worker` 检查 |
 | ETL 失败 | API Key 过期 | `python scripts/env_manager.py check` |
-| 响应慢 | FAISS 索引未加载 | 检查 `logs/fin-agent.log` 的 FAISS 日志 |
+| 响应慢 | Milvus 未就绪或向量索引未加载 | 检查 `logs/fin-agent.log` 的 Milvus 日志、`/api/v1/system/status` |
 | 缓存不生效 | Redis 连接失败 | `docker-compose logs redis` 检查 |
 
 ### 8.2 健康检查

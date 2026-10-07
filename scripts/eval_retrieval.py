@@ -1,8 +1,11 @@
 """
 问答检索召回率评测脚本 — Recall@K + MRR
 
-对 eval_qa.jsonl 中的每个问题执行四路混合检索 (FAISS + BM25 + 图谱 + 社区)，
-用 golden_chunk_ids 判定 top-K 是否命中了答案所在 chunk。
+对评测集每个问题执行混合检索 (Milvus 向量 + BM25 稀疏, RRF 融合), 判定 top-K 是否命中。
+两种判定口径:
+  chunk 级   : 用 golden_chunk_ids 严格匹配 (默认)
+  evidence 级: 用 golden 的 evidence 文件名对齐检索结果的 source 字段 (--by-evidence,
+               适用于只标了文档名的评测集, 如 finance_qa_golden.jsonl)
 
 指标:
   Recall@K : 正确答案 chunk 出现在前 K 条检索结果中的问题占比
@@ -10,6 +13,7 @@
 
 用法:
     python scripts/eval_retrieval.py                 # 全量评测, Recall@1..10
+    python scripts/eval_retrieval.py --by-evidence   # 按 evidence 文件名对齐
     python scripts/eval_retrieval.py --max-k 5 --out scripts/eval_results.json
 """
 

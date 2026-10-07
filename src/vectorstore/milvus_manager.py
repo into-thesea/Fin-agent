@@ -179,7 +179,7 @@ class MilvusManager:
         向量检索。query_embedding shape=(1, dim)。
 
         Returns: [{"content", "source", "score", "id", "document_id", "page", ...}]
-          - score 为 COSINE 相似度（与 FAISS IndexFlatIP 归一化后等价）
+          - score 为 COSINE 相似度（归一化向量下与内积等价）
           - id 为 Milvus 主键，供 MMR 的 get_vectors 回查
         """
         if not self.available or self._collection is None:

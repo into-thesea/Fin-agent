@@ -16,7 +16,6 @@ OUTPUT_ANALYSIS_DIR = os.path.join(DATA_DIR, "output_analysis")
 VECTOR_DB_DIR = os.path.join(DATA_DIR, "vector_db")
 
 # 关键文件路径
-FAISS_INDEX_DIR = os.path.join(OUTPUT_ANALYSIS_DIR, "faiss_index")
 METADATA_DB_PATH = os.path.join(OUTPUT_ANALYSIS_DIR, "fin_agent_metadata.db")
 CHUNKS_PROCESSED_PATH = os.path.join(OUTPUT_ANALYSIS_DIR, "chunks_processed.jsonl")
 BM25_INDEX_PATH = os.path.join(OUTPUT_ANALYSIS_DIR, "bm25_index.pkl")

@@ -423,7 +423,7 @@ def load_vector_index() -> int:
 
 
 def build_all(skip_milvus: bool = False) -> int:
-    """完整构建: chunks → FAISS/BM25 → Milvus → 知识图谱三元组
+    """完整构建: chunks → Milvus/BM25 → 知识图谱三元组
 
     sync_kb.py 也走这个入口, 保证流水线只有一处定义 (漏了图谱那次就是因为
     步骤散在各处、靠人记)。

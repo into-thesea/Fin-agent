@@ -35,7 +35,7 @@
 
 - **LLM**：DeepSeek 官方接口（`deepseek-chat`）；嵌入本地 `bge-base-zh-v1.5`（768 维，离线，不依赖外网）。
 - **编排**：LangGraph 状态机 + MemorySaver checkpointer（`src/graph/cs_graph.py`），双后端 `/chat/sync` 与 `/chat/stream`(SSE)。
-- **检索**：Milvus 向量（FAISS 降级）与 BM25 两路，RRF 融合 + MMR 重排；父子文档分块（子块检索、父块拼接上下文）；图谱多跳补充注入。
+- **检索**：Milvus 向量与 BM25 两路，RRF 融合 + MMR 重排；父子文档分块（子块检索、父块拼接上下文）；图谱多跳补充注入。
 - **知识图谱**：Docker Neo4j + 内存邻接降级；三元组 `data/finance_kb/kg_triples.jsonl`（180 条）。
 - **意图识别**：路由 LLM（CoT + 动态 few-shot）+ 规则兜底 + 续轮意图继承（`src/core/intent_inheritance.py`）。
 - **安全/合规**：工具安全拦截器（越权审计）、PII 掩码、风险提示、资金操作留痕（Redis `security:events`）。
@@ -55,7 +55,7 @@ src/
     slot_filler.py          # 理财槽位抽取(产品名/金额/验证码) + is_executable_order
     compliance.py           # PII掩码/风险提示/金融禁语
     answer_cache.py         # 语义缓存
-  retrieval/retriever.py    # HybridRetriever(Milvus/FAISS + BM25 + 图谱多跳注入 + 父子分块)
+  retrieval/retriever.py    # HybridRetriever(Milvus + BM25 + 图谱多跳注入 + 父子分块)
   knowledge_graph/          # 三元组加载/内存邻接/Neo4j 适配/GraphRetriever
   business/
     finance_services.py     # 查产品/适当性/申购意向预检(通用规则)/持仓查询
@@ -70,7 +70,7 @@ data/
     finance_qa_golden.jsonl # 105 条 Golden QA(10类意图, 含对抗/超纲/模糊样本)
     finance_sessions.jsonl  # 多轮会话评测集(8会话19轮)
 scripts/
-  build_finance_kb.py       # KB→父子分块→FAISS/BM25(+Milvus 同步)
+  build_finance_kb.py       # KB→父子分块→Milvus 建索引 + BM25
   load_kg_to_neo4j.py       # 三元组→Neo4j 灌库(幂等)
   eval_finance.py           # 单轮 Golden QA 评测(离线:证据覆盖/chunk命中/路径一致; --with-answers:意图/合规)
   eval_sessions.py          # 多轮会话评测(多轮意图/续轮/指代消解/合规)
@@ -79,7 +79,7 @@ tests/                      # 373 passed / 1 skipped
 
 ## 四、启动
 
-前置：`.env` 配好 `DEEPSEEK_API_KEY`（`LLM_PROVIDER=deepseek`）；Redis 与 Milvus（可选，FAISS 自动降级）；
+前置：`.env` 配好 `DEEPSEEK_API_KEY`（`LLM_PROVIDER=deepseek`）；Redis 与 Milvus；
 Neo4j（可选，内存图谱降级）。
 
 ```bash
@@ -87,7 +87,7 @@ Neo4j（可选，内存图谱降级）。
 docker compose up -d redis etcd minio milvus      # Milvus 向量 + Redis
 docker compose up -d neo4j                        # 知识图谱(Docker)
 
-# 构建知识库索引(父子分块 → FAISS/BM25, Milvus 可用则同步重灌向量)
+# 构建知识库索引(父子分块 → Milvus 向量 + BM25)
 .venv/Scripts/python.exe scripts/build_finance_kb.py
 
 # 灌知识图谱三元组(Neo4j 起后)

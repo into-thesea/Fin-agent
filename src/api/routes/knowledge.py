@@ -4,7 +4,7 @@ Fin-Agent 知识库路由 (文档管理 + ETL 任务追踪)
 提供:
   - POST /api/v1/knowledge/upload             异步上传 PDF（单文件）
   - POST /api/v1/knowledge/batch-upload       异步批量上传 PDF（多文件）
-  - DELETE /api/v1/knowledge/documents/{id}   删除文档（含 SQLite/FAISS/PDF/Celery）
+  - DELETE /api/v1/knowledge/documents/{id}   删除文档（含 SQLite/Milvus/PDF/Celery）
   - GET  /api/v1/knowledge/documents          文档列表
   - GET  /api/v1/knowledge/stats              知识库统计
   - GET  /api/v1/tasks/{task_id}              查询异步任务状态
@@ -270,7 +270,7 @@ async def delete_document(doc_id: int):
     """
     删除文档及其所有关联数据
 
-    清理顺序(有依赖): 分块文件 → BM25 重建 → FAISS/Milvus 向量 → PDF → Celery → SQLite
+    清理顺序(有依赖): 分块文件 → BM25 重建 → Milvus 向量 → PDF → Celery → SQLite
 
     任一步失败则**不删 SQLite 记录**, 文档仍留在列表里可以重试 ——
     否则记录没了、索引里的残留却还在, 用户既看不到也删不掉。

@@ -37,7 +37,7 @@ PROJECT_ROOT = Path(__file__).parent.resolve()
 CELERY_PID_FILE = PROJECT_ROOT / ".fin-celery.pid"
 
 # ── 启动引导: 强制使用项目 .venv 的 python ──────────
-# 直接 `python run.py` (系统全局 python) 可能缺项目依赖 (faiss/redis/python-multipart 等)。
+# 直接 `python run.py` (系统全局 python) 可能缺项目依赖 (redis/python-multipart 等)。
 # 若当前 python 不是 .venv 且 .venv 存在, 自动用 .venv 重新执行本脚本, 保证环境完整。
 _VENV_PY = PROJECT_ROOT / ".venv" / "Scripts" / "python.exe"
 if (
