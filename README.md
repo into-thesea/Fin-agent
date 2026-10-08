@@ -1,8 +1,8 @@
 # 理财智能客服系统
 
 > 面向金融 / 银行理财产品场景的智能客服：产品咨询、收益口径、存款保险、适当性合规、购买门控与人工协同。
-> 基于 **Gemini（免费档）+ 双路检索（Milvus 向量 + BM25）+ 知识图谱多跳（Neo4j / 内存降级）**
-> 的 LangGraph 多 Agent 状态机，资金动账走确定性门控、全程留痕。
+> 基于 **双路检索（Milvus 向量 + BM25）+ 知识图谱多跳（Neo4j / 内存降级）**
+> 的 LangGraph 多 Agent 状态机。
 
 ---
 
@@ -51,8 +51,7 @@ src/
   api/routes/               # chat(stream/handoff/feedback) / monitor(SLI/审计) / auth / knowledge
 data/
   finance_kb/               # catalog.jsonl + 制度/产品说明 Markdown + kg_triples.jsonl
-  eval/finance_qa_golden.jsonl  # 40 条 Golden QA
-  _archive_customer_20260903/   # 历史电商示例(归档, 未删除)
+  eval/finance_qa_golden.jsonl  # 40 条 Goldeen QA
 scripts/
   build_finance_kb.py       # KB→chunks→FAISS/BM25(+Milvus 同步)
   load_kg_to_neo4j.py       # 三元组→Neo4j 灌库(幂等)
@@ -89,7 +88,7 @@ python run.py --stop / --status / --dev
 ```bash
 # 离线评测(无需 LLM): 证据覆盖 / 多跳路径结构一致 / 图谱触发
 .venv/Scripts/python.exe scripts/eval_finance.py
-# 在线评测(需 Gemini): 意图准确率 / 合规通过率 / (可选 Judge)
+# 在线评测(需 LLM): 意图准确率 / 合规通过率 / (可选 Judge)
 .venv/Scripts/python.exe scripts/eval_finance.py --with-answers --limit 10
 ```
 
