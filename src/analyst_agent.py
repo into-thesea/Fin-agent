@@ -20,22 +20,21 @@ Fin-Agent 分析智能体 (管道架构 v4.0)
 
 from __future__ import annotations
 
-import os
-import json
 import logging
-from typing import Any, Iterator, Optional, Tuple, Union
+import os
+from typing import Any, Iterator, Optional, Tuple
 
 from dotenv import load_dotenv
 
-from src.retrieval.retriever import HybridRetriever, format_graph_context
-from src.llm.llm_client import create_client
-from src.agents.router_agent import RouterAgent, QueryIntent, RoutingResult
-from src.agents.fact_agent import FactAgent
-from src.agents.trend_agent import TrendAgent
 from src.agents.compare_agent import CompareAgent
+from src.agents.fact_agent import FactAgent
 from src.agents.reviewer_agent import ReviewerAgent, ReviewResult
+from src.agents.router_agent import QueryIntent, RouterAgent, RoutingResult
+from src.agents.trend_agent import TrendAgent
+from src.core.slot_filler import extract_slots, followup_question, missing_required
+from src.llm.llm_client import create_client
+from src.retrieval.retriever import HybridRetriever, format_graph_context
 from src.tools.web_search import WebSearchTool
-from src.core.slot_filler import extract_slots, missing_required, followup_question
 
 # 业务意图: 阶段一(理财域)咨询/查询统一走知识库 + Reviewer 幻觉审核;
 # 资金动账/确定性业务意图在阶段二接入后再归类跳过幻觉审核。
@@ -255,8 +254,8 @@ class AnalystAgent:
             return cached
 
         # 规则路由: 仅问候走快速通道 (零检索, <1s)
-        from src.llm.query_router import classify as classify_query
         from src.llm.llm_client import create_client
+        from src.llm.query_router import classify as classify_query
         qclass = classify_query(query)
 
         if qclass == "greeting":
@@ -439,8 +438,10 @@ class AnalystAgent:
 
             from src.agents.agentic_agent import AgenticAgent
             from src.agents.prompts import (
-                FINANCE_KB_SYSTEM_PROMPT, CS_CHITCHAT_SYSTEM_PROMPT,
-                GENERAL_SYSTEM_PROMPT, UNKNOWN_SYSTEM_PROMPT,
+                CS_CHITCHAT_SYSTEM_PROMPT,
+                FINANCE_KB_SYSTEM_PROMPT,
+                GENERAL_SYSTEM_PROMPT,
+                UNKNOWN_SYSTEM_PROMPT,
             )
 
             # UNKNOWN 意图 → 礼貌回答, 不检索知识库
@@ -561,7 +562,8 @@ class AnalystAgent:
         """根据意图路由到对应的 AgenticAgent (function calling 自主决策)"""
         from src.agents.agentic_agent import AgenticAgent
         from src.agents.prompts import (
-            FINANCE_KB_SYSTEM_PROMPT, CS_CHITCHAT_SYSTEM_PROMPT,
+            CS_CHITCHAT_SYSTEM_PROMPT,
+            FINANCE_KB_SYSTEM_PROMPT,
             GENERAL_SYSTEM_PROMPT,
         )
 

@@ -14,8 +14,8 @@ import pytest
 from fastapi.testclient import TestClient
 
 from src.api.main import app
-from src.api.routes.auth import create_token
 from src.api.routes import kb_console
+from src.api.routes.auth import create_token
 
 # 导入时的取值, 供下面的护栏测试使用 (fixture 会把模块属性 monkeypatch 到 tmp)
 _TARGET_AT_IMPORT = kb_console.KG_TRIPLES_PATH

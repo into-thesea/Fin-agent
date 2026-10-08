@@ -1,14 +1,13 @@
 
 import os
-import time
 
 # 尝试多个 PDF 解析库
 try:
-    import pdfplumber
+    import pdfplumber  # noqa: F401
     _PDF_ENGINE = "pdfplumber"
 except ImportError:
     try:
-        import fitz  # PyMuPDF
+        import fitz  # PyMuPDF  # noqa: F401
         _PDF_ENGINE = "fitz"
     except ImportError:
         _PDF_ENGINE = None

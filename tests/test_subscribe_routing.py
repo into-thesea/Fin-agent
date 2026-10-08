@@ -4,9 +4,9 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from src.graph.cs_graph import _should_enter_subscribe
-from src.core.slot_filler import missing_required
 from src.agents.router_agent import QueryIntent as I
+from src.core.slot_filler import missing_required
+from src.graph.cs_graph import _should_enter_subscribe
 
 BUY = I.BUY_PROCESS
 CONS = I.PRODUCT_CONSULT

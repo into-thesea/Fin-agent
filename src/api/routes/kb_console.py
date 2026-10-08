@@ -15,14 +15,16 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
 
 from src.api.routes.auth import require_roles
+
 # 模块级 import: 测试靠 patch 这个名字模拟 worker 不在线, 放函数里 patch 不生效
 from src.celery_app import is_celery_worker_running
 from src.config import settings
 from src.core import kb_settings
-from src.core.kb_validate import validate, ValidationError
+from src.core.kb_validate import ValidationError, validate
+from src.infra.jsonl_io import read_lines
+
 # 模块级 import: 测试靠 patch 这个名字把分块文件指到 tmp, 放函数里 patch 不生效
 from src.infra.paths import CHUNKS_PROCESSED_PATH, PROJECT_ROOT
-from src.infra.jsonl_io import read_lines
 
 logger = logging.getLogger(__name__)
 

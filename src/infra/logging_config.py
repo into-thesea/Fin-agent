@@ -16,12 +16,12 @@ Fin-Agent 结构化日志系统
   logger.info("查询开始", extra={"query": "稳盈添利30天收益", "user": "u_001"})
 """
 
-import os
 import json
 import logging
 import logging.handlers
-import time
+import os
 import re
+import time
 from contextvars import ContextVar
 from typing import Optional
 

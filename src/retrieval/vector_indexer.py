@@ -6,14 +6,11 @@ Fin-Agent 向量索引构建器 (企业版)
   - 文档级元数据追踪 (document_id, page, source)
 """
 
-import os
 import json
 import logging
-from typing import Optional
+import os
 
 import numpy as np
-import torch
-from sentence_transformers import SentenceTransformer
 from dotenv import load_dotenv
 
 logger = logging.getLogger(__name__)

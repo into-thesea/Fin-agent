@@ -10,14 +10,14 @@ Fin-Agent 知识库路由 (文档管理 + ETL 任务追踪)
   - GET  /api/v1/tasks/{task_id}              查询异步任务状态
 """
 
-import os
-import json
-import logging
 import asyncio
 import hashlib
+import json
+import logging
+import os
 from datetime import datetime
 
-from fastapi import APIRouter, HTTPException, UploadFile, File, Depends
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
 from fastapi.responses import FileResponse
 
 from src.api.routes.auth import require_roles
@@ -34,6 +34,7 @@ async def _aio(fn, *args, **kwargs):
 
 # 上传配置
 from src.infra.paths import DATA_REPORTS_DIR
+
 UPLOAD_DIR = DATA_REPORTS_DIR
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
@@ -238,6 +239,7 @@ def _remove_chunks_of(filename: str) -> int:
     文档的分块重新写回索引 —— 删除看起来生效了, 重建一次全复活。
     """
     import json
+
     from src.infra.paths import CHUNKS_PROCESSED_PATH
     if not os.path.exists(CHUNKS_PROCESSED_PATH):
         return 0
@@ -300,7 +302,7 @@ async def delete_document(doc_id: int):
 
         # 2. BM25 重建 —— 索引里不再有该文档
         try:
-            from src.infra.paths import CHUNKS_PROCESSED_PATH, BM25_INDEX_PATH
+            from src.infra.paths import BM25_INDEX_PATH, CHUNKS_PROCESSED_PATH
             from src.retrieval.bm25_index import rebuild_bm25_index
             rebuild_bm25_index(CHUNKS_PROCESSED_PATH, BM25_INDEX_PATH)
             details["bm25"] = True
@@ -388,8 +390,9 @@ async def list_existing_files():
     Returns:
         {"files": [{"name": str, "size": int, "path": str, "in_db": bool}], ...}
     """
-    from src.database import db_manager
     import glob
+
+    from src.database import db_manager
 
     pdf_files = glob.glob(os.path.join(UPLOAD_DIR, "*.pdf"))
     existing = [d["filename"] for d in db_manager.get_all_documents()]

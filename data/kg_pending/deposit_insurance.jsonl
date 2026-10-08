@@ -1,0 +1,15 @@
+{"head": "存款保险", "relation": "is", "tail": "保障制度", "doc": "deposit_insurance.md", "source_text": "存款保险是国家通过立法设立的一项保障制度", "confidence": 0.0, "status": "pending"}
+{"head": "存款保险", "relation": "applies_to", "tail": "活期存款", "doc": "deposit_insurance.md", "source_text": "存款保险保障的是存款类产品，包括活期存款、定期存款、大额存单、结构性存款等", "confidence": 0.0, "status": "pending"}
+{"head": "存款保险", "relation": "applies_to", "tail": "定期存款", "doc": "deposit_insurance.md", "source_text": "存款保险保障的是存款类产品，包括活期存款、定期存款、大额存单、结构性存款等", "confidence": 0.0, "status": "pending"}
+{"head": "存款保险", "relation": "applies_to", "tail": "大额存单", "doc": "deposit_insurance.md", "source_text": "存款保险保障的是存款类产品，包括活期存款、定期存款、大额存单、结构性存款等", "confidence": 0.0, "status": "pending"}
+{"head": "存款保险", "relation": "applies_to", "tail": "结构性存款", "doc": "deposit_insurance.md", "source_text": "存款保险保障的是存款类产品，包括活期存款、定期存款、大额存单、结构性存款等", "confidence": 0.0, "status": "pending"}
+{"head": "存款保险", "relation": "coverage_limit", "tail": "人民币50万元", "doc": "deposit_insurance.md", "source_text": "同一存款人在同一家投保机构，被保险存款的本金和利息合计在人民币50万元以内的，全额偿付", "confidence": 0.0, "status": "pending"}
+{"head": "存款保险", "relation": "excludes", "tail": "银行理财", "doc": "deposit_insurance.md", "source_text": "银行理财、公募基金、保险产品、信托、私募等都不属于存款，不受存款保险保障", "confidence": 0.0, "status": "pending"}
+{"head": "存款保险", "relation": "excludes", "tail": "公募基金", "doc": "deposit_insurance.md", "source_text": "银行理财、公募基金、保险产品、信托、私募等都不属于存款，不受存款保险保障", "confidence": 0.0, "status": "pending"}
+{"head": "存款保险", "relation": "excludes", "tail": "保险产品", "doc": "deposit_insurance.md", "source_text": "银行理财、公募基金、保险产品、信托、私募等都不属于存款，不受存款保险保障", "confidence": 0.0, "status": "pending"}
+{"head": "存款保险", "relation": "excludes", "tail": "信托", "doc": "deposit_insurance.md", "source_text": "银行理财、公募基金、保险产品、信托、私募等都不属于存款，不受存款保险保障", "confidence": 0.0, "status": "pending"}
+{"head": "存款保险", "relation": "excludes", "tail": "私募", "doc": "deposit_insurance.md", "source_text": "银行理财、公募基金、保险产品、信托、私募等都不属于存款，不受存款保险保障", "confidence": 0.0, "status": "pending"}
+{"head": "结构性存款", "relation": "is_subtype_of", "tail": "存款", "doc": "deposit_insurance.md", "source_text": "结构性存款虽然收益浮动，但属于存款，本息在限额内受保障", "confidence": 0.0, "status": "pending"}
+{"head": "结构性存款", "relation": "covered_by", "tail": "存款保险", "doc": "deposit_insurance.md", "source_text": "结构性存款虽然收益浮动，但属于存款，本息在限额内受保障", "confidence": 0.0, "status": "pending"}
+{"head": "理财产品", "relation": "not_covered_by", "tail": "存款保险", "doc": "deposit_insurance.md", "source_text": "理财产品无论名字里是否带\"稳\"\"保\"字样，只要标注为理财产品，就一律不受存款保险保障", "confidence": 0.0, "status": "pending"}
+{"head": "大额存单", "relation": "covered_by", "tail": "存款保险", "doc": "deposit_insurance.md", "source_text": "客户问\"大额存单受不受保护\"，答案是受保护，和普通定期存款一样计入50万元限额", "confidence": 0.0, "status": "pending"}

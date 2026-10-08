@@ -11,13 +11,18 @@
     (subscribe_node) 执行并留痕, 机器不赌 LLM 自觉放行。
 """
 
-import re
 import logging
 
 from src.business.finance_services import (
-    query_products, check_suitability, query_holdings,
-    query_account_balance, query_transactions, query_credit_card,
-    query_loan, query_asset_overview, query_order_status,
+    check_suitability,
+    query_account_balance,
+    query_asset_overview,
+    query_credit_card,
+    query_holdings,
+    query_loan,
+    query_order_status,
+    query_products,
+    query_transactions,
 )
 from src.core.slot_filler import KNOWN_PRODUCTS
 
@@ -210,4 +215,5 @@ EXECUTE_TOOLS = {
 
 # P8: 所有工具调用经安全拦截器 (越权防护 + 审计)
 from src.security.interceptor import intercept
+
 EXECUTE_TOOLS = {name: intercept(name, fn) for name, fn in EXECUTE_TOOLS.items()}

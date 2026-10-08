@@ -1,8 +1,11 @@
-import os, sys
+import os
+import sys
+
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(__file__))))
 import pytest
-from src.core.kb_validate import validate, ValidationError
+
 from src.core.kb_settings import DEFAULTS
+from src.core.kb_validate import ValidationError, validate
 
 
 def _chunk(**over):

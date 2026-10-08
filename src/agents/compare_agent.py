@@ -4,13 +4,13 @@ CompareAgent — 对比分析智能体
 专注跨公司、跨指标的对比分析，需要同时检索多个实体的数据并结构化对比。
 """
 
-import os
-import json
 import logging
+import os
 
 from dotenv import load_dotenv
-from src.retrieval.retriever import HybridRetriever
+
 from src.llm.llm_client import create_client
+from src.retrieval.retriever import HybridRetriever
 
 logger = logging.getLogger(__name__)
 
@@ -18,6 +18,7 @@ PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(_
 load_dotenv(os.path.join(PROJECT_ROOT, ".env"), override=True)
 
 from src.agents.prompts import COMPARE_SYSTEM_PROMPT
+
 
 class CompareAgent:
     """对比分析 Agent"""

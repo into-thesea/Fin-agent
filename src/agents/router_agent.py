@@ -21,15 +21,16 @@
   - UNKNOWN:            无法分类 (回退到通用处理)
 """
 
-import os
 import json
 import logging
+import os
 import re
+from dataclasses import dataclass, field
 from enum import Enum
 from typing import Optional
-from dataclasses import dataclass, field, asdict
 
 from dotenv import load_dotenv
+
 from src.llm.llm_client import create_client
 
 logger = logging.getLogger(__name__)

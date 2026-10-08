@@ -12,14 +12,14 @@ chat 路由通过 get_current_user() 依赖或 resolve_user_id() 解析当前用
 用于订单等业务的归属校验 (Phase 2 的 user_id 来源升级)。
 """
 
-import os
-import time
-import hmac
 import hashlib
+import hmac
 import logging
+import time
 from typing import Optional
+
+from fastapi import APIRouter, Header, HTTPException
 from pydantic import BaseModel
-from fastapi import APIRouter, HTTPException, Header, Depends
 
 from src.config import settings
 

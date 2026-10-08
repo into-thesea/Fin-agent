@@ -10,10 +10,9 @@ Fin-Agent 统一配置管理
 """
 
 import os
-
-from pydantic_settings import BaseSettings
 from typing import Optional
 
+from pydantic_settings import BaseSettings
 
 # ── 环境检测 ──
 _app_env = os.getenv("APP_ENV", "development").lower()

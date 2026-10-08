@@ -1,0 +1,82 @@
+{
+  "kb_doc_count": 21,
+  "kb_docs": [
+    "agency_products.md",
+    "asset_allocation.md",
+    "bond_knowledge.md",
+    "buy_process.md",
+    "catalog.jsonl",
+    "complaints_human.md",
+    "deposit_insurance.md",
+    "fraud_report.md",
+    "fund_knowledge.md",
+    "gold_knowledge.md",
+    "income_and_interest.md",
+    "insurance_knowledge.md",
+    "insurance_products.md",
+    "kg_domain_triples.jsonl",
+    "kg_triples.jsonl",
+    "privacy_security.md",
+    "redeem_and_fee.md",
+    "risk_level.md",
+    "shopping_guide.md",
+    "terms_faq.md",
+    "trust_knowledge.md"
+  ],
+  "products_in_qa": [
+    "私银聚享",
+    "日日盈",
+    "稳盈添利90天",
+    "稳盈添利30天",
+    "结构性存款",
+    "远见成长",
+    "增额终身寿",
+    "平衡增利180天",
+    "安鑫纯债",
+    "大额存单"
+  ],
+  "product_docs": {
+    "私银聚享": [
+      "⚠️ 未找到对应文档"
+    ],
+    "日日盈": [
+      "⚠️ 未找到对应文档"
+    ],
+    "稳盈添利90天": [
+      "⚠️ 未找到对应文档"
+    ],
+    "稳盈添利30天": [
+      "⚠️ 未找到对应文档"
+    ],
+    "结构性存款": [
+      "⚠️ 未找到对应文档"
+    ],
+    "远见成长": [
+      "⚠️ 未找到对应文档"
+    ],
+    "增额终身寿": [
+      "⚠️ 未找到对应文档"
+    ],
+    "平衡增利180天": [
+      "⚠️ 未找到对应文档"
+    ],
+    "安鑫纯债": [
+      "⚠️ 未找到对应文档"
+    ],
+    "大额存单": [
+      "⚠️ 未找到对应文档"
+    ]
+  },
+  "missing_products": [
+    "私银聚享",
+    "日日盈",
+    "稳盈添利90天",
+    "稳盈添利30天",
+    "结构性存款",
+    "远见成长",
+    "增额终身寿",
+    "平衡增利180天",
+    "安鑫纯债",
+    "大额存单"
+  ]
+}

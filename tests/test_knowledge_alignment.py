@@ -13,7 +13,6 @@ import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(__file__))))
 
-import pytest
 
 from src.tools import registry
 

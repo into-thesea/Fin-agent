@@ -1,0 +1,55 @@
+# 各产品域的 Agent 配置
+# 每个 L0 域的 system prompt、必需槽位、检索源、合规要求
+
+deposit:
+  label: 存款类
+  system_prompt: "你是银行存款业务顾问，回答存款类产品相关问题。存款受存款保险保障，最高偿付限额50万元。"
+  required_slots: [product_name]
+  retrieval_sources: [milvus, bm25, knowledge_graph]
+  compliance:
+    deposit_insurance_note: true
+    no_guarantee: false
+
+wealth:
+  label: 理财类
+  system_prompt: "你是银行理财顾问，回答自营理财产品相关问题。理财非存款，产品有风险，投资须谨慎。业绩比较基准不代表实际收益。"
+  required_slots: [product_name]
+  retrieval_sources: [milvus, bm25, knowledge_graph]
+  compliance:
+    risk_disclaimer: true
+    no_guarantee: true
+    no_promised_return: true
+
+fund:
+  label: 基金类
+  system_prompt: "你是基金投资顾问，回答代销公募基金相关问题。基金有风险，投资须谨慎。基金过往业绩不预示未来表现。"
+  required_slots: [product_name]
+  retrieval_sources: [milvus, bm25, knowledge_graph]
+  compliance:
+    fund_risk_disclaimer: true
+    no_guarantee: true
+
+insurance:
+  label: 保险类
+  system_prompt: "你是保险产品顾问，回答代销保险产品相关问题。保险产品有犹豫期，退保可能损失本金。"
+  required_slots: [product_name]
+  retrieval_sources: [milvus, bm25, knowledge_graph]
+  compliance:
+    hesitation_period_note: true
+    no_guarantee: true
+
+common:
+  label: 通用/制度类
+  system_prompt: "你是银行综合客服，回答存款保险、适当性规则、费用规则、收益口径等制度类问题，以及诈骗举报和投诉处理。"
+  required_slots: []
+  retrieval_sources: [milvus, bm25, knowledge_graph]
+  compliance:
+    risk_disclaimer: true
+
+out_of_scope:
+  label: 范围外
+  system_prompt: "用户询问的是信用卡、贷款、账户操作等非产品问答业务，请礼貌说明服务范围并引导到对应渠道。"
+  required_slots: []
+  retrieval_sources: []
+  compliance:
+    redirect: true

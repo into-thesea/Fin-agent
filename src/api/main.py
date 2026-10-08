@@ -8,21 +8,20 @@ Fin-Agent FastAPI 应用 — 入口协调器
   - 前端静态文件托管 (单端口部署)
 """
 
+import asyncio
 import os
 import time
 import uuid
-import asyncio
-import logging
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, Request, HTTPException
+from fastapi import FastAPI, HTTPException, Request
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
-from fastapi.middleware.cors import CORSMiddleware
 
+from src.exceptions import FinAgentError, error_response
 from src.infra.logging_config import get_logger, set_trace_id
 from src.infra.paths import PROJECT_ROOT
-from src.exceptions import FinAgentError, error_response
 
 logger = get_logger(__name__)
 
@@ -64,8 +63,8 @@ async def _start_kb_watcher():
         return
 
     try:
-        from watchdog.observers import Observer
         from watchdog.events import FileSystemEventHandler
+        from watchdog.observers import Observer
     except ImportError:
         logger.warning("watchdog 未安装，跳过知识库文件监听。安装: pip install watchdog")
         return
@@ -244,14 +243,14 @@ async def general_error_handler(request: Request, exc: Exception):
 # 路由注册
 # ──────────────────────────────────────────────
 
-from src.api.routes.chat import router as chat_router
 from src.api.routes.auth import router as auth_router
-from src.api.routes.knowledge import router as knowledge_router
-from src.api.routes.tasks import router as tasks_router
-from src.api.routes.monitor import router as monitor_router
-from src.api.routes.monitor import health_router
+from src.api.routes.chat import router as chat_router
 from src.api.routes.handoff import router as handoff_router
 from src.api.routes.kb_console import router as kb_console_router
+from src.api.routes.knowledge import router as knowledge_router
+from src.api.routes.monitor import health_router
+from src.api.routes.monitor import router as monitor_router
+from src.api.routes.tasks import router as tasks_router
 
 app.include_router(chat_router)
 app.include_router(auth_router)

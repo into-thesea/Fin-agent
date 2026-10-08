@@ -1,7 +1,7 @@
 """FastAPI 路由测试 — 健康 / 认证 / 反馈 (TestClient, 不依赖外部服务)"""
 
-import sys
 import os
+import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(__file__))))
 
@@ -9,8 +9,8 @@ import pytest
 from fastapi.testclient import TestClient
 
 from src.api.main import app
-from src.config import settings
 from src.api.routes.auth import create_token, decode_token
+from src.config import settings
 
 
 @pytest.fixture(scope="module")

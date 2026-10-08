@@ -9,10 +9,10 @@ extract_slots     从单轮查询 + 路由实体中提取槽位
 missing_required  判断当前意图还缺哪些必需槽位 (用于追问, 资金动账流程在阶段二接入后启用)
 """
 
-import os
-import re
 import json
 import logging
+import os
+import re
 
 logger = logging.getLogger(__name__)
 

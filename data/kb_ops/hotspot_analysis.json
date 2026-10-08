@@ -1,0 +1,33 @@
+{
+  "total": 105,
+  "intent_distribution": {
+    "deposit_insurance": 14,
+    "hold_redeem": 13,
+    "product_compare": 13,
+    "risk_suitability": 12,
+    "income_question": 12,
+    "product_consult": 11,
+    "fraud_report": 10,
+    "chitchat": 9,
+    "buy_process": 6,
+    "fee_rule": 5
+  },
+  "product_distribution": {
+    "存款保险": 10,
+    "大额存单": 7,
+    "稳盈添利": 5,
+    "增额终身寿": 5,
+    "日日盈": 4,
+    "结构性存款": 4,
+    "安鑫纯债": 3,
+    "远见成长": 3,
+    "平衡增利": 2,
+    "私银聚享": 2
+  },
+  "coverage_gaps": [],
+  "recommendation": [
+    "高频产品 [存款保险] 被问 10 次, 确认知识库文档完整",
+    "高频产品 [大额存单] 被问 7 次, 确认知识库文档完整",
+    "高频产品 [稳盈添利] 被问 5 次, 确认知识库文档完整"
+  ]
+}

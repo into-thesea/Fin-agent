@@ -1,0 +1,1273 @@
+{
+  "generated_at": "2026-10-01T14:54:05",
+  "finance": {
+    "golden_n": 105,
+    "offline": {
+      "n": 105,
+      "evidence_coverage": 0.99,
+      "chunk_info_hit_rate": 0.98,
+      "path_structure_consistency": 0.833,
+      "graph_trigger_ratio": 0.457,
+      "rows": [
+        {
+          "id": "g001",
+          "question": "稳盈添利30天风险等级是多少？",
+          "intent": "product_consult",
+          "evidence_covered": true,
+          "chunk_info_hit": true,
+          "path_consistent": null,
+          "graph_hit": true,
+          "entities": [
+            "稳盈添利30天"
+          ]
+        },
+        {
+          "id": "g002",
+          "question": "日日盈现金管理类是存款吗？",
+          "intent": "deposit_insurance",
+          "evidence_covered": true,
+          "chunk_info_hit": true,
+          "path_consistent": null,
+          "graph_hit": true,
+          "entities": [
+            "日日盈现金管理类",
+            "存款"
+          ]
+        },
+        {
+          "id": "g003",
+          "question": "大额存单受存款保险保障吗？",
+          "intent": "deposit_insurance",
+          "evidence_covered": true,
+          "chunk_info_hit": true,
+          "path_consistent": true,
+          "graph_hit": true,
+          "entities": [
+            "大额存单3年期",
+            "存款保险",
+            "存款"
+          ]
+        },
+        {
+          "id": "g004",
+          "question": "银行理财是存款吗？存款保险赔吗？",
+          "intent": "deposit_insurance",
+          "evidence_covered": true,
+          "chunk_info_hit": true,
+          "path_consistent": true,
+          "graph_hit": true,
+          "entities": [
+            "理财产品",
+            "存款保险",
+            "存款"
+          ]
+        },
+        {
+          "id": "g005",
+          "question": "我测评是R2，能买平衡增利180天吗？",
+          "intent": "risk_suitability",
+          "evidence_covered": true,
+          "chunk_info_hit": true,
+          "path_consistent": null,
+          "graph_hit": true,
+          "entities": [
+            "平衡增利180天"
+          ]
+        },
+        {
+          "id": "g006",
+          "question": "结构性存款的收益是保证的吗？",
+          "intent": "income_question",
+          "evidence_covered": true,
+          "chunk_info_hit": true,
+          "path_consistent": null,
+          "graph_hit": true,
+          "entities": [
+            "结构性存款",
+            "存款"
+          ]
+        },
+        {
+          "id": "g007",
+          "question": "业绩比较基准是什么意思？",
+          "intent": "income_question",
+          "evidence_covered": true,
+          "chunk_info_hit": true,
+          "path_consistent": null,
+          "graph_hit": true,
+          "entities": [
+            "业绩比较基准"
+          ]
+        },
+        {
+          "id": "g008",
+          "question": "安鑫纯债基金是你们银行发行的吗？",
+          "intent": "deposit_insurance",
+          "evidence_covered": true,
+          "chunk_info_hit": true,
+          "path_consistent": null,
+          "graph_hit": true,
+          "entities": [
+            "安鑫纯债基金",
+            "公募基金"
+          ]
+        },
+        {
+          "id": "g009",
+          "question": "盛世稳赢增额终身寿是理财吗？",
+          "intent": "product_consult",
+          "evidence_covered": true,
+          "chunk_info_hit": true,
+          "path_consistent": true,
+          "graph_hit": true,
+          "entities": [
+            "盛世稳赢增额终身寿",
+            "理财产品"
+          ]
+        },
+        {
+          "id": "g010",
+          "question": "增额终身寿买了能退吗？",
+          "intent": "hold_redeem",
+          "evidence_covered": true,
+          "chunk_info_hit": true,
+          "path_consistent": null,
+          "graph_hit": true,
+          "entities": [
+            "盛世稳赢增额终身寿"
+          ]
+        },
+        {
+          "id": "g011",
+          "question": "犹豫期内退保能全退吗？",
+          "intent": "hold_redeem",
+          "evidence_covered": true,
+          "chunk_info_hit": true,
+          "path_consistent": null,
+          "graph_hit": true,
+          "entities": [
+            "犹豫期15天"
+          ]
+        },
+        {
+          "id": "g012",
+          "question": "保险退保超了犹豫期会亏吗？",
+          "intent": "hold_redeem",
+          "evidence_covered": true,
+          "chunk_info_hit": true,
+          "path_consistent": true,
+          "graph_hit": true,
+          "entities": [
+            "犹豫期15天",
+            "保险产品"
+          ]
+        },
+        {
+          "id": "g013",
+          "question": "理财产品能承诺保本保收益吗？",
+          "intent": "income_question",
+          "evidence_covered": true,
+          "chunk_info_hit": true,
+          "path_consistent": null,
+          "graph_hit": false,
+          "entities": [
+            "理财产品"
+          ]
+        },
+        {
+          "id": "g014",
+          "question": "首次线上买理财要办什么？",
+          "intent": "buy_process",
+          "evidence_covered": true,
+          "chunk_info_hit": true,
+          "path_consistent": null,
+          "graph_hit": false,
+          "entities": [
+            "理财产品"
+          ]
+        },
+        {
+          "id": "g015",
+          "question": "买理财为什么要双录？",
+          "intent": "buy_process",
+          "evidence_covered": true,
+          "chunk_info_hit": true,
+          "path_consistent": null,
+          "graph_hit": true,
+          "entities": [
+            "理财产品",
+            "双录"
+          ]
+        },
+        {
+          "id": "g016",
+          "question": "申购后没到确认前能不能撤单？",
+          "intent": "hold_redeem",
+          "evidence_covered": true,
+          "chunk_info_hit": true,
+          "path_consistent": null,
+          "graph_hit": false,
+          "entities": []
+        },
+        {
+          "id": "g017",
+          "question": "固定期限理财没到期能取出来吗？",
+          "intent": "hold_redeem",
+          "evidence_covered": true,
+          "chunk_info_hit": true,
+          "path_consistent": null,
+          "graph_hit": false,
+          "entities": [
+            "理财产品"
+          ]
+        },
+        {
+          "id": "g018",
+          "question": "大额存单提前支取按什么利率？",
+          "intent": "hold_redeem",
+          "evidence_covered": true,
+          "chunk_info_hit": true,
+          "path_consistent": null,
+          "graph_hit": true,
+          "entities": [
+            "大额存单3年期"
+          ]
+        },
+        {
+          "id": "g019",
+          "question": "提前赎回会收费吗？",
+          "intent": "fee_rule",
+          "evidence_covered": true,
+          "chunk_info_hit": true,
+          "path_consistent": null,
+          "graph_hit": false,
+          "entities": []
+        },
+        {
+          "id": "g020",
+          "question": "理财产品的管理费谁出？",
+          "intent": "fee_rule",
+          "evidence_covered": true,
+          "chunk_info_hit": true,
+          "path_consistent": null,
+          "graph_hit": false,
+          "entities": [
+            "理财产品"
+          ]
+        },
+        {
+          "id": "g021",
+          "question": "存款保险赔付限额是多少？",
+          "intent": "deposit_insurance",
+          "evidence_covered": true,
+          "chunk_info_hit": true,
+          "path_consistent": null,
+          "graph_hit": true,
+          "entities": [
+            "存款保险",
+            "存款",
+            "保险产品"
+          ]
+        },
+        {
+          "id": "g022",
+          "question": "我在两家银行各存50万，都受保障吗？",
+          "intent": "deposit_insurance",
+          "evidence_covered": true,
+          "chunk_info_hit": true,
+          "path_consistent": null,
+          "graph_hit": false,
+          "entities": []
+        },
+        {
+          "id": "g023",
+          "question": "保本高收益的内部理财靠谱吗？",
+          "intent": "fraud_report",
+          "evidence_covered": true,
+          "chunk_info_hit": true,
+          "path_consistent": null,
+          "graph_hit": false,
+          "entities": [
+            "理财产品"
+          ]
+        },
+        {
+          "id": "g024",
+          "question": "疑似被骗转了钱怎么办？",
+          "intent": "fraud_report",
+          "evidence_covered": true,
+          "chunk_info_hit": true,
+          "path_consistent": null,
+          "graph_hit": false,
+          "entities": []
+        },
+        {
+          "id": "g025",
+          "question": "正规理财怎么核实真伪？",
+          "intent": "fraud_report",
+          "evidence_covered": true,
+          "chunk_info_hit": true,
+          "path_consistent": null,
+          "graph_hit": false,
+          "entities": [
+            "理财产品"
+          ]
+        },
+        {
+          "id": "g026",
+          "question": "大额存单和固收理财哪个适合我？",
+          "intent": "product_compare",
+          "evidence_covered": true,
+          "chunk_info_hit": true,
+          "path_consistent": null,
+          "graph_hit": true,
+          "entities": [
+            "大额存单3年期",
+            "理财产品"
+          ]
+        },
+        {
+          "id": "g027",
+          "question": "有哪些R2的30天理财？",
+          "intent": "product_compare",
+          "evidence_covered": true,
+          "chunk_info_hit": true,
+          "path_consistent": null,
+          "graph_hit": false,
+          "entities": [
+            "理财产品"
+          ]
+        },
+        {
+          "id": "g028",
+          "question": "私银聚享混合策略谁能买？",
+          "intent": "risk_suitability",
+          "evidence_covered": true,
+          "chunk_info_hit": true,
+          "path_consistent": true,
+          "graph_hit": true,
+          "entities": [
+            "私银聚享混合策略"
+          ]
+        },
+        {
+          "id": "g029",
+          "question": "R3风险等级是什么意思？",
+          "intent": "risk_suitability",
+          "evidence_covered": true,
+          "chunk_info_hit": true,
+          "path_consistent": null,
+          "graph_hit": false,
+          "entities": []
+        },
+        {
+          "id": "g030",
+          "question": "风险测评等级R1能买什么产品？",
+          "intent": "risk_suitability",
+          "evidence_covered": true,
+          "chunk_info_hit": true,
+          "path_consistent": null,
+          "graph_hit": false,
+          "entities": []
+        },
+        {
+          "id": "g031",
+          "question": "结构性存款和普通理财哪个安全？",
+          "intent": "product_compare",
+          "evidence_covered": true,
+          "chunk_info_hit": true,
+          "path_consistent": true,
+          "graph_hit": true,
+          "entities": [
+            "结构性存款",
+            "理财产品",
+            "存款"
+          ]
+        },
+        {
+          "id": "g032",
+          "question": "远见成长混合基金会亏本金吗？",
+          "intent": "income_question",
+          "evidence_covered": true,
+          "chunk_info_hit": true,
+          "path_consistent": null,
+          "graph_hit": true,
+          "entities": [
+            "远见成长混合基金",
+            "公募基金"
+          ]
+        },
+        {
+          "id": "g033",
+          "question": "信用卡逾期会影响房贷申请吗？",
+          "intent": "deposit_insurance",
+          "evidence_covered": true,
+          "chunk_info_hit": true,
+          "path_consistent": true,
+          "graph_hit": true,
+          "entities": [
+            "信用卡逾期",
+            "房贷审批"
+          ]
+        },
+        {
+          "id": "g034",
+          "question": "怎么查询我的持仓？",
+          "intent": "hold_redeem",
+          "evidence_covered": true,
+          "chunk_info_hit": false,
+          "path_consistent": null,
+          "graph_hit": false,
+          "entities": []
+        },
+        {
+          "id": "g035",
+          "question": "客服会索要我的短信验证码吗？",
+          "intent": "fraud_report",
+          "evidence_covered": true,
+          "chunk_info_hit": true,
+          "path_consistent": null,
+          "graph_hit": false,
+          "entities": []
+        },
+        {
+          "id": "g036",
+          "question": "收到高收益理财宣传应该信吗？",
+          "intent": "fraud_report",
+          "evidence_covered": true,
+          "chunk_info_hit": true,
+          "path_consistent": true,
+          "graph_hit": false,
+          "entities": [
+            "理财产品"
+          ]
+        },
+        {
+          "id": "g037",
+          "question": "我把银行卡号告诉你帮我查",
+          "intent": "chitchat",
+          "evidence_covered": null,
+          "chunk_info_hit": null,
+          "path_consistent": null,
+          "graph_hit": false,
+          "entities": []
+        },
+        {
+          "id": "g038",
+          "question": "理财到期后钱多久到账？",
+          "intent": "hold_redeem",
+          "evidence_covered": true,
+          "chunk_info_hit": true,
+          "path_consistent": null,
+          "graph_hit": false,
+          "entities": [
+            "理财产品"
+          ]
+        },
+        {
+          "id": "g039",
+          "question": "为什么我的理财收益和基准不一样？",
+          "intent": "income_question",
+          "evidence_covered": true,
+          "chunk_info_hit": true,
+          "path_consistent": null,
+          "graph_hit": false,
+          "entities": [
+            "理财产品"
+          ]
+        },
+        {
+          "id": "g040",
+          "question": "我测评过期了还能买理财吗？",
+          "intent": "risk_suitability",
+          "evidence_covered": true,
+          "chunk_info_hit": true,
+          "path_consistent": null,
+          "graph_hit": false,
+          "entities": [
+            "理财产品"
+          ]
+        },
+        {
+          "id": "g041",
+          "question": "日日盈现金管理类的七日年化是多少？",
+          "intent": "product_consult",
+          "evidence_covered": true,
+          "chunk_info_hit": true,
+          "path_consistent": null,
+          "graph_hit": true,
+          "entities": [
+            "日日盈现金管理类",
+            "七日年化"
+          ]
+        },
+        {
+          "id": "g042",
+          "question": "稳盈添利90天的起购金额是多少？",
+          "intent": "product_consult",
+          "evidence_covered": true,
+          "chunk_info_hit": true,
+          "path_consistent": null,
+          "graph_hit": true,
+          "entities": [
+            "稳盈添利30天"
+          ]
+        },
+        {
+          "id": "g043",
+          "question": "平衡增利180天的期限和申赎安排是什么？",
+          "intent": "product_consult",
+          "evidence_covered": true,
+          "chunk_info_hit": true,
+          "path_consistent": null,
+          "graph_hit": true,
+          "entities": [
+            "平衡增利180天"
+          ]
+        },
+        {
+          "id": "g044",
+          "question": "安鑫纯债基金是自营还是代销的？",
+          "intent": "product_consult",
+          "evidence_covered": true,
+          "chunk_info_hit": true,
+          "path_consistent": null,
+          "graph_hit": true,
+          "entities": [
+            "安鑫纯债基金",
+            "公募基金"
+          ]
+        },
+        {
+          "id": "g045",
+          "question": "远见成长混合基金的投资方向是什么？",
+          "intent": "product_consult",
+          "evidence_covered": true,
+          "chunk_info_hit": true,
+          "path_consistent": null,
+          "graph_hit": true,
+          "entities": [
+            "远见成长混合基金",
+            "公募基金"
+          ]
+        },
+        {
+          "id": "g046",
+          "question": "盛世稳赢增额终身寿的保障期限是多久？",
+          "intent": "product_consult",
+          "evidence_covered": true,
+          "chunk_info_hit": true,
+          "path_consistent": null,
+          "graph_hit": true,
+          "entities": [
+            "盛世稳赢增额终身寿"
+          ]
+        },
+        {
+          "id": "g047",
+          "question": "大额存单3年期的利率是多少？",
+          "intent": "product_consult",
+          "evidence_covered": true,
+          "chunk_info_hit": true,
+          "path_consistent": null,
+          "graph_hit": true,
+          "entities": [
+            "大额存单3年期"
+          ]
+        },
+        {
+          "id": "g048",
+          "question": "结构性存款的本金有保障吗？",
+          "intent": "product_consult",
+          "evidence_covered": true,
+          "chunk_info_hit": true,
+          "path_consistent": null,
+          "graph_hit": true,
+          "entities": [
+            "结构性存款",
+            "存款"
+          ]
+        },
+        {
+          "id": "g049",
+          "question": "理财产品受存款保险保障吗？",
+          "intent": "deposit_insurance",
+          "evidence_covered": true,
+          "chunk_info_hit": true,
+          "path_consistent": null,
+          "graph_hit": true,
+          "entities": [
+            "理财产品",
+            "存款保险",
+            "存款"
+          ]
+        },
+        {
+          "id": "g050",
+          "question": "基金受存款保险保障吗？",
+          "intent": "deposit_insurance",
+          "evidence_covered": true,
+          "chunk_info_hit": true,
+          "path_consistent": null,
+          "graph_hit": true,
+          "entities": [
+            "存款保险",
+            "存款",
+            "公募基金"
+          ]
+        },
+        {
+          "id": "g051",
+          "question": "保险产品受存款保险保障吗？",
+          "intent": "deposit_insurance",
+          "evidence_covered": true,
+          "chunk_info_hit": true,
+          "path_consistent": null,
+          "graph_hit": true,
+          "entities": [
+            "存款保险",
+            "保险产品",
+            "存款"
+          ]
+        },
+        {
+          "id": "g052",
+          "question": "我存了100万在同一家银行，存款保险怎么赔？",
+          "intent": "deposit_insurance",
+          "evidence_covered": true,
+          "chunk_info_hit": true,
+          "path_consistent": false,
+          "graph_hit": true,
+          "entities": [
+            "存款保险",
+            "存款",
+            "保险产品"
+          ]
+        },
+        {
+          "id": "g053",
+          "question": "结构性存款算存款吗？受存款保险保障吗？",
+          "intent": "deposit_insurance",
+          "evidence_covered": true,
+          "chunk_info_hit": true,
+          "path_consistent": true,
+          "graph_hit": true,
+          "entities": [
+            "结构性存款",
+            "存款保险",
+            "存款"
+          ]
+        },
+        {
+          "id": "g054",
+          "question": "国债受存款保险保障吗？",
+          "intent": "deposit_insurance",
+          "evidence_covered": true,
+          "chunk_info_hit": true,
+          "path_consistent": null,
+          "graph_hit": true,
+          "entities": [
+            "存款保险",
+            "存款",
+            "保险产品"
+          ]
+        },
+        {
+          "id": "g055",
+          "question": "我是R1保守型，能买稳盈添利30天吗？",
+          "intent": "risk_suitability",
+          "evidence_covered": true,
+          "chunk_info_hit": true,
+          "path_consistent": null,
+          "graph_hit": true,
+          "entities": [
+            "稳盈添利30天"
+          ]
+        },
+        {
+          "id": "g056",
+          "question": "R3平衡型能买R5的产品吗？",
+          "intent": "risk_suitability",
+          "evidence_covered": true,
+          "chunk_info_hit": true,
+          "path_consistent": null,
+          "graph_hit": false,
+          "entities": []
+        },
+        {
+          "id": "g057",
+          "question": "私银聚享混合策略的风险等级是多少？谁能买？",
+          "intent": "risk_suitability",
+          "evidence_covered": true,
+          "chunk_info_hit": true,
+          "path_consistent": true,
+          "graph_hit": true,
+          "entities": [
+            "私银聚享混合策略"
+          ]
+        },
+        {
+          "id": "g058",
+          "question": "风险测评多久做一次？",
+          "intent": "risk_suitability",
+          "evidence_covered": true,
+          "chunk_info_hit": true,
+          "path_consistent": null,
+          "graph_hit": false,
+          "entities": []
+        },
+        {
+          "id": "g059",
+          "question": "R2稳健型和R3平衡型有什么区别？",
+          "intent": "risk_suitability",
+          "evidence_covered": true,
+          "chunk_info_hit": true,
+          "path_consistent": null,
+          "graph_hit": false,
+          "entities": []
+        },
+        {
+          "id": "g060",
+          "question": "我测评是R4，能买R2的产品吗？",
+          "intent": "risk_suitability",
+          "evidence_covered": true,
+          "chunk_info_hit": true,
+          "path_consistent": null,
+          "graph_hit": false,
+          "entities": []
+        },
+        {
+          "id": "g061",
+          "question": "七日年化收益率和实际收益有什么区别？",
+          "intent": "income_question",
+          "evidence_covered": true,
+          "chunk_info_hit": true,
+          "path_consistent": null,
+          "graph_hit": true,
+          "entities": [
+            "七日年化"
+          ]
+        },
+        {
+          "id": "g062",
+          "question": "基金的净值涨了是不是就赚钱了？",
+          "intent": "income_question",
+          "evidence_covered": true,
+          "chunk_info_hit": true,
+          "path_consistent": null,
+          "graph_hit": false,
+          "entities": [
+            "公募基金"
+          ]
+        },
+        {
+          "id": "g063",
+          "question": "增额终身寿的收益是怎么算的？",
+          "intent": "income_question",
+          "evidence_covered": true,
+          "chunk_info_hit": true,
+          "path_consistent": null,
+          "graph_hit": true,
+          "entities": [
+            "盛世稳赢增额终身寿"
+          ]
+        },
+        {
+          "id": "g064",
+          "question": "业绩比较基准3.0%是不是到期一定能拿到3%？",
+          "intent": "income_question",
+          "evidence_covered": true,
+          "chunk_info_hit": true,
+          "path_consistent": null,
+          "graph_hit": true,
+          "entities": [
+            "业绩比较基准"
+          ]
+        },
+        {
+          "id": "g065",
+          "question": "债券基金的收益来源是什么？",
+          "intent": "income_question",
+          "evidence_covered": true,
+          "chunk_info_hit": true,
+          "path_consistent": null,
+          "graph_hit": false,
+          "entities": [
+            "公募基金"
+          ]
+        },
+        {
+          "id": "g066",
+          "question": "买理财需要开通什么权限？",
+          "intent": "buy_process",
+          "evidence_covered": true,
+          "chunk_info_hit": true,
+          "path_consistent": null,
+          "graph_hit": false,
+          "entities": [
+            "理财产品"
+          ]
+        },
+        {
+          "id": "g067",
+          "question": "申购理财后什么时候开始算收益？",
+          "intent": "buy_process",
+          "evidence_covered": true,
+          "chunk_info_hit": true,
+          "path_consistent": null,
+          "graph_hit": false,
+          "entities": [
+            "理财产品"
+          ]
+        },
+        {
+          "id": "g068",
+          "question": "第一次买保险需要双录吗？",
+          "intent": "buy_process",
+          "evidence_covered": true,
+          "chunk_info_hit": true,
+          "path_consistent": null,
+          "graph_hit": true,
+          "entities": [
+            "保险产品",
+            "双录"
+          ]
+        },
+        {
+          "id": "g069",
+          "question": "买基金需要风险测评吗？",
+          "intent": "buy_process",
+          "evidence_covered": true,
+          "chunk_info_hit": true,
+          "path_consistent": null,
+          "graph_hit": false,
+          "entities": [
+            "公募基金"
+          ]
+        },
+        {
+          "id": "g070",
+          "question": "日日盈现金管理类赎回后多久到账？",
+          "intent": "hold_redeem",
+          "evidence_covered": true,
+          "chunk_info_hit": true,
+          "path_consistent": null,
+          "graph_hit": true,
+          "entities": [
+            "日日盈现金管理类"
+          ]
+        },
+        {
+          "id": "g071",
+          "question": "基金赎回后钱什么时候到银行卡？",
+          "intent": "hold_redeem",
+          "evidence_covered": true,
+          "chunk_info_hit": true,
+          "path_consistent": null,
+          "graph_hit": false,
+          "entities": [
+            "公募基金"
+          ]
+        },
+        {
+          "id": "g072",
+          "question": "理财到期后会自动续期吗？",
+          "intent": "hold_redeem",
+          "evidence_covered": true,
+          "chunk_info_hit": true,
+          "path_consistent": null,
+          "graph_hit": false,
+          "entities": [
+            "理财产品"
+          ]
+        },
+        {
+          "id": "g073",
+          "question": "保险退保的钱退到哪里？",
+          "intent": "hold_redeem",
+          "evidence_covered": true,
+          "chunk_info_hit": true,
+          "path_consistent": null,
+          "graph_hit": false,
+          "entities": [
+            "保险产品"
+          ]
+        },
+        {
+          "id": "g074",
+          "question": "大额存单可以转让吗？",
+          "intent": "hold_redeem",
+          "evidence_covered": true,
+          "chunk_info_hit": true,
+          "path_consistent": null,
+          "graph_hit": true,
+          "entities": [
+            "大额存单3年期"
+          ]
+        },
+        {
+          "id": "g075",
+          "question": "基金申购费和赎回费是多少？",
+          "intent": "fee_rule",
+          "evidence_covered": true,
+          "chunk_info_hit": true,
+          "path_consistent": null,
+          "graph_hit": false,
+          "entities": [
+            "公募基金"
+          ]
+        },
+        {
+          "id": "g076",
+          "question": "理财产品有申购费吗？",
+          "intent": "fee_rule",
+          "evidence_covered": true,
+          "chunk_info_hit": true,
+          "path_consistent": null,
+          "graph_hit": false,
+          "entities": [
+            "理财产品"
+          ]
+        },
+        {
+          "id": "g077",
+          "question": "保险退保会扣手续费吗？",
+          "intent": "fee_rule",
+          "evidence_covered": true,
+          "chunk_info_hit": true,
+          "path_consistent": null,
+          "graph_hit": false,
+          "entities": [
+            "保险产品"
+          ]
+        },
+        {
+          "id": "g078",
+          "question": "有人加我微信说有内部理财渠道，靠谱吗？",
+          "intent": "fraud_report",
+          "evidence_covered": true,
+          "chunk_info_hit": true,
+          "path_consistent": null,
+          "graph_hit": false,
+          "entities": [
+            "理财产品"
+          ]
+        },
+        {
+          "id": "g079",
+          "question": "客服打电话让我把钱转到安全账户，是真的吗？",
+          "intent": "fraud_report",
+          "evidence_covered": true,
+          "chunk_info_hit": true,
+          "path_consistent": null,
+          "graph_hit": false,
+          "entities": []
+        },
+        {
+          "id": "g080",
+          "question": "怎么举报理财诈骗？",
+          "intent": "fraud_report",
+          "evidence_covered": true,
+          "chunk_info_hit": true,
+          "path_consistent": null,
+          "graph_hit": false,
+          "entities": [
+            "理财产品"
+          ]
+        },
+        {
+          "id": "g081",
+          "question": "收到短信说我的理财亏损了要点击链接核实，怎么办？",
+          "intent": "fraud_report",
+          "evidence_covered": true,
+          "chunk_info_hit": true,
+          "path_consistent": null,
+          "graph_hit": false,
+          "entities": [
+            "理财产品"
+          ]
+        },
+        {
+          "id": "g082",
+          "question": "现金管理类和货币基金有什么区别？",
+          "intent": "product_compare",
+          "evidence_covered": true,
+          "chunk_info_hit": true,
+          "path_consistent": null,
+          "graph_hit": false,
+          "entities": [
+            "公募基金"
+          ]
+        },
+        {
+          "id": "g083",
+          "question": "纯债基金和固收理财哪个收益高？",
+          "intent": "product_compare",
+          "evidence_covered": true,
+          "chunk_info_hit": true,
+          "path_consistent": null,
+          "graph_hit": false,
+          "entities": [
+            "理财产品",
+            "公募基金"
+          ]
+        },
+        {
+          "id": "g084",
+          "question": "增额终身寿和年金险有什么区别？",
+          "intent": "product_compare",
+          "evidence_covered": true,
+          "chunk_info_hit": true,
+          "path_consistent": null,
+          "graph_hit": true,
+          "entities": [
+            "盛世稳赢增额终身寿"
+          ]
+        },
+        {
+          "id": "g085",
+          "question": "短期理财和长期理财哪个更划算？",
+          "intent": "product_compare",
+          "evidence_covered": false,
+          "chunk_info_hit": false,
+          "path_consistent": null,
+          "graph_hit": false,
+          "entities": [
+            "理财产品"
+          ]
+        },
+        {
+          "id": "g086",
+          "question": "你们银行的稳盈添利30天保证年化收益5%对吗？",
+          "intent": "income_question",
+          "evidence_covered": true,
+          "chunk_info_hit": true,
+          "path_consistent": null,
+          "graph_hit": true,
+          "entities": [
+            "稳盈添利30天"
+          ]
+        },
+        {
+          "id": "g087",
+          "question": "我听说你们行有一款年化10%的保本理财，叫什么名字？",
+          "intent": "fraud_report",
+          "evidence_covered": true,
+          "chunk_info_hit": true,
+          "path_consistent": null,
+          "graph_hit": false,
+          "entities": [
+            "理财产品"
+          ]
+        },
+        {
+          "id": "g088",
+          "question": "大额存单的利息是不是比理财高？我记得大额存单有5%的利率",
+          "intent": "product_compare",
+          "evidence_covered": true,
+          "chunk_info_hit": true,
+          "path_consistent": null,
+          "graph_hit": true,
+          "entities": [
+            "大额存单3年期",
+            "理财产品"
+          ]
+        },
+        {
+          "id": "g089",
+          "question": "你们的私银产品是不是只有内部人才能买？我有熟人能不能通融一下？",
+          "intent": "risk_suitability",
+          "evidence_covered": true,
+          "chunk_info_hit": true,
+          "path_consistent": null,
+          "graph_hit": false,
+          "entities": []
+        },
+        {
+          "id": "g090",
+          "question": "我把身份证号和银行卡密码告诉你，你帮我操作买一下理财行吗？",
+          "intent": "chitchat",
+          "evidence_covered": true,
+          "chunk_info_hit": true,
+          "path_consistent": null,
+          "graph_hit": false,
+          "entities": [
+            "理财产品"
+          ]
+        },
+        {
+          "id": "g091",
+          "question": "帮我分析一下贵州茅台的股票现在能买吗？",
+          "intent": "chitchat",
+          "evidence_covered": null,
+          "chunk_info_hit": null,
+          "path_consistent": null,
+          "graph_hit": false,
+          "entities": []
+        },
+        {
+          "id": "g092",
+          "question": "比特币现在的价格是多少？值得投资吗？",
+          "intent": "chitchat",
+          "evidence_covered": null,
+          "chunk_info_hit": null,
+          "path_consistent": null,
+          "graph_hit": false,
+          "entities": []
+        },
+        {
+          "id": "g093",
+          "question": "帮我写一份离婚财产分割协议",
+          "intent": "chitchat",
+          "evidence_covered": null,
+          "chunk_info_hit": null,
+          "path_consistent": null,
+          "graph_hit": false,
+          "entities": []
+        },
+        {
+          "id": "g094",
+          "question": "明天的大盘会涨还是跌？",
+          "intent": "chitchat",
+          "evidence_covered": null,
+          "chunk_info_hit": null,
+          "path_consistent": null,
+          "graph_hit": false,
+          "entities": []
+        },
+        {
+          "id": "g095",
+          "question": "那个理财怎么样？",
+          "intent": "chitchat",
+          "evidence_covered": null,
+          "chunk_info_hit": null,
+          "path_consistent": null,
+          "graph_hit": false,
+          "entities": [
+            "理财产品"
+          ]
+        },
+        {
+          "id": "g096",
+          "question": "收益怎么样？",
+          "intent": "chitchat",
+          "evidence_covered": null,
+          "chunk_info_hit": null,
+          "path_consistent": null,
+          "graph_hit": false,
+          "entities": []
+        },
+        {
+          "id": "g097",
+          "question": "我想买点风险低的，有什么推荐？",
+          "intent": "product_compare",
+          "evidence_covered": true,
+          "chunk_info_hit": true,
+          "path_consistent": null,
+          "graph_hit": false,
+          "entities": []
+        },
+        {
+          "id": "g098",
+          "question": "日日盈、稳盈添利30天、大额存单，这三个哪个流动性最好？",
+          "intent": "product_compare",
+          "evidence_covered": true,
+          "chunk_info_hit": true,
+          "path_consistent": null,
+          "graph_hit": true,
+          "entities": [
+            "稳盈添利30天",
+            "大额存单3年期",
+            "日日盈现金管理类"
+          ]
+        },
+        {
+          "id": "g099",
+          "question": "安鑫纯债基金和远见成长混合基金，哪个风险更高？",
+          "intent": "product_compare",
+          "evidence_covered": true,
+          "chunk_info_hit": true,
+          "path_consistent": null,
+          "graph_hit": true,
+          "entities": [
+            "远见成长混合基金",
+            "安鑫纯债基金",
+            "公募基金"
+          ]
+        },
+        {
+          "id": "g100",
+          "question": "存款保险、理财产品、基金，这三个哪个受存款保险保障？",
+          "intent": "deposit_insurance",
+          "evidence_covered": true,
+          "chunk_info_hit": true,
+          "path_consistent": false,
+          "graph_hit": true,
+          "entities": [
+            "理财产品",
+            "存款保险",
+            "存款"
+          ]
+        },
+        {
+          "id": "g101",
+          "question": "信托产品的起购金额是多少？",
+          "intent": "product_consult",
+          "evidence_covered": true,
+          "chunk_info_hit": true,
+          "path_consistent": null,
+          "graph_hit": false,
+          "entities": []
+        },
+        {
+          "id": "g102",
+          "question": "黄金积存和实物黄金有什么区别？",
+          "intent": "product_compare",
+          "evidence_covered": true,
+          "chunk_info_hit": true,
+          "path_consistent": null,
+          "graph_hit": false,
+          "entities": []
+        },
+        {
+          "id": "g103",
+          "question": "我想做资产配置，应该怎么分配？",
+          "intent": "product_compare",
+          "evidence_covered": true,
+          "chunk_info_hit": true,
+          "path_consistent": null,
+          "graph_hit": false,
+          "entities": []
+        },
+        {
+          "id": "g104",
+          "question": "投诉理财经理应该找谁？",
+          "intent": "chitchat",
+          "evidence_covered": true,
+          "chunk_info_hit": true,
+          "path_consistent": null,
+          "graph_hit": false,
+          "entities": [
+            "理财产品"
+          ]
+        },
+        {
+          "id": "g105",
+          "question": "什么是净值型理财产品？",
+          "intent": "income_question",
+          "evidence_covered": true,
+          "chunk_info_hit": true,
+          "path_consistent": null,
+          "graph_hit": false,
+          "entities": [
+            "理财产品"
+          ]
+        }
+      ]
+    }
+  },
+  "retrieval": {
+    "error": "module 'eval_retrieval' has no attribute 'run_eval'"
+  },
+  "duration_sec": 34.7
+}

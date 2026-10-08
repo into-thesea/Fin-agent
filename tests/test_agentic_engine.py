@@ -2,12 +2,13 @@
 AgenticAgent 工具循环单测 (stub LLM + fake 工具, 不依赖网络/模型)
 """
 
-import sys
 import os
+import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(__file__))))
 
 import pytest
+
 import src.agents.agentic_agent as aa
 
 

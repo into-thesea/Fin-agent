@@ -1,0 +1,142 @@
+{
+  "total": 105,
+  "correct": 95,
+  "accuracy": 0.9047619047619048,
+  "rule_hit": 21,
+  "llm_called": 84,
+  "avg_latency": 1.2192573660895938,
+  "per_intent": {
+    "product_consult": {
+      "total": 11,
+      "correct": 11
+    },
+    "deposit_insurance": {
+      "total": 14,
+      "correct": 14
+    },
+    "risk_suitability": {
+      "total": 12,
+      "correct": 12
+    },
+    "income_question": {
+      "total": 12,
+      "correct": 12
+    },
+    "hold_redeem": {
+      "total": 13,
+      "correct": 13
+    },
+    "buy_process": {
+      "total": 6,
+      "correct": 6
+    },
+    "fee_rule": {
+      "total": 5,
+      "correct": 5
+    },
+    "fraud_report": {
+      "total": 10,
+      "correct": 9
+    },
+    "product_compare": {
+      "total": 13,
+      "correct": 13
+    },
+    "chitchat": {
+      "total": 9,
+      "correct": 0
+    }
+  },
+  "errors": [
+    {
+      "id": "g035",
+      "question": "客服会索要我的短信验证码吗？",
+      "expected": "fraud_report",
+      "got": "service_policy",
+      "confidence": 0.95,
+      "rule": false,
+      "explanation": "[CoT] 核心诉求是询问客服服务规则中关于信息索取的边界，即客服是否会索要短信验证码。关键词包括“客服”、“索要”、“短信验证码”，指向 service_po"
+    },
+    {
+      "id": "g037",
+      "question": "我把银行卡号告诉你帮我查",
+      "expected": "chitchat",
+      "got": "service_policy",
+      "confidence": 0.9,
+      "rule": false,
+      "explanation": "[CoT] 核心诉求是用户想提供银行卡号让客服帮忙查询，这涉及客服服务规则中关于隐私与信息索取的规定。关键词包括“银行卡号”、“告诉你”、“帮我查”，指向服务政"
+    },
+    {
+      "id": "g090",
+      "question": "我把身份证号和银行卡密码告诉你，你帮我操作买一下理财行吗？",
+      "expected": "chitchat",
+      "got": "service_policy",
+      "confidence": 0.95,
+      "rule": false,
+      "explanation": "[CoT] 核心诉求是询问能否代客操作购买理财，涉及客服服务边界与信息安全。关键词包括“身份证号”“银行卡密码”“帮我操作买理财”，指向服务政策（客服能做什么与"
+    },
+    {
+      "id": "g091",
+      "question": "帮我分析一下贵州茅台的股票现在能买吗？",
+      "expected": "chitchat",
+      "got": "unknown",
+      "confidence": 0.95,
+      "rule": false,
+      "explanation": "[CoT] 用户询问贵州茅台股票现在能否购买，核心诉求是投资建议。关键词包括“贵州茅台”、“股票”、“能买吗”。贵州茅台是股票，不属于银行理财、存款、基金、保险"
+    },
+    {
+      "id": "g092",
+      "question": "比特币现在的价格是多少？值得投资吗？",
+      "expected": "chitchat",
+      "got": "unknown",
+      "confidence": 0.95,
+      "rule": false,
+      "explanation": "[CoT] 核心诉求是询问比特币价格和投资价值，但比特币不属于银行/金融理财产品范畴，且问题涉及加密货币投资建议，超出本客服分类器的业务范围。关键词包括'比特币"
+    },
+    {
+      "id": "g093",
+      "question": "帮我写一份离婚财产分割协议",
+      "expected": "chitchat",
+      "got": "unknown",
+      "confidence": 0.99,
+      "rule": false,
+      "explanation": "[CoT] 核心诉求是要求撰写离婚财产分割协议，这属于法律文书起草，与银行业务、理财产品、金融服务均无关。关键词包括“离婚财产分割协议”，指向法律咨询或文书代写"
+    },
+    {
+      "id": "g094",
+      "question": "明天的大盘会涨还是跌？",
+      "expected": "chitchat",
+      "got": "unknown",
+      "confidence": 0.95,
+      "rule": false,
+      "explanation": "[CoT] 核心诉求是预测股市大盘走势，属于投资市场预测，不在银行理财产品咨询、购买流程、风险测评、存款保险、费用规则、投诉举报、客服服务规则等定义范围内。关键"
+    },
+    {
+      "id": "g095",
+      "question": "那个理财怎么样？",
+      "expected": "chitchat",
+      "got": "product_consult",
+      "confidence": 0.85,
+      "rule": false,
+      "explanation": "[CoT] 用户问题核心诉求是询问某款理财产品的整体情况，属于单款产品咨询。关键词包括“那个理财”“怎么样”，指向产品咨询意图。由于没有提及多款产品对比、风险等"
+    },
+    {
+      "id": "g096",
+      "question": "收益怎么样？",
+      "expected": "chitchat",
+      "got": "income_question",
+      "confidence": 0.9,
+      "rule": false,
+      "explanation": "[CoT] 用户问题为“收益怎么样？”，核心诉求是询问某产品的收益情况。关键词“收益”指向收益口径或产品收益咨询。由于缺少产品名称和上下文，无法确定具体产品，但"
+    },
+    {
+      "id": "g104",
+      "question": "投诉理财经理应该找谁？",
+      "expected": "chitchat",
+      "got": "complaint",
+      "confidence": 0.92,
+      "rule": true,
+      "explanation": "强信号规则命中: 投诉"
+    }
+  ]
+}

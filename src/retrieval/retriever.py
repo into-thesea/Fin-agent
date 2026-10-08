@@ -16,10 +16,9 @@
 
 from __future__ import annotations
 
-import os
-import json
 import logging
-from typing import Optional, Any
+import os
+from typing import Any, Optional
 
 # 强制 HuggingFace 离线 — 本机网络连不上 huggingface.co
 os.environ.setdefault("HF_HUB_OFFLINE", "1")
@@ -29,6 +28,7 @@ os.environ.setdefault("TRANSFORMERS_OFFLINE", "1")
 # import torch 前设 CUDA_VISIBLE_DEVICES=-1, 跳过CUDA库加载, bge冷启动降到约0.3s。
 # 需要GPU: .env 设 EMBED_DEVICE=cuda (不写入-1, 允许探测)。
 from dotenv import load_dotenv as _load_dotenv
+
 _ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 _load_dotenv(os.path.join(_ROOT, ".env"), override=False)
 if os.getenv("EMBED_DEVICE", "cpu").strip().lower() == "cpu":
@@ -138,7 +138,7 @@ class HybridRetriever:
         self._init_bm25()
 
         # 5. 重排器 —— 由可编辑配置决定, 惰性构建 (见 _reranker_for)
-        from src.config import settings as _s   # 仅用于首次启动提示
+        from src.config import settings as _s  # 仅用于首次启动提示
         self.reranker = None
         self._reranker_model = ""
         self.rerank_pool = 0
@@ -400,6 +400,7 @@ class HybridRetriever:
         if self._parent_map is not None:
             return self._parent_map
         import json as _json
+
         from src.infra.paths import CHUNKS_PROCESSED_PATH
         parent_map = {}
         try:
@@ -576,6 +577,7 @@ class HybridRetriever:
         会和线上实际排序不一致, 而"如实反映线上发生了什么"正是这个视图的全部价值。
         """
         import time as _t
+
         from src.core.kb_settings import get_retrieval
         from src.retrieval.bm25_index import rrf_fusion
 

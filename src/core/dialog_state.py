@@ -15,12 +15,10 @@
     重启后从 Redis 恢复，适合多机部署
 """
 
-import os
-import json
 import logging
 import threading
+from dataclasses import asdict, dataclass, field
 from typing import Optional
-from dataclasses import dataclass, field, asdict
 
 logger = logging.getLogger(__name__)
 
@@ -167,7 +165,7 @@ class DialogStateManager:
             if l2:
                 state.current_l2 = l2
             # 负面轮次累计 (先算: 情绪判定要用到本轮累计后的值)
-            from src.core.emotion import is_negative, detect_emotion
+            from src.core.emotion import detect_emotion, is_negative
             if is_negative(query):
                 state.negative_turns += 1
             else:

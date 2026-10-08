@@ -11,14 +11,14 @@ ReviewerAgent — 反幻觉验证智能体
   Agent 生成回答 → ReviewerAgent 验证 → 通过则返回 → 否则触发重新生成
 """
 
-import os
 import json
-import re
 import logging
-from typing import Optional
+import os
+import re
 from dataclasses import dataclass, field
 
 from dotenv import load_dotenv
+
 from src.llm.llm_client import create_client
 from src.retrieval.retriever import format_graph_context
 

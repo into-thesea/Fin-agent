@@ -2,8 +2,9 @@
 检索器单元测试 (不需要外部依赖的测试)
 """
 
-import sys
 import os
+import sys
+
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(__file__))))
 
 import numpy as np
@@ -26,8 +27,8 @@ class TestRetrievalConfigWiring:
     """策略页上可编辑的每个检索参数都必须真的驱动行为"""
 
     def test_rrf_k_comes_from_config(self, monkeypatch):
-        from src.retrieval import retriever as mod
         from src.core import kb_settings
+        from src.retrieval import retriever as mod
 
         seen = {}
         monkeypatch.setattr(mod, "rrf_fusion",
@@ -47,16 +48,17 @@ class TestRetrievalConfigWiring:
 
     def test_mmr_lambda_comes_from_config(self, monkeypatch):
         """MMR 的 λ 目前硬编码 0.5, 必须改成读配置"""
-        from src.retrieval import retriever as mod
         import inspect as _i
+
+        from src.retrieval import retriever as mod
         src = _i.getsource(mod.HybridRetriever.vector_search)
         assert "lambd=0.5" not in src, "λ 仍是硬编码, 配置改了不生效"
         assert "lambd=" in src and ("cfg" in src or "get_retrieval" in src)
 
     def test_top_k_comes_from_config_but_explicit_arg_wins(self, monkeypatch):
         """不传 top_k 的调用方跟随配置; 显式传的调用方行为不变"""
-        from src.retrieval import retriever as mod
         from src.core import kb_settings
+        from src.retrieval import retriever as mod
 
         seen = {}
         monkeypatch.setattr(mod, "rrf_fusion",

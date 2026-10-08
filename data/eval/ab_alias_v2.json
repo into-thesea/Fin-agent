@@ -1,0 +1,1194 @@
+{
+  "total": 56,
+  "recall": {
+    "1": 0.5357142857142857,
+    "2": 0.6964285714285714,
+    "3": 0.7857142857142857,
+    "4": 0.8392857142857143,
+    "5": 0.8571428571428571,
+    "6": 0.875,
+    "7": 0.875,
+    "8": 0.875,
+    "9": 0.875,
+    "10": 0.8928571428571429
+  },
+  "mrr": 0.6675595238095237,
+  "per_record": [
+    {
+      "id": 1,
+      "question": "银行代销产品是什么意思？",
+      "rewritten": null,
+      "golden": [
+        "kb_agency_products_31e49ea294"
+      ],
+      "retrieved": [
+        "kb_agency_products_31e49ea294",
+        "kb_agency_products_7342a10864",
+        "kb_agency_products_e481e0b135",
+        "kb_agency_products_9ddf30a0a0",
+        "kb_prod_p010_20259add69",
+        "kb_prod_p019_c78a231fb5",
+        "kb_prod_p021_5328d8ad58",
+        "kb_prod_p012_51c7bb4ec0",
+        "kb_prod_p020_5328d8ad58",
+        "kb_insurance_products_3bc03b98bb"
+      ],
+      "hit_rank": 1
+    },
+    {
+      "id": 2,
+      "question": "银行代销的基金、保险是银行自己发行的吗？",
+      "rewritten": null,
+      "golden": [
+        "kb_agency_products_31e49ea294"
+      ],
+      "retrieved": [
+        "kb_agency_products_31e49ea294",
+        "kb_prod_p012_51c7bb4ec0",
+        "kb_insurance_products_3bc03b98bb",
+        "kb_agency_products_e481e0b135",
+        "kb_agency_products_9ddf30a0a0",
+        "kb_prod_p008_15d525daa8",
+        "kb_agency_products_7342a10864",
+        "kb_deposit_insurance_411035f34f",
+        "kb_prod_p009_58e45ece76",
+        "kb_prod_p016_c78a231fb5"
+      ],
+      "hit_rank": 1
+    },
+    {
+      "id": 3,
+      "question": "家庭资产配置应该遵循哪些基本原则？",
+      "rewritten": null,
+      "golden": [
+        "kb_asset_allocation_66253fc790"
+      ],
+      "retrieved": [
+        "kb_asset_allocation_66253fc790",
+        "kb_asset_allocation_66253fc790",
+        "kb_asset_allocation_66253fc790",
+        "kb_asset_allocation_66253fc790",
+        "kb_gold_knowledge_afbcb50ead",
+        "kb_shopping_guide_b257eca901",
+        "kb_shopping_guide_b257eca901",
+        "kb_prod_p024_ad0e6ca782",
+        "kb_shopping_guide_b257eca901",
+        "kb_prod_p010_43dfcec86a"
+      ],
+      "hit_rank": 1
+    },
+    {
+      "id": 4,
+      "question": "不同风险等级的产品分别适合什么类型的投资者？",
+      "rewritten": null,
+      "golden": [
+        "kb_asset_allocation_66253fc790"
+      ],
+      "retrieved": [
+        "kb_risk_level_c9affe4d28",
+        "kb_risk_level_c9affe4d28",
+        "kb_risk_level_7a3abd872d",
+        "kb_risk_level_c9affe4d28",
+        "kb_risk_level_c9affe4d28",
+        "kb_risk_level_ff1b76ac5c",
+        "kb_prod_p005_caae90d2e0",
+        "kb_prod_p005_43dfcec86a",
+        "kb_prod_p023_caae90d2e0",
+        "kb_risk_level_ff1b76ac5c"
+      ],
+      "hit_rank": null
+    },
+    {
+      "id": 5,
+      "question": "买理财产品之前需要先做什么准备？",
+      "rewritten": null,
+      "golden": [
+        "kb_buy_process_0260fa54ca"
+      ],
+      "retrieved": [
+        "kb_buy_process_0260fa54ca",
+        "kb_buy_process_45edb6e083",
+        "kb_risk_level_7a3abd872d",
+        "kb_deposit_insurance_e07dcb1b16",
+        "kb_trust_knowledge_ad59f5b0c7",
+        "kb_redeem_and_fee_a16234502d",
+        "kb_fraud_report_21b974f405",
+        "kb_risk_level_c9affe4d28",
+        "kb_agency_products_7342a10864",
+        "kb_prod_p001_f5c093427e"
+      ],
+      "hit_rank": 1
+    },
+    {
+      "id": 6,
+      "question": "我的风险测评过期了或者等级不匹配，还能直接买理财产品吗？",
+      "rewritten": null,
+      "golden": [
+        "kb_buy_process_0260fa54ca"
+      ],
+      "retrieved": [
+        "kb_risk_level_7a3abd872d",
+        "kb_buy_process_0260fa54ca",
+        "kb_prod_p004_8282cb51a8",
+        "kb_prod_p005_caae90d2e0",
+        "kb_prod_p013_a233b719d2",
+        "kb_agency_products_7342a10864",
+        "kb_risk_level_c9affe4d28",
+        "kb_risk_level_a3cbf9f464",
+        "kb_prod_p002_43dfcec86a",
+        "kb_trust_knowledge_ad59f5b0c7"
+      ],
+      "hit_rank": 2
+    },
+    {
+      "id": 7,
+      "question": "冷静期内撤单要收费吗？确认后还能撤吗？",
+      "rewritten": null,
+      "golden": [
+        "kb_buy_process_095a8dce30"
+      ],
+      "retrieved": [
+        "kb_redeem_and_fee_fc150cab0e",
+        "kb_buy_process_095a8dce30",
+        "kb_terms_faq_c1a3cbf00c",
+        "kb_prod_p015_bb40617f21",
+        "kb_risk_level_a3cbf9f464",
+        "kb_prod_p003_880e8b7921",
+        "kb_terms_faq_133f5c67a3",
+        "kb_buy_process_133f5c67a3",
+        "kb_prod_p016_9f8d741872",
+        "kb_prod_p004_0ee0b49743"
+      ],
+      "hit_rank": 2
+    },
+    {
+      "id": 8,
+      "question": "现金管理类产品有冷静期吗？",
+      "rewritten": null,
+      "golden": [
+        "kb_buy_process_095a8dce30"
+      ],
+      "retrieved": [
+        "kb_buy_process_095a8dce30",
+        "kb_terms_faq_c1a3cbf00c",
+        "kb_prod_p001_f5c093427e",
+        "kb_redeem_and_fee_fc150cab0e",
+        "kb_prod_p001_5328d8ad58",
+        "kb_prod_p001_43dfcec86a",
+        "kb_income_and_interest_7338618aa4",
+        "kb_redeem_and_fee_021f91cd8f",
+        "kb_prod_p010_f63827f9de",
+        "kb_prod_p006_7eafef03d9"
+      ],
+      "hit_rank": 1
+    },
+    {
+      "id": 9,
+      "question": "你们能直接告诉我具体的收益和费率数字吗？",
+      "rewritten": null,
+      "golden": [
+        "kb_complaints_human_90c81f1145"
+      ],
+      "retrieved": [
+        "kb_complaints_human_90c81f1145",
+        "kb_income_and_interest_dea331a440",
+        "kb_income_and_interest_f164ecb18d",
+        "kb_prod_p007_7d142c97e3",
+        "kb_fund_knowledge_7b740e7c3c",
+        "kb_prod_p014_7d142c97e3",
+        "kb_prod_p006_7d142c97e3",
+        "kb_prod_p008_43dfcec86a",
+        "kb_buy_process_0260fa54ca",
+        "kb_prod_p022_7d142c97e3"
+      ],
+      "hit_rank": 1
+    },
+    {
+      "id": 10,
+      "question": "银行理财亏了，存款保险赔吗？",
+      "rewritten": null,
+      "golden": [
+        "kb_deposit_insurance_2bfdba9fc8"
+      ],
+      "retrieved": [
+        "kb_deposit_insurance_2bfdba9fc8",
+        "kb_deposit_insurance_411035f34f",
+        "kb_prod_p010_c78a231fb5",
+        "kb_terms_faq_e9b2a50eaf",
+        "kb_deposit_insurance_e07dcb1b16",
+        "kb_insurance_products_ed32c29498",
+        "kb_insurance_products_3bc03b98bb",
+        "kb_prod_p007_13ea5459de",
+        "kb_deposit_insurance_c2656e72d8",
+        "kb_fund_knowledge_e31ec46bf6"
+      ],
+      "hit_rank": 1
+    },
+    {
+      "id": 11,
+      "question": "大额存单受不受存款保险保护？",
+      "rewritten": null,
+      "golden": [
+        "kb_deposit_insurance_2bfdba9fc8"
+      ],
+      "retrieved": [
+        "kb_deposit_insurance_2bfdba9fc8",
+        "kb_prod_p006_a2b152aa94",
+        "kb_prod_p006_bf0b82f885",
+        "kb_prod_p006_5328d8ad58",
+        "kb_agency_products_e481e0b135",
+        "kb_prod_p016_c78a231fb5",
+        "kb_deposit_insurance_411035f34f",
+        "kb_prod_p007_13ea5459de",
+        "kb_deposit_insurance_b9039f489a",
+        "kb_prod_p015_f5c093427e"
+      ],
+      "hit_rank": 1
+    },
+    {
+      "id": 12,
+      "question": "朋友推荐我扫码转账买理财，客服能帮我确认是不是骗局吗？",
+      "rewritten": null,
+      "golden": [
+        "kb_fraud_report_5e399d792d"
+      ],
+      "retrieved": [
+        "kb_fraud_report_5e399d792d",
+        "kb_privacy_security_702a3bff6f",
+        "kb_fraud_report_2ddad915bf",
+        "kb_prod_p006_bf0b82f885",
+        "kb_prod_p010_c78a231fb5",
+        "kb_buy_process_45edb6e083",
+        "kb_insurance_products_8056b40099",
+        "kb_prod_p012_7d142c97e3",
+        "kb_buy_process_0260fa54ca",
+        "kb_buy_process_22d781d795"
+      ],
+      "hit_rank": 1
+    },
+    {
+      "id": 13,
+      "question": "万份收益是什么意思？",
+      "rewritten": null,
+      "golden": [
+        "kb_income_and_interest_7338618aa4"
+      ],
+      "retrieved": [
+        "kb_income_and_interest_7338618aa4",
+        "kb_terms_faq_dc83c3a15a",
+        "kb_prod_p001_7d142c97e3",
+        "kb_prod_p022_7d142c97e3",
+        "kb_prod_p012_7d142c97e3",
+        "kb_prod_p023_7d142c97e3",
+        "kb_income_and_interest_f164ecb18d",
+        "kb_income_and_interest_e453dfeb14",
+        "kb_prod_p014_7d142c97e3",
+        "kb_prod_p007_0bb57a644d"
+      ],
+      "hit_rank": 1
+    },
+    {
+      "id": 14,
+      "question": "百万医疗险的免赔额是多少？保额有多少？",
+      "rewritten": null,
+      "golden": [
+        "kb_insurance_knowledge_8cdf364e84"
+      ],
+      "retrieved": [
+        "kb_prod_p017_afb82c2edd",
+        "kb_insurance_knowledge_8cdf364e84",
+        "kb_prod_p017_5328d8ad58",
+        "kb_prod_p017_c020817cb8",
+        "kb_prod_p017_6961069714",
+        "kb_insurance_knowledge_1ed112ce67",
+        "kb_insurance_knowledge_1ed112ce67",
+        "kb_insurance_knowledge_1ed112ce67",
+        "kb_prod_p017_c78a231fb5",
+        "kb_prod_p016_43dfcec86a"
+      ],
+      "hit_rank": 2
+    },
+    {
+      "id": 15,
+      "question": "意外险主要保障哪些内容？保费贵吗？",
+      "rewritten": null,
+      "golden": [
+        "kb_insurance_knowledge_8cdf364e84"
+      ],
+      "retrieved": [
+        "kb_prod_p018_c78a231fb5",
+        "kb_insurance_knowledge_8cdf364e84",
+        "kb_prod_p018_e6db4237cb",
+        "kb_prod_p018_a9ba036ef9",
+        "kb_prod_p018_5328d8ad58",
+        "kb_insurance_knowledge_8cdf364e84",
+        "kb_prod_p019_0396e24658",
+        "kb_prod_p018_43dfcec86a",
+        "kb_prod_p019_767aed0604",
+        "kb_insurance_knowledge_8cdf364e84"
+      ],
+      "hit_rank": 2
+    },
+    {
+      "id": 16,
+      "question": "增额终身寿险和年金险有什么区别？",
+      "rewritten": null,
+      "golden": [
+        "kb_insurance_knowledge_4d7a2b2619"
+      ],
+      "retrieved": [
+        "kb_insurance_knowledge_4d7a2b2619",
+        "kb_insurance_knowledge_4d7a2b2619",
+        "kb_insurance_knowledge_4d7a2b2619",
+        "kb_prod_p019_0396e24658",
+        "kb_insurance_products_3bc03b98bb",
+        "kb_prod_p010_5328d8ad58",
+        "kb_insurance_knowledge_8cdf364e84",
+        "kb_shopping_guide_b257eca901",
+        "kb_prod_p011_c78a231fb5",
+        "kb_prod_p011_43dfcec86a"
+      ],
+      "hit_rank": 1
+    },
+    {
+      "id": 17,
+      "question": "存款、银行理财和保险这三种产品有什么区别？",
+      "rewritten": null,
+      "golden": [
+        "kb_insurance_products_ed32c29498"
+      ],
+      "retrieved": [
+        "kb_deposit_insurance_411035f34f",
+        "kb_insurance_products_3bc03b98bb",
+        "kb_fund_knowledge_e31ec46bf6",
+        "kb_insurance_products_ed32c29498",
+        "kb_agency_products_9ddf30a0a0",
+        "kb_terms_faq_e9b2a50eaf",
+        "kb_deposit_insurance_2bfdba9fc8",
+        "kb_prod_p010_c78a231fb5",
+        "kb_agency_products_31e49ea294",
+        "kb_prod_p007_13ea5459de"
+      ],
+      "hit_rank": 4
+    },
+    {
+      "id": 18,
+      "question": "我发现我的账户可能信息泄露了，应该怎么办？",
+      "rewritten": null,
+      "golden": [
+        "kb_privacy_security_af1b8bc891"
+      ],
+      "retrieved": [
+        "kb_privacy_security_af1b8bc891",
+        "kb_privacy_security_960daaceed",
+        "kb_fraud_report_2ddad915bf",
+        "kb_privacy_security_9e99d914e2",
+        "kb_complaints_human_92bfbb67ef",
+        "kb_prod_p021_c80d87ff2f",
+        "kb_fraud_report_cf331d4495",
+        "kb_buy_process_45edb6e083",
+        "kb_privacy_security_702a3bff6f",
+        "kb_complaints_human_e1c162b1fd"
+      ],
+      "hit_rank": 1
+    },
+    {
+      "id": 19,
+      "question": "我怀疑账户信息泄露，联系客服后你们会怎么处理？",
+      "rewritten": null,
+      "golden": [
+        "kb_privacy_security_af1b8bc891"
+      ],
+      "retrieved": [
+        "kb_privacy_security_af1b8bc891",
+        "kb_privacy_security_960daaceed",
+        "kb_fraud_report_2ddad915bf",
+        "kb_privacy_security_9e99d914e2",
+        "kb_fraud_report_5e399d792d",
+        "kb_complaints_human_b3bb315bc3",
+        "kb_complaints_human_92bfbb67ef",
+        "kb_complaints_human_e1c162b1fd",
+        "kb_complaints_human_90c81f1145",
+        "kb_privacy_security_ec91d39094"
+      ],
+      "hit_rank": 1
+    },
+    {
+      "id": 20,
+      "question": "买理财产品要收哪些费用？",
+      "rewritten": null,
+      "golden": [
+        "kb_redeem_and_fee_a16234502d"
+      ],
+      "retrieved": [
+        "kb_redeem_and_fee_a16234502d",
+        "kb_buy_process_0260fa54ca",
+        "kb_deposit_insurance_e07dcb1b16",
+        "kb_income_and_interest_f164ecb18d",
+        "kb_buy_process_45edb6e083",
+        "kb_fraud_report_5e399d792d",
+        "kb_prod_p001_f5c093427e",
+        "kb_prod_p001_9836a95e9d",
+        "kb_prod_p004_5328d8ad58",
+        "kb_prod_p002_5328d8ad58"
+      ],
+      "hit_rank": 1
+    },
+    {
+      "id": 21,
+      "question": "代销的公募基金怎么收费？",
+      "rewritten": null,
+      "golden": [
+        "kb_redeem_and_fee_a16234502d"
+      ],
+      "retrieved": [
+        "kb_redeem_and_fee_a16234502d",
+        "kb_prod_p012_51c7bb4ec0",
+        "kb_agency_products_9ddf30a0a0",
+        "kb_prod_p015_bb40617f21",
+        "kb_prod_p009_58e45ece76",
+        "kb_fund_knowledge_9d9df9d3ae",
+        "kb_fund_knowledge_9d9df9d3ae",
+        "kb_agency_products_e481e0b135",
+        "kb_agency_products_31e49ea294",
+        "kb_agency_products_7342a10864"
+      ],
+      "hit_rank": 1
+    },
+    {
+      "id": 22,
+      "question": "R2 风险等级适合买哪些产品？适合什么样的人？",
+      "rewritten": null,
+      "golden": [
+        "kb_risk_level_c9affe4d28"
+      ],
+      "retrieved": [
+        "kb_prod_p002_43dfcec86a",
+        "kb_risk_level_c9affe4d28",
+        "kb_risk_level_c9affe4d28",
+        "kb_prod_p004_8282cb51a8",
+        "kb_risk_level_c9affe4d28",
+        "kb_agency_products_7342a10864",
+        "kb_risk_level_ff1b76ac5c",
+        "kb_prod_p016_5328d8ad58",
+        "kb_asset_allocation_66253fc790",
+        "kb_risk_level_c9affe4d28"
+      ],
+      "hit_rank": 2
+    },
+    {
+      "id": 23,
+      "question": "你们推荐的理财产品有风险吗？",
+      "rewritten": null,
+      "golden": [
+        "kb_terms_faq_8acc39f4d2"
+      ],
+      "retrieved": [
+        "kb_terms_faq_8acc39f4d2",
+        "kb_risk_level_a2f1a8ebde",
+        "kb_insurance_products_ed32c29498",
+        "kb_agency_products_7342a10864",
+        "kb_deposit_insurance_e07dcb1b16",
+        "kb_risk_level_c9affe4d28",
+        "kb_buy_process_0260fa54ca",
+        "kb_prod_p002_5328d8ad58",
+        "kb_shopping_guide_b257eca901",
+        "kb_prod_p001_f5c093427e"
+      ],
+      "hit_rank": 1
+    },
+    {
+      "id": 24,
+      "question": "这个基金说的业绩比较基准能保证我拿到这个收益吗？",
+      "rewritten": "安鑫纯债基金基金说的业绩比较基准能保证我拿到安鑫纯债基金收益吗？",
+      "golden": [
+        "kb_terms_faq_8acc39f4d2"
+      ],
+      "retrieved": [
+        "kb_income_and_interest_e453dfeb14",
+        "kb_prod_p008_5328d8ad58",
+        "kb_prod_p002_7d142c97e3",
+        "kb_prod_p005_e348a20668",
+        "kb_prod_p003_7d142c97e3",
+        "kb_prod_p004_7d142c97e3",
+        "kb_prod_p009_7d142c97e3",
+        "kb_prod_p008_7d142c97e3",
+        "kb_terms_faq_0d835fb3d3",
+        "kb_terms_faq_8acc39f4d2"
+      ],
+      "hit_rank": 10
+    },
+    {
+      "id": 25,
+      "question": "存款保险能保多少钱？",
+      "rewritten": null,
+      "golden": [
+        "kb_terms_faq_e9b2a50eaf"
+      ],
+      "retrieved": [
+        "kb_terms_faq_e9b2a50eaf",
+        "kb_deposit_insurance_c2656e72d8",
+        "kb_deposit_insurance_2bfdba9fc8",
+        "kb_deposit_insurance_411035f34f",
+        "kb_agency_products_e481e0b135",
+        "kb_prod_p017_c78a231fb5",
+        "kb_deposit_insurance_b9039f489a",
+        "kb_deposit_insurance_e07dcb1b16",
+        "kb_prod_p016_c78a231fb5",
+        "kb_prod_p007_13ea5459de"
+      ],
+      "hit_rank": 1
+    },
+    {
+      "id": 26,
+      "question": "这个产品是不是保证能拿到 3 个点的收益？",
+      "rewritten": "稳盈添利30天是不是保证能拿到 3 个点的收益？",
+      "golden": [
+        "kb_prod_p002_7d142c97e3"
+      ],
+      "retrieved": [
+        "kb_prod_p002_5328d8ad58",
+        "kb_prod_p002_7d142c97e3",
+        "kb_prod_p007_7d142c97e3",
+        "kb_prod_p003_7d142c97e3",
+        "kb_prod_p012_7d142c97e3",
+        "kb_prod_p007_0bb57a644d",
+        "kb_prod_p023_7d142c97e3",
+        "kb_prod_p013_7d142c97e3",
+        "kb_income_and_interest_e453dfeb14",
+        "kb_prod_p010_7d142c97e3"
+      ],
+      "hit_rank": 2
+    },
+    {
+      "id": 27,
+      "question": "业绩比较基准能代表实际收益吗？",
+      "rewritten": null,
+      "golden": [
+        "kb_prod_p003_7d142c97e3"
+      ],
+      "retrieved": [
+        "kb_income_and_interest_e453dfeb14",
+        "kb_prod_p002_7d142c97e3",
+        "kb_terms_faq_0d835fb3d3",
+        "kb_prod_p003_7d142c97e3",
+        "kb_terms_faq_8acc39f4d2",
+        "kb_prod_p004_7d142c97e3",
+        "kb_prod_p009_7d142c97e3",
+        "kb_prod_p005_e348a20668",
+        "kb_prod_p010_7d142c97e3",
+        "kb_income_and_interest_dea331a440"
+      ],
+      "hit_rank": 4
+    },
+    {
+      "id": 28,
+      "question": "业绩比较基准4.00%是保证收益吗？",
+      "rewritten": null,
+      "golden": [
+        "kb_prod_p004_7d142c97e3"
+      ],
+      "retrieved": [
+        "kb_prod_p002_7d142c97e3",
+        "kb_income_and_interest_e453dfeb14",
+        "kb_prod_p004_7d142c97e3",
+        "kb_terms_faq_0d835fb3d3",
+        "kb_prod_p003_7d142c97e3",
+        "kb_prod_p009_7d142c97e3",
+        "kb_prod_p005_e348a20668",
+        "kb_prod_p010_7d142c97e3",
+        "kb_prod_p007_7d142c97e3",
+        "kb_terms_faq_8acc39f4d2"
+      ],
+      "hit_rank": 3
+    },
+    {
+      "id": 29,
+      "question": "这个产品风险大吗？净值波动怎么样？",
+      "rewritten": "平衡增利180天风险大吗？净值波动怎么样？",
+      "golden": [
+        "kb_prod_p004_7d142c97e3"
+      ],
+      "retrieved": [
+        "kb_prod_p004_5328d8ad58",
+        "kb_prod_p005_e348a20668",
+        "kb_prod_p009_a233b719d2",
+        "kb_risk_level_ff1b76ac5c",
+        "kb_prod_p003_f5c093427e",
+        "kb_risk_level_c9affe4d28",
+        "kb_prod_p015_7d142c97e3",
+        "kb_prod_p013_a233b719d2",
+        "kb_terms_faq_db6967e012",
+        "kb_prod_p009_7d142c97e3"
+      ],
+      "hit_rank": null
+    },
+    {
+      "id": 30,
+      "question": "我想买这个产品，需要满足什么条件？",
+      "rewritten": "我想买私银聚享混合策略，需要满足什么条件？",
+      "golden": [
+        "kb_prod_p005_caae90d2e0"
+      ],
+      "retrieved": [
+        "kb_prod_p005_5328d8ad58",
+        "kb_agency_products_7342a10864",
+        "kb_prod_p005_caae90d2e0",
+        "kb_buy_process_0260fa54ca",
+        "kb_prod_p009_5328d8ad58",
+        "kb_prod_p023_43dfcec86a",
+        "kb_buy_process_45edb6e083",
+        "kb_fund_knowledge_9d9df9d3ae",
+        "kb_prod_p001_43dfcec86a",
+        "kb_prod_p023_caae90d2e0"
+      ],
+      "hit_rank": 3
+    },
+    {
+      "id": 31,
+      "question": "我的风险测评等级不够，还能买这个产品吗？",
+      "rewritten": "我的风险测评等级不够，还能买私银聚享混合策略吗？",
+      "golden": [
+        "kb_prod_p005_caae90d2e0"
+      ],
+      "retrieved": [
+        "kb_prod_p005_5328d8ad58",
+        "kb_prod_p005_caae90d2e0",
+        "kb_risk_level_7a3abd872d",
+        "kb_risk_level_e458c84d59",
+        "kb_prod_p013_a233b719d2",
+        "kb_agency_products_7342a10864",
+        "kb_prod_p002_43dfcec86a",
+        "kb_risk_level_a3cbf9f464",
+        "kb_buy_process_0260fa54ca",
+        "kb_prod_p009_a233b719d2"
+      ],
+      "hit_rank": 2
+    },
+    {
+      "id": 32,
+      "question": "这个产品的执行利率是多少？",
+      "rewritten": "大额存单3年期的执行利率是多少？",
+      "golden": [
+        "kb_prod_p006_7d142c97e3"
+      ],
+      "retrieved": [
+        "kb_prod_p006_7d142c97e3",
+        "kb_prod_p006_5328d8ad58",
+        "kb_prod_p006_bf0b82f885",
+        "kb_redeem_and_fee_8da559a475",
+        "kb_prod_p006_a2b152aa94",
+        "kb_prod_p006_e9b8a43f15",
+        "kb_prod_p020_5328d8ad58",
+        "kb_prod_p020_7d142c97e3",
+        "kb_deposit_insurance_2bfdba9fc8",
+        "kb_bond_knowledge_edafec024b"
+      ],
+      "hit_rank": 1
+    },
+    {
+      "id": 33,
+      "question": "如果我提前支取会有什么影响？",
+      "rewritten": null,
+      "golden": [
+        "kb_prod_p006_7d142c97e3"
+      ],
+      "retrieved": [
+        "kb_redeem_and_fee_8da559a475",
+        "kb_prod_p006_7d142c97e3",
+        "kb_redeem_and_fee_ff802dc92f",
+        "kb_prod_p020_ad55ba27b3",
+        "kb_prod_p011_f63827f9de",
+        "kb_prod_p007_0bb57a644d",
+        "kb_prod_p006_e9b8a43f15",
+        "kb_bond_knowledge_edafec024b",
+        "kb_prod_p024_ad0e6ca782",
+        "kb_terms_faq_db0f23db31"
+      ],
+      "hit_rank": 2
+    },
+    {
+      "id": 34,
+      "question": "纯债基金的净值会亏损吗？",
+      "rewritten": null,
+      "golden": [
+        "kb_prod_p008_7d142c97e3"
+      ],
+      "retrieved": [
+        "kb_prod_p008_7d142c97e3",
+        "kb_prod_p008_5328d8ad58",
+        "kb_risk_level_c9affe4d28",
+        "kb_agency_products_7342a10864",
+        "kb_fund_knowledge_9d9df9d3ae",
+        "kb_terms_faq_db6967e012",
+        "kb_prod_p014_7d142c97e3",
+        "kb_fund_knowledge_7b740e7c3c",
+        "kb_bond_knowledge_8856ce4a65",
+        "kb_prod_p022_7d142c97e3"
+      ],
+      "hit_rank": 1
+    },
+    {
+      "id": 35,
+      "question": "纯债基金近1年收益率能代表未来收益吗？",
+      "rewritten": null,
+      "golden": [
+        "kb_prod_p008_7d142c97e3"
+      ],
+      "retrieved": [
+        "kb_prod_p008_7d142c97e3",
+        "kb_prod_p015_7d142c97e3",
+        "kb_prod_p009_7d142c97e3",
+        "kb_prod_p008_5328d8ad58",
+        "kb_income_and_interest_f164ecb18d",
+        "kb_prod_p012_7d142c97e3",
+        "kb_prod_p008_15d525daa8",
+        "kb_income_and_interest_7338618aa4",
+        "kb_prod_p023_7d142c97e3",
+        "kb_agency_products_7342a10864"
+      ],
+      "hit_rank": 1
+    },
+    {
+      "id": 36,
+      "question": "你们这只基金有业绩比较基准吗？能保证收益吗？",
+      "rewritten": null,
+      "golden": [
+        "kb_prod_p009_7d142c97e3"
+      ],
+      "retrieved": [
+        "kb_income_and_interest_e453dfeb14",
+        "kb_prod_p002_7d142c97e3",
+        "kb_prod_p009_7d142c97e3",
+        "kb_prod_p005_e348a20668",
+        "kb_prod_p003_7d142c97e3",
+        "kb_prod_p004_7d142c97e3",
+        "kb_terms_faq_0d835fb3d3",
+        "kb_terms_faq_8acc39f4d2",
+        "kb_risk_level_a2f1a8ebde",
+        "kb_prod_p008_15d525daa8"
+      ],
+      "hit_rank": 3
+    },
+    {
+      "id": 37,
+      "question": "投保后犹豫期是多久？犹豫期内退保能全额退款吗？",
+      "rewritten": null,
+      "golden": [
+        "kb_prod_p010_f63827f9de"
+      ],
+      "retrieved": [
+        "kb_prod_p016_9f8d741872",
+        "kb_prod_p019_9f8d741872",
+        "kb_insurance_products_852eadc305",
+        "kb_prod_p011_f63827f9de",
+        "kb_prod_p010_f63827f9de",
+        "kb_prod_p011_20259add69",
+        "kb_insurance_products_8056b40099",
+        "kb_deposit_insurance_b9039f489a",
+        "kb_insurance_knowledge_4d7a2b2619",
+        "kb_prod_p023_b3eadbe751"
+      ],
+      "hit_rank": 5
+    },
+    {
+      "id": 38,
+      "question": "过了犹豫期再退保会亏本金吗？为什么？",
+      "rewritten": null,
+      "golden": [
+        "kb_prod_p010_f63827f9de"
+      ],
+      "retrieved": [
+        "kb_insurance_products_852eadc305",
+        "kb_prod_p016_9f8d741872",
+        "kb_prod_p011_f63827f9de",
+        "kb_prod_p019_9f8d741872",
+        "kb_prod_p010_7d142c97e3",
+        "kb_prod_p010_f63827f9de",
+        "kb_prod_p011_20259add69",
+        "kb_insurance_knowledge_4d7a2b2619",
+        "kb_insurance_products_8056b40099",
+        "kb_deposit_insurance_411035f34f"
+      ],
+      "hit_rank": 6
+    },
+    {
+      "id": 39,
+      "question": "这个养老年金保险是存款吗？受存款保险保障吗？",
+      "rewritten": "安享颐年养老年金养老年金保险是存款吗？受存款保险保障吗？",
+      "golden": [
+        "kb_prod_p011_c78a231fb5"
+      ],
+      "retrieved": [
+        "kb_prod_p011_c78a231fb5",
+        "kb_prod_p011_5328d8ad58",
+        "kb_insurance_knowledge_8cdf364e84",
+        "kb_prod_p019_c78a231fb5",
+        "kb_insurance_products_3bc03b98bb",
+        "kb_prod_p010_c78a231fb5",
+        "kb_deposit_insurance_411035f34f",
+        "kb_agency_products_e481e0b135",
+        "kb_prod_p016_c78a231fb5",
+        "kb_prod_p007_13ea5459de"
+      ],
+      "hit_rank": 1
+    },
+    {
+      "id": 40,
+      "question": "这个基金是你们银行自己发行的产品吗？",
+      "rewritten": "天天利货币基金基金是你们银行自己发行的产品吗？",
+      "golden": [
+        "kb_prod_p012_51c7bb4ec0"
+      ],
+      "retrieved": [
+        "kb_prod_p012_5328d8ad58",
+        "kb_prod_p008_15d525daa8",
+        "kb_prod_p012_51c7bb4ec0",
+        "kb_prod_p001_5328d8ad58",
+        "kb_prod_p012_43dfcec86a",
+        "kb_prod_p012_7d142c97e3",
+        "kb_fund_knowledge_7b740e7c3c",
+        "kb_agency_products_7342a10864",
+        "kb_agency_products_9ddf30a0a0",
+        "kb_fund_knowledge_9d9df9d3ae"
+      ],
+      "hit_rank": 3
+    },
+    {
+      "id": 41,
+      "question": "买这个基金会保本吗？亏了银行赔吗？",
+      "rewritten": "买天天利货币基金基金会保本吗？亏了银行赔吗？",
+      "golden": [
+        "kb_prod_p012_51c7bb4ec0"
+      ],
+      "retrieved": [
+        "kb_prod_p012_5328d8ad58",
+        "kb_prod_p001_f5c093427e",
+        "kb_deposit_insurance_2bfdba9fc8",
+        "kb_prod_p012_7d142c97e3",
+        "kb_income_and_interest_e67b3ffbbd",
+        "kb_fund_knowledge_e31ec46bf6",
+        "kb_prod_p008_15d525daa8",
+        "kb_prod_p005_f5c093427e",
+        "kb_risk_level_c9affe4d28",
+        "kb_insurance_products_ed32c29498"
+      ],
+      "hit_rank": null
+    },
+    {
+      "id": 42,
+      "question": "这个产品跟踪什么指数？",
+      "rewritten": "沪深300指数增强基金跟踪什么指数？",
+      "golden": [
+        "kb_prod_p013_7d142c97e3"
+      ],
+      "retrieved": [
+        "kb_prod_p013_5328d8ad58",
+        "kb_prod_p013_7d142c97e3",
+        "kb_fund_knowledge_9d9df9d3ae",
+        "kb_prod_p013_43dfcec86a",
+        "kb_prod_p004_43dfcec86a",
+        "kb_risk_level_c9affe4d28",
+        "kb_prod_p004_f5c093427e",
+        "kb_prod_p004_5328d8ad58",
+        "kb_shopping_guide_b257eca901",
+        "kb_fund_knowledge_e31ec46bf6"
+      ],
+      "hit_rank": 2
+    },
+    {
+      "id": 43,
+      "question": "这个产品有收益保障吗？",
+      "rewritten": "沪深300指数增强基金有收益保障吗？",
+      "golden": [
+        "kb_prod_p013_7d142c97e3"
+      ],
+      "retrieved": [
+        "kb_prod_p013_7d142c97e3",
+        "kb_prod_p013_5328d8ad58",
+        "kb_prod_p004_f5c093427e",
+        "kb_prod_p014_7d142c97e3",
+        "kb_prod_p004_43dfcec86a",
+        "kb_prod_p013_43dfcec86a",
+        "kb_prod_p009_a233b719d2",
+        "kb_prod_p004_5328d8ad58",
+        "kb_income_and_interest_e67b3ffbbd",
+        "kb_fund_knowledge_9d9df9d3ae"
+      ],
+      "hit_rank": 1
+    },
+    {
+      "id": 44,
+      "question": "这个基金的收益是怎么算的？",
+      "rewritten": "全球精选QDII股票基金基金的收益是怎么算的？",
+      "golden": [
+        "kb_prod_p014_7d142c97e3"
+      ],
+      "retrieved": [
+        "kb_prod_p014_5328d8ad58",
+        "kb_fund_knowledge_7b740e7c3c",
+        "kb_prod_p014_16a14ef4fd",
+        "kb_risk_level_c9affe4d28",
+        "kb_fund_knowledge_9d9df9d3ae",
+        "kb_fund_knowledge_9d9df9d3ae",
+        "kb_income_and_interest_f164ecb18d",
+        "kb_prod_p002_7d142c97e3",
+        "kb_income_and_interest_e453dfeb14",
+        "kb_fund_knowledge_e31ec46bf6"
+      ],
+      "hit_rank": null
+    },
+    {
+      "id": 45,
+      "question": "你们能给我一个预期收益数字吗？",
+      "rewritten": null,
+      "golden": [
+        "kb_prod_p014_7d142c97e3"
+      ],
+      "retrieved": [
+        "kb_prod_p023_7d142c97e3",
+        "kb_income_and_interest_dea331a440",
+        "kb_prod_p014_7d142c97e3",
+        "kb_complaints_human_90c81f1145",
+        "kb_prod_p022_7d142c97e3",
+        "kb_income_and_interest_f164ecb18d",
+        "kb_prod_p007_7d142c97e3",
+        "kb_trust_knowledge_ad59f5b0c7",
+        "kb_prod_p001_7d142c97e3",
+        "kb_terms_faq_8acc39f4d2"
+      ],
+      "hit_rank": 3
+    },
+    {
+      "id": 46,
+      "question": "FOF基金是不是会收两次费用？",
+      "rewritten": null,
+      "golden": [
+        "kb_prod_p015_bb40617f21"
+      ],
+      "retrieved": [
+        "kb_prod_p015_bb40617f21",
+        "kb_fund_knowledge_9d9df9d3ae",
+        "kb_prod_p015_f5c093427e",
+        "kb_prod_p015_5328d8ad58",
+        "kb_prod_p014_0ee0b49743",
+        "kb_fund_knowledge_7b740e7c3c",
+        "kb_prod_p012_9836a95e9d",
+        "kb_redeem_and_fee_a16234502d",
+        "kb_fund_knowledge_7b740e7c3c",
+        "kb_fund_knowledge_7b740e7c3c"
+      ],
+      "hit_rank": 1
+    },
+    {
+      "id": 47,
+      "question": "投保后多久可以全额退保？",
+      "rewritten": null,
+      "golden": [
+        "kb_prod_p016_9f8d741872"
+      ],
+      "retrieved": [
+        "kb_prod_p016_9f8d741872",
+        "kb_prod_p011_f63827f9de",
+        "kb_prod_p019_9f8d741872",
+        "kb_insurance_products_852eadc305",
+        "kb_prod_p010_f63827f9de",
+        "kb_deposit_insurance_b9039f489a",
+        "kb_insurance_knowledge_4d7a2b2619",
+        "kb_prod_p011_20259add69",
+        "kb_insurance_products_8056b40099",
+        "kb_prod_p010_7d142c97e3"
+      ],
+      "hit_rank": 1
+    },
+    {
+      "id": 48,
+      "question": "过了犹豫期退保能退多少钱？",
+      "rewritten": null,
+      "golden": [
+        "kb_prod_p016_9f8d741872"
+      ],
+      "retrieved": [
+        "kb_prod_p016_9f8d741872",
+        "kb_prod_p019_9f8d741872",
+        "kb_insurance_products_852eadc305",
+        "kb_prod_p011_f63827f9de",
+        "kb_prod_p010_f63827f9de",
+        "kb_prod_p011_20259add69",
+        "kb_prod_p010_7d142c97e3",
+        "kb_prod_p019_0396e24658",
+        "kb_insurance_products_8056b40099",
+        "kb_insurance_knowledge_4d7a2b2619"
+      ],
+      "hit_rank": 1
+    },
+    {
+      "id": 49,
+      "question": "这个医疗险是消费型的吗？交一年保一年吗？",
+      "rewritten": "百万医疗保险医疗险是消费型的吗？交一年保一年吗？",
+      "golden": [
+        "kb_prod_p017_c78a231fb5"
+      ],
+      "retrieved": [
+        "kb_prod_p017_c78a231fb5",
+        "kb_prod_p017_5328d8ad58",
+        "kb_prod_p017_afb82c2edd",
+        "kb_prod_p018_c78a231fb5",
+        "kb_prod_p017_6961069714",
+        "kb_insurance_knowledge_8cdf364e84",
+        "kb_insurance_knowledge_8cdf364e84",
+        "kb_insurance_knowledge_1ed112ce67",
+        "kb_prod_p017_43dfcec86a",
+        "kb_prod_p017_c020817cb8"
+      ],
+      "hit_rank": 1
+    },
+    {
+      "id": 50,
+      "question": "这个医疗险有现金价值吗？是存款或理财吗？受存款保险保障吗？",
+      "rewritten": "百万医疗保险医疗险有现金价值吗？是存款或理财吗？受存款保险保障吗？",
+      "golden": [
+        "kb_prod_p017_c78a231fb5"
+      ],
+      "retrieved": [
+        "kb_prod_p017_c78a231fb5",
+        "kb_prod_p010_c78a231fb5",
+        "kb_prod_p017_5328d8ad58",
+        "kb_insurance_products_3fcee789c5",
+        "kb_prod_p017_afb82c2edd",
+        "kb_prod_p018_c78a231fb5",
+        "kb_prod_p007_13ea5459de",
+        "kb_insurance_knowledge_8cdf364e84",
+        "kb_prod_p001_f5c093427e",
+        "kb_agency_products_e481e0b135"
+      ],
+      "hit_rank": 1
+    },
+    {
+      "id": 51,
+      "question": "家庭支柱定期寿险（P019）的起购金额是多少？",
+      "rewritten": null,
+      "golden": [
+        "kb_prod_p019_5328d8ad58"
+      ],
+      "retrieved": [
+        "kb_prod_p019_5328d8ad58",
+        "kb_prod_p019_767aed0604",
+        "kb_asset_allocation_66253fc790",
+        "kb_shopping_guide_b257eca901",
+        "kb_prod_p019_43dfcec86a",
+        "kb_prod_p011_5328d8ad58",
+        "kb_insurance_knowledge_8cdf364e84",
+        "kb_prod_p019_c78a231fb5",
+        "kb_prod_p016_43dfcec86a",
+        "kb_prod_p019_9f8d741872"
+      ],
+      "hit_rank": 1
+    },
+    {
+      "id": 52,
+      "question": "这个产品的收益是怎么来的？如果中途卖出会怎样？",
+      "rewritten": "记账式国债10年期的收益是怎么来的？如果中途卖出会怎样？",
+      "golden": [
+        "kb_prod_p021_7d142c97e3"
+      ],
+      "retrieved": [
+        "kb_prod_p021_5328d8ad58",
+        "kb_prod_p021_edfb00f1d3",
+        "kb_prod_p021_43dfcec86a",
+        "kb_prod_p021_7d142c97e3",
+        "kb_bond_knowledge_edafec024b",
+        "kb_income_and_interest_f164ecb18d",
+        "kb_bond_knowledge_8856ce4a65",
+        "kb_prod_p021_c80d87ff2f",
+        "kb_income_and_interest_7338618aa4",
+        "kb_prod_p022_7d142c97e3"
+      ],
+      "hit_rank": 4
+    },
+    {
+      "id": 53,
+      "question": "信托产品的合格投资者需要满足什么条件？",
+      "rewritten": null,
+      "golden": [
+        "kb_prod_p023_caae90d2e0"
+      ],
+      "retrieved": [
+        "kb_prod_p023_caae90d2e0",
+        "kb_trust_knowledge_ad59f5b0c7",
+        "kb_prod_p005_caae90d2e0",
+        "kb_trust_knowledge_ad59f5b0c7",
+        "kb_shopping_guide_b257eca901",
+        "kb_prod_p005_43dfcec86a",
+        "kb_prod_p023_ad0e6ca782",
+        "kb_trust_knowledge_ad59f5b0c7",
+        "kb_prod_p023_43dfcec86a",
+        "kb_risk_level_c9affe4d28"
+      ],
+      "hit_rank": 1
+    },
+    {
+      "id": 54,
+      "question": "信托产品的起投金额是多少？购买前需要做什么？",
+      "rewritten": null,
+      "golden": [
+        "kb_prod_p023_caae90d2e0"
+      ],
+      "retrieved": [
+        "kb_prod_p023_caae90d2e0",
+        "kb_trust_knowledge_ad59f5b0c7",
+        "kb_trust_knowledge_ad59f5b0c7",
+        "kb_trust_knowledge_ad59f5b0c7",
+        "kb_prod_p023_5328d8ad58",
+        "kb_prod_p023_ad0e6ca782",
+        "kb_buy_process_0260fa54ca",
+        "kb_trust_knowledge_ad59f5b0c7",
+        "kb_agency_products_7342a10864",
+        "kb_buy_process_22d781d795"
+      ],
+      "hit_rank": 1
+    },
+    {
+      "id": 55,
+      "question": "这个产品适合哪些人买？",
+      "rewritten": "账户黄金(积存金)适合哪些人买？",
+      "golden": [
+        "kb_prod_p024_43dfcec86a"
+      ],
+      "retrieved": [
+        "kb_prod_p024_5328d8ad58",
+        "kb_prod_p024_c78a231fb5",
+        "kb_gold_knowledge_afbcb50ead",
+        "kb_prod_p024_6a65affa7d",
+        "kb_gold_knowledge_afbcb50ead",
+        "kb_prod_p010_43dfcec86a",
+        "kb_gold_knowledge_afbcb50ead",
+        "kb_prod_p024_ad0e6ca782",
+        "kb_prod_p001_43dfcec86a",
+        "kb_prod_p014_43dfcec86a"
+      ],
+      "hit_rank": null
+    },
+    {
+      "id": 56,
+      "question": "追求固定收益的客户能买这个产品吗？",
+      "rewritten": "追求固定收益的客户能买账户黄金(积存金)吗？",
+      "golden": [
+        "kb_prod_p024_43dfcec86a"
+      ],
+      "retrieved": [
+        "kb_prod_p024_c78a231fb5",
+        "kb_prod_p024_6a65affa7d",
+        "kb_prod_p024_5328d8ad58",
+        "kb_gold_knowledge_afbcb50ead",
+        "kb_prod_p010_43dfcec86a",
+        "kb_gold_knowledge_afbcb50ead",
+        "kb_prod_p004_43dfcec86a",
+        "kb_prod_p007_7d142c97e3",
+        "kb_fraud_report_cf331d4495",
+        "kb_prod_p022_7d142c97e3"
+      ],
+      "hit_rank": null
+    }
+  ]
+}

@@ -1,13 +1,14 @@
 """badcase 闭环: trace 采集 / 候选派生 / 反馈关联 / golden 提升"""
 
-import sys
-import os
 import json
+import os
+import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(__file__))))
 
-from src.database import db_manager
 from fastapi import HTTPException
+
+from src.database import db_manager
 
 TRACE_PREFIX = "test_trace_"
 
@@ -161,6 +162,7 @@ def test_graph_exposes_confidence():
     返回 dict。任一处漏掉, 低置信候选规则就会静默失效 — 所以两处都要守。
     """
     import inspect
+
     from src.graph import cs_graph
 
     for fn in (cs_graph.run, cs_graph.run_graph_stream):
@@ -173,6 +175,7 @@ def test_graph_exposes_confidence():
 def test_submit_feedback_links_trace():
     """带 trace_id 的反馈必须能被候选查询的 EXISTS 子查询命中"""
     import asyncio
+
     from src.api.routes.chat import FeedbackRequest, submit_feedback
 
     _cleanup()
@@ -196,7 +199,8 @@ def test_submit_feedback_links_trace():
 def test_promote_writes_empty_evidence(tmp_path):
     """promote 出的 golden 行 evidence 必须为空, source_trace 必须正确"""
     import shutil
-    from src.core.golden import promote_to_golden, GOLDEN_PATH
+
+    from src.core.golden import GOLDEN_PATH, promote_to_golden
 
     gp = tmp_path / "golden.jsonl"
     shutil.copy(GOLDEN_PATH, gp)
@@ -223,6 +227,7 @@ def test_promote_writes_empty_evidence(tmp_path):
 
 def test_badcase_endpoints(monkeypatch):
     import asyncio
+
     from src.api.routes import monitor as mon
 
     _cleanup()

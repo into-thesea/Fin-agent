@@ -7,10 +7,13 @@
   4. 分块分页 + 来源/小节/关键词筛选, 以及翻页越界/空结果不外抛
 """
 import json
-import os, sys
+import os
+import sys
+
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(__file__))))
 import pytest
 from fastapi.testclient import TestClient
+
 from src.api.main import app
 from src.api.routes.auth import create_token
 from src.core import kb_settings

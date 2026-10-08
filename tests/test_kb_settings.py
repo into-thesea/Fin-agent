@@ -1,8 +1,11 @@
-import json, os, sys
 import inspect
+import json
+import os
+import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(__file__))))
 import pytest
+
 from src.core import kb_settings
 
 
@@ -104,7 +107,7 @@ def _header_pages():
 
 def test_max_chunk_content_is_a_real_parameter():
     """content_size 上限必须可传入 —— 它原先只是模块常量, 页面上改了不起作用"""
-    from src.core.smart_chunk import _chaptered_chunk, MAX_CHUNK_CONTENT
+    from src.core.smart_chunk import MAX_CHUNK_CONTENT, _chaptered_chunk
 
     pages = _header_pages()
     # 默认(不传) == 显式传常量值, 保证默认行为不变

@@ -2,18 +2,26 @@
 边界块 / 规则路由单测 (金融理财产品客服版)
 """
 
-import sys
 import os
+import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(__file__))))
 
 from src.agents.prompts import (
-    BOUNDARY_BLOCK, BOUNDARY_BLOCK_LIGHT, TOOL_GUIDE,
-    FACT_SYSTEM_PROMPT, TREND_SYSTEM_PROMPT,
-    COMPARE_SYSTEM_PROMPT, GENERAL_SYSTEM_PROMPT, UNKNOWN_SYSTEM_PROMPT,
-    FAQ_SYSTEM_PROMPT, ORDER_SYSTEM_PROMPT, REFUND_SYSTEM_PROMPT, CS_CHITCHAT_SYSTEM_PROMPT,
+    BOUNDARY_BLOCK,
+    BOUNDARY_BLOCK_LIGHT,
+    COMPARE_SYSTEM_PROMPT,
+    CS_CHITCHAT_SYSTEM_PROMPT,
+    FACT_SYSTEM_PROMPT,
+    FAQ_SYSTEM_PROMPT,
+    GENERAL_SYSTEM_PROMPT,
+    ORDER_SYSTEM_PROMPT,
+    REFUND_SYSTEM_PROMPT,
+    TOOL_GUIDE,
+    TREND_SYSTEM_PROMPT,
+    UNKNOWN_SYSTEM_PROMPT,
 )
-from src.agents.router_agent import RouterAgent, QueryIntent
+from src.agents.router_agent import QueryIntent, RouterAgent
 from src.llm.query_router import classify
 
 

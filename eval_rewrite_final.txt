@@ -1,0 +1,53 @@
+﻿📋 评测集: 56 条问题
+.\.venv\Scripts\python.exe : D:\aiproject\.venv\Lib\site-packages\pymilvus\client\__init__.py:6: UserWarning: pkg_resou
+rces is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is
+ slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+所在位置 行:1 字符: 18
++ ... \aiproject; .\.venv\Scripts\python.exe scripts\eval_retrieval.py --ma ...
++                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (D:\aiproject\.v... Setuptools<81.:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+  from pkg_resources import DistributionNotFound, get_distribution
+🔍 混合检索器就绪 (Milvus + BM25 + 图谱)
+
+🔄 Query Rewriting 已启用，加载产品名 24 个
+
+
+Loading weights:   0%|          | 0/199 [00:00<?, ?it/s]
+Loading weights: 100%|██████████| 199/199 [00:00<00:00, 24952.66it/s]
+  ⚠️  未命中: 不同风险等级的产品分别适合什么类型的投资者？
+  进度 10/56
+  进度 20/56
+  ⚠️  未命中: 这个基金说的业绩比较基准能保证我拿到这个收益吗？ → 改写: 安鑫纯债基金基金说的业绩比较基准能保证我拿到这个收益吗？
+  ⚠️  未命中: 这个产品风险大吗？净值波动怎么样？ → 改写: 平衡增利180天产品风险大吗？净值波动怎么样？
+  进度 30/56
+  ⚠️  未命中: 过了犹豫期再退保会亏本金吗？为什么？
+  进度 40/56
+  ⚠️  未命中: 买这个基金会保本吗？亏了银行赔吗？ → 改写: 买天天利货币基金基金会保本吗？亏了银行赔吗？
+  进度 50/56
+  ⚠️  未命中: 这个产品适合哪些人买？ → 改写: 账户黄金(积存金)产品适合哪些人买？
+  ⚠️  未命中: 追求固定收益的客户能买这个产品吗？ → 改写: 追求固定收益的客户能买账户黄金(积存金)产品吗？
+  进度 56/56
+
+==============================================
+📊 检索召回率报告 (chunk 级严格) + Query Rewriting
+==============================================
+  Recall@1  =  51.8%  ###############
+  Recall@2  =  71.4%  #####################
+  Recall@3  =  78.6%  #######################
+  Recall@4  =  82.1%  ########################
+  Recall@5  =  87.5%  ##########################
+  MRR       = 0.6595
+==============================================
+
+🔄 Query Rewriting 对比（17 条问题被改写）:
+  指标           改写前          改写后          变化        
+  Recall@1       35.3%         23.5%        -11.8%
+  Recall@3       41.2%         58.8%        +17.6%
+  Recall@5       52.9%         70.6%        +17.6%
+  MRR          0.4088        0.4255        +0.0167
+
+  改写后提升命中: 4 条 (原未命中→改写后命中)
+  改写后降低命中: 1 条 (原命中→改写后未命中)
+==============================================

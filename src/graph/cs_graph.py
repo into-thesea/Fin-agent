@@ -15,33 +15,40 @@ P3: 金融理财产品智能客服 LangGraph 多 Agent 状态机
 
 from __future__ import annotations
 
-import os
-import sys
-import re
-import logging
 import concurrent.futures
-from typing import TypedDict, Optional
+import logging
+import os
+import re
+import sys
+from typing import Optional, TypedDict
 
 # 直接运行本文件时把项目根加入路径
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
 logger = logging.getLogger(__name__)
 
-from src.core.fast_path import route_class, should_answer_fast
-from src.llm.llm_client import create_client
-from src.agents.router_agent import RouterAgent, QueryIntent
 from src.agents.agentic_agent import AgenticAgent
-from src.agents.reviewer_agent import ReviewerAgent
 from src.agents.prompts import (
-    FINANCE_KB_SYSTEM_PROMPT, GENERAL_SYSTEM_PROMPT,
-    CS_CHITCHAT_SYSTEM_PROMPT, UNKNOWN_SYSTEM_PROMPT,
     BOUNDARY_BLOCK_LIGHT,
+    CS_CHITCHAT_SYSTEM_PROMPT,
+    FINANCE_KB_SYSTEM_PROMPT,
+    GENERAL_SYSTEM_PROMPT,
+    UNKNOWN_SYSTEM_PROMPT,
 )
-from src.core.slot_filler import extract_slots, missing_required, followup_question, is_executable_order
-from src.core.query_decomposer import decompose_query
-from src.memory.memory_store import memory_store
-from src.business import finance_services as fs  # 阶段二: 适当性门控 / 申购
+from src.agents.reviewer_agent import ReviewerAgent
+from src.agents.router_agent import QueryIntent, RouterAgent
 from src.analyst_agent import format_response  # 复用现有格式化器
+from src.business import finance_services as fs  # 阶段二: 适当性门控 / 申购
+from src.core.fast_path import route_class, should_answer_fast
+from src.core.query_decomposer import decompose_query
+from src.core.slot_filler import (
+    extract_slots,
+    followup_question,
+    is_executable_order,
+    missing_required,
+)
+from src.llm.llm_client import create_client
+from src.memory.memory_store import memory_store
 
 MAX_RETRY_ON_REJECT = 1  # 限制重写次数: 第二次重写成功率低, 省3-8秒延迟
 
@@ -208,8 +215,8 @@ def build_graph(token_queue=None):
         token_queue: 可选。传入后每个节点开始时推送 stage 事件、
                     领域节点流式推送 token（供 SSE 消费）。
     """
-    from langgraph.graph import StateGraph, START, END
     from langgraph.checkpoint.memory import MemorySaver
+    from langgraph.graph import END, START, StateGraph
 
     router = RouterAgent()
     reviewer = ReviewerAgent()
@@ -364,10 +371,10 @@ def build_graph(token_queue=None):
         return {"local": sorted_items, "sources": list(set(all_sources))[:top_k]}
 
     def route_retrieve_node(state: dict) -> dict:
+        from src.agents.router_agent import INTENT_CATEGORY, RoutingResult
+        from src.core.intent_inheritance import try_inherit_intent
         from src.retrieval.retriever import HybridRetriever
         from src.tools.registry import format_kb_text
-        from src.core.intent_inheritance import try_inherit_intent
-        from src.agents.router_agent import RoutingResult, INTENT_CATEGORY
         retriever = HybridRetriever()
         dialog_ctx = _build_dialog_context(state)
         # LLM 拆分多问题（单问题时快速路径直接返回 [原问题]，零额外延迟）
@@ -712,7 +719,6 @@ def run_graph_stream(token_queue, query: str, session_id: str = "", user_id: str
       {"type": "error", "message"}
       {"type": "done"}
     """
-    import asyncio
     graph = build_graph(token_queue)
     init = _empty_state(query, session_id, user_id, slots)
     config = {"configurable": {"thread_id": session_id or "default"}}

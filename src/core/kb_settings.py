@@ -8,19 +8,21 @@
 """
 from __future__ import annotations
 
-import os
 import json
-import time
 import logging
+import os
 import threading
+import time
 from typing import Optional
 
-from src.infra.paths import DATA_DIR
 # 切分默认值从 smart_chunk 的常量派生 —— 它才是这些数字的事实源(算法与注释都在那边),
 # 这里再抄一份必然漂移: 改了 smart_chunk 的上限, 界面上显示的"默认值"还是旧数字。
 from src.core.smart_chunk import (
-    DEFAULT_CHUNK_SIZE, DEFAULT_OVERLAP, MAX_CHUNK_CONTENT,
+    DEFAULT_CHUNK_SIZE,
+    DEFAULT_OVERLAP,
+    MAX_CHUNK_CONTENT,
 )
+from src.infra.paths import DATA_DIR
 
 logger = logging.getLogger(__name__)
 

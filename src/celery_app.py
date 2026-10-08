@@ -10,10 +10,10 @@ Celery Beat 定时任务 (可选):
 docker-compose 中已定义 worker 服务，自动启动。
 """
 
-import os
-import time
 import logging
+import os
 import threading
+import time
 
 from celery import Celery
 from dotenv import load_dotenv
@@ -145,7 +145,8 @@ def _stop_heartbeat(**kwargs):
         logger.error("心跳文件清理失败: %s", e)
 
 
-from celery.signals import worker_ready, worker_init, worker_shutdown
+from celery.signals import worker_init, worker_ready, worker_shutdown
+
 # worker_init 在 worker 进程一开始就发, worker_ready 在就绪后发。
 # 两个都接: 只依赖 worker_ready 时实测没触发(心跳文件长期不更新)。
 worker_init.connect(_start_heartbeat)

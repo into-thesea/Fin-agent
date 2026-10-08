@@ -1,6 +1,8 @@
-import os
 import glob
+import os
+
 from langchain_text_splitters import MarkdownHeaderTextSplitter
+
 from src.infra.jsonl_io import atomic_append
 
 # --- 核心：自动定位项目根目录 ---
@@ -35,7 +37,7 @@ def process_semantic_chunks(md_file_path):
         metadata = split.metadata
         page_num = metadata.get("PageNumber", "Unknown")
         section_type = metadata.get("SectionType", "Text")
-        
+
         context_prefix = f"【{report_name}】 [{page_num} | {section_type}] "
         enhanced_content = context_prefix + split.page_content.strip()
 
@@ -56,20 +58,21 @@ if __name__ == "__main__":
     all_chunks = []
 
     print(f"在 {INPUT_DIR} 发现 {len(md_files)} 个 Markdown 文件，准备开始全量语义切分...")
-    
+
     for md_file in md_files:
-        if "chunks_processed" in md_file: continue 
+        if "chunks_processed" in md_file:
+            continue
         print(f"正在切分: {os.path.basename(md_file)} ...")
         chunks = process_semantic_chunks(md_file)
         all_chunks.extend(chunks)
-    
+
     # 确保输出目录存在
     if not os.path.exists(os.path.dirname(OUTPUT_PATH)):
         os.makedirs(os.path.dirname(OUTPUT_PATH))
-        
+
     for chunk in all_chunks:
         atomic_append(OUTPUT_PATH, chunk)
-            
+
     print("-" * 30)
     print(f"全量切分完成！汇总生成 {len(all_chunks)} 个语义区块。")
     print(f"结果已保存至: {OUTPUT_PATH}")

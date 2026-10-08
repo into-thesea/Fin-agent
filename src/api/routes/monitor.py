@@ -7,13 +7,13 @@ Fin-Agent 监控与健康检查路由
   - GET /api/v1/monitor/metrics  监控指标
 """
 
-import os
+import asyncio
 import json
 import logging
-import asyncio
+import os
 from datetime import datetime
 
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
@@ -254,8 +254,8 @@ async def patch_badcase(trace_id: str, body: TriagePatch):
 @router.post("/api/v1/badcases/{trace_id}/promote")
 async def promote_badcase(trace_id: str, body: PromoteBody = None):
     """提升为 golden 骨架 (evidence 留空, 必须人工补齐)"""
-    from src.database import db_manager
     from src.core.golden import promote_to_golden
+    from src.database import db_manager
     trace = db_manager.get_trace(trace_id)
     if not trace:
         raise HTTPException(status_code=404, detail="trace 不存在")

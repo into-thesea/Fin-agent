@@ -11,10 +11,10 @@ P4: 分层记忆 (短期会话滑动窗口 + 长期用户画像 + 向量语义�
 
 from __future__ import annotations
 
-import os
 import json
-import time
 import logging
+import os
+import time
 from typing import Optional
 
 logger = logging.getLogger(__name__)
@@ -59,7 +59,14 @@ class MemoryStore:
         if self._milvus_ok:
             return True
         try:
-            from pymilvus import connections, utility, Collection, CollectionSchema, FieldSchema, DataType
+            from pymilvus import (
+                Collection,
+                CollectionSchema,
+                DataType,
+                FieldSchema,
+                connections,
+                utility,
+            )
             connections.connect(alias="default", host=os.getenv("MILVUS_HOST", "127.0.0.1"),
                                 port=os.getenv("MILVUS_PORT", "19530"),
                                 timeout=CONNECT_TIMEOUT)

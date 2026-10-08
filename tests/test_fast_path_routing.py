@@ -40,6 +40,7 @@ def test_stage_msg_covers_new_nodes():
 def test_route_next_three_way():
     """_route_next 必须按 fast_path 分岔, 而不是只看 intent"""
     import inspect
+
     from src.graph import cs_graph
     src = inspect.getsource(cs_graph.build_graph)
     assert 'state.get("fast_path")' in src, "_route_next 未按 fast_path 分岔"

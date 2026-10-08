@@ -11,8 +11,8 @@ gte-rerank-v2 均如此), 详见 src/retrieval/reranker.py 的模块说明。
 
 import io
 import json
-import sys
 import os
+import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(__file__))))
 
@@ -125,6 +125,7 @@ class TestRerankIsOffByDefault:
     def test_sparse_boost_documented_as_negative(self):
         """SparseBoost 的实测负收益结论要写在代码里, 防止有人再把它接回去。"""
         import inspect
+
         from src.retrieval import reranker as mod
         doc = inspect.getdoc(mod)
         assert "负收益" in doc

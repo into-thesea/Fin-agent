@@ -19,7 +19,7 @@ Fin-Agent Locust 性能测试 — 金融理财场景
 
 import random
 
-from locust import HttpUser, task, between
+from locust import HttpUser, between, task
 
 # 演示客户只有 3 个 (src/business/mock_finance.py PROFILES)
 USERS = ["u001", "u002", "u003"]

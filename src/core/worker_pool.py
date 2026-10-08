@@ -21,16 +21,14 @@ Fin-Agent 工作线程池 (v1.0)
     result = await pool.run_analysis_async(query, timeout=120)
 """
 
-import os
-import time
-import queue
 import asyncio
 import logging
 import threading
+import time
 from concurrent.futures import ThreadPoolExecutor, TimeoutError
-from typing import Optional, Any
 
 from dotenv import load_dotenv
+
 load_dotenv()
 
 logger = logging.getLogger(__name__)
@@ -231,8 +229,8 @@ class WorkerPool:
             qclass = classify_query(query)
 
             if qclass in ("greeting", "simple_fact"):
-                from src.llm.llm_client import create_client
                 from src.agents.prompts import BOUNDARY_BLOCK_LIGHT
+                from src.llm.llm_client import create_client
                 # simple_fact: 先检索知识库再作答 (与 chat.py 快速通道一致)
                 sources = []
                 context_note = ""

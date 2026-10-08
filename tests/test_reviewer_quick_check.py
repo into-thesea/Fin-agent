@@ -2,12 +2,11 @@
 Reviewer quick_check 单测 (来源有效性/有货未找到/未引用来源) — 智能客服版
 """
 
-import sys
 import os
+import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(__file__))))
 
-import pytest
 from src.agents.reviewer_agent import ReviewerAgent
 
 
