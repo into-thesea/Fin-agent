@@ -13,13 +13,13 @@ Fin-Agent 企业级缓存层
   4. 任务状态缓存 — ETL 异步任务进度实时查询
 """
 
-import os
-import json
 import hashlib
-import time
-import socket
+import json
 import logging
-from typing import Optional, Any
+import os
+import socket
+import time
+from typing import Optional
 
 from src.infra.circuit_breaker import CircuitBreaker, CircuitBreakerOpenError, CircuitState
 

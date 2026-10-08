@@ -47,7 +47,7 @@ def fake_retrieve(monkeypatch):
 
     def _fake(query, top_k=5):
         seen["n"] += 1
-        return {"text": f"【知识库检索结果】\n- 代销产品与自营的关键区别…… [来源: agency_products.md]",
+        return {"text": "【知识库检索结果】\n- 代销产品与自营的关键区别…… [来源: agency_products.md]",
                 "sources": ["agency_products.md"],
                 "contexts": {"local": [{"content": "代销产品与自营的关键区别", "source": "agency_products.md"}],
                              "global": [], "graph": []}}

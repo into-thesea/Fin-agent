@@ -6,8 +6,8 @@ badcase 提升为 golden 时, evidence 刻意留空: badcase 的成因常常正�
 证据必须人工补齐。
 """
 
-import os
 import json
+import os
 import re
 
 GOLDEN_PATH = os.path.join(

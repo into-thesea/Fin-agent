@@ -30,13 +30,13 @@ export default defineConfig({
       output: {
         manualChunks: {
           // antd 组件库 (~2.4MB → 独立缓存，版本更新不波及业务)
-          'vendor-antd': ['antd', '@ant-design/icons', '@ant-design/pro-layout'],
+          'vendor-antd': ['antd', '@ant-design/icons'],
           // 图表库
           'vendor-echarts': ['echarts', 'echarts-for-react'],
           // React 运行时
           'vendor-react': ['react', 'react-dom', 'react-router-dom'],
           // 数据层
-          'vendor-data': ['@tanstack/react-query', 'zustand', 'axios'],
+          'vendor-data': ['zustand', 'axios'],
         },
       },
     },

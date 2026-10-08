@@ -16,7 +16,8 @@ from typing import Optional
 logger = logging.getLogger(__name__)
 
 from src.core.slot_filler import KNOWN_PRODUCTS  # 产品全名 (catalog.jsonl 单一事实源)
-from .core import get_graph, Neo4jGraph, triple_to_sentence
+
+from .core import Neo4jGraph, get_graph, triple_to_sentence
 
 # 概念枢纽: 出边多且泛化, 不作为单实体邻居展开的入口
 _HUBS = {"理财产品", "存款", "公募基金", "保险产品"}

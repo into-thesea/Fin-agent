@@ -14,9 +14,10 @@
 
 import logging
 
-from .context import get_current_user, set_current_user
-from . import mock_finance as mock
 from src.core.slot_filler import CATALOG
+
+from . import mock_finance as mock
+from .context import get_current_user
 
 logger = logging.getLogger(__name__)
 
@@ -34,7 +35,8 @@ def _ok(text, handoff=False):
 
 def _audit_money(event: str, user_id: str, detail: str) -> None:
     """资金操作审计 (Redis security:events; 不可用则跳过, 不阻塞)"""
-    import time, json
+    import json
+    import time
     try:
         from src.cache.redis_client import RedisCache
         cache = RedisCache()

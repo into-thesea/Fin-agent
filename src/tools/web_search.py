@@ -13,10 +13,9 @@ Fin-Agent Web 搜索工具
   results = searcher.search("稳盈添利30天 收益")
 """
 
-import os
 import json
 import logging
-from typing import Optional
+import os
 from dataclasses import dataclass, field
 
 logger = logging.getLogger(__name__)
@@ -111,8 +110,8 @@ class WebSearchTool:
     def _search_duckduckgo(self, query: str, max_results: int) -> SearchResponse:
         """DuckDuckGo 搜索"""
         try:
-            import urllib.request
             import urllib.parse
+            import urllib.request
 
             url = f"https://api.duckduckgo.com/?q={urllib.parse.quote(query)}&format=json&no_html=1"
 
@@ -160,8 +159,8 @@ class WebSearchTool:
     def _search_bing(self, query: str, max_results: int) -> SearchResponse:
         """Bing Search API"""
         try:
-            import urllib.request
             import urllib.parse
+            import urllib.request
 
             url = f"https://api.bing.microsoft.com/v7.0/search?q={urllib.parse.quote(query)}&count={max_results}&mkt=zh-CN"
 
@@ -201,8 +200,8 @@ class WebSearchTool:
     def _search_serpapi(self, query: str, max_results: int) -> SearchResponse:
         """SerpAPI 搜索"""
         try:
-            import urllib.request
             import urllib.parse
+            import urllib.request
 
             params = urllib.parse.urlencode({
                 "q": query,

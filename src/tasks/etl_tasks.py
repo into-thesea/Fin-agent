@@ -10,15 +10,15 @@ Fin-Agent 异步 ETL 流水线任务
 前端可通过 WebSocket 或轮询 Redis 获取实时进度。
 """
 
+import logging
 import os
 import sys
 import time
-import logging
 
 from celery import Task
 
-from src.celery_app import celery_app
 from src.cache.redis_client import RedisCache
+from src.celery_app import celery_app
 
 logger = logging.getLogger(__name__)
 

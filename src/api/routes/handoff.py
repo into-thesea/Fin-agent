@@ -14,7 +14,7 @@ from __future__ import annotations
 
 import logging
 
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 
 from src.api.routes.auth import require_roles
@@ -99,8 +99,8 @@ async def messages(ticket_id: int):
 @router.post("/{ticket_id}/suggest")
 async def suggest(ticket_id: int):
     """AI 辅助坐席: 基于会话上下文生成回复草稿 (人机协同的"机辅人")"""
-    from src.db.manager import db_manager
     from src.core.dialog_state import get_state_manager
+    from src.db.manager import db_manager
     from src.llm.llm_client import create_client
     ticket = db_manager.get_handoff(ticket_id)
     if not ticket:

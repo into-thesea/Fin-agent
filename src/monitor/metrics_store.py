@@ -19,11 +19,10 @@ stream_ttfb / stream_total 两条序列, 不进全局 lat 序列(但仍计入 to
 
 from __future__ import annotations
 
-import os
-import time
-import threading
 import logging
-from datetime import datetime
+import os
+import threading
+import time
 from typing import Optional
 
 logger = logging.getLogger(__name__)

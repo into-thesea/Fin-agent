@@ -4,7 +4,8 @@
 咨询类意图短问法不继承 (避免错误传染)。
 """
 import pytest
-from src.core.intent_inheritance import try_inherit_intent, is_topic_switch
+
+from src.core.intent_inheritance import is_topic_switch, try_inherit_intent
 
 
 class TestTopicSwitch:

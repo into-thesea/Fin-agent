@@ -9,7 +9,10 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from src.core.slot_filler import (
-    CATALOG, L0_DOMAINS, _UNMAPPED_TYPES, intent_to_l0,
+    _UNMAPPED_TYPES,
+    CATALOG,
+    L0_DOMAINS,
+    intent_to_l0,
 )
 
 # 7 个产品域 (common/out_of_scope 是兜底域, 不算"推出了具体域")

@@ -1,7 +1,7 @@
 """知识图谱多跳检索测试 (内存后端, 离线确定性)"""
 
+from src.knowledge_graph.core import load_triples
 from src.knowledge_graph.retriever import GraphRetriever
-from src.knowledge_graph.core import load_triples, InMemoryGraph
 
 
 def _retriever() -> GraphRetriever:

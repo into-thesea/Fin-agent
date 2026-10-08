@@ -2,19 +2,17 @@
 LLMClient function calling 原语单测 (纯函数, 不依赖网络)
 """
 
-import sys
 import os
-import json
+import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(__file__))))
 
-import pytest
 from src.llm import llm_client
 from src.llm.llm_client import (
-    build_tools_payload,
     _parse_deepseek_response,
-    parse_tool_response,
     append_tool_result,
+    build_tools_payload,
+    parse_tool_response,
 )
 
 TOOLS = [

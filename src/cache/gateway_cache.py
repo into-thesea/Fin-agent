@@ -16,11 +16,11 @@ P5: 网关前置语义缓存 (Milvus)
 
 from __future__ import annotations
 
+import json
+import logging
 import os
 import re
-import json
 import time
-import logging
 from typing import Optional
 
 logger = logging.getLogger(__name__)
@@ -58,7 +58,14 @@ class GatewayCache:
         if self._ok:
             return True
         try:
-            from pymilvus import connections, utility, Collection, CollectionSchema, FieldSchema, DataType
+            from pymilvus import (
+                Collection,
+                CollectionSchema,
+                DataType,
+                FieldSchema,
+                connections,
+                utility,
+            )
             connections.connect(alias="default", host=os.getenv("MILVUS_HOST", "127.0.0.1"),
                                 port=os.getenv("MILVUS_PORT", "19530"),
                                 timeout=CONNECT_TIMEOUT)

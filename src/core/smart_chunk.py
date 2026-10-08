@@ -19,9 +19,9 @@
 
 from __future__ import annotations
 
-import re
-import os
 import logging
+import os
+import re
 from dataclasses import dataclass, field
 from typing import Optional
 
@@ -436,7 +436,6 @@ def smart_chunk_pdf(
     Returns:
         [{"chunk_id", "source", "page", "content"[, "section"]}, ...]
     """
-    from src.core.smart_chunk import DEFAULT_CHUNK_SIZE, DEFAULT_OVERLAP
 
     file_name = os.path.basename(pdf_path)
     pages = _extract_pages(pdf_path)

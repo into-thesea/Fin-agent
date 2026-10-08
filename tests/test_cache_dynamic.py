@@ -1,7 +1,7 @@
 """缓存动态数据拒写测试 — 订单/物流等实时数据不进语义缓存"""
 
-import sys
 import os
+import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(__file__))))
 

@@ -7,7 +7,7 @@
   - 资金动账(申购)不注册为 agent 可自由调用工具 → 由 cs_graph 门控节点执行
 """
 
-from src.tools.registry import _query_product_names, EXECUTE_TOOLS, TOOL_DEFINITIONS
+from src.tools.registry import EXECUTE_TOOLS, TOOL_DEFINITIONS, _query_product_names
 
 
 def test_query_product_names_matches_catalog():

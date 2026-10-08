@@ -11,15 +11,14 @@
 """
 
 import json
-import sys
 import os
+import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(__file__))))
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(__file__)), "scripts"))
 
 import numpy as np
 import pytest
-
 
 # ──────────────────────────────────────────────
 # 1. 降级不许静默
@@ -150,6 +149,7 @@ class TestNoSilentDegradation:
         是应该保留的。
         """
         import inspect
+
         from src.retrieval import retriever as retriever_mod
 
         module_src = inspect.getsource(retriever_mod)
@@ -201,6 +201,7 @@ class TestPurgeChunks:
         管理台显示正常(status=done, chunks_count=N), 实际搜不到。
         """
         import build_finance_kb as b
+
         from src.database import db_manager
 
         store = tmp_path / "chunks_processed.jsonl"
@@ -241,6 +242,7 @@ class TestPurgeChunks:
     def test_rebuild_keeps_nothing_when_document_table_is_empty(self, tmp_path, monkeypatch):
         """documents 表里没有的文档, 重建时一律丢弃 —— 判据是表, 不是后缀。"""
         import build_finance_kb as b
+
         from src.database import db_manager
 
         store = tmp_path / "chunks_processed.jsonl"
@@ -263,6 +265,7 @@ class TestPurgeChunks:
         用 SQLite 自增 id 会永远匹配不上(实际删除 0 条, 删除看似成功)。
         """
         import inspect
+
         from src.api.routes import knowledge
 
         src = inspect.getsource(knowledge.delete_document)
@@ -283,6 +286,7 @@ class TestUploadSafety:
         文件正是**已入库文档的 PDF 源文件**, 会被删掉。
         """
         import inspect
+
         from src.api.routes import knowledge
 
         src = inspect.getsource(knowledge._process_upload)
@@ -293,6 +297,7 @@ class TestUploadSafety:
     def test_upload_requires_celery_worker(self):
         """Celery Worker 不在时必须拒绝上传, 不再降级到后台线程。"""
         import inspect
+
         from src.api.routes import knowledge
 
         src = inspect.getsource(knowledge._process_upload)
@@ -302,6 +307,7 @@ class TestUploadSafety:
     def test_batch_upload_rejects_over_limit(self):
         """并发闸: 超出单批文件数上限必须明确拒绝, 而不是全量并行压进内存与队列。"""
         from fastapi.testclient import TestClient
+
         from src.api.main import app
         from src.api.routes.auth import create_token
         from src.api.routes.knowledge import MAX_BATCH_FILES
@@ -327,6 +333,7 @@ class TestUploadSafety:
         再也没东西能对应上, 删除时清不掉。
         """
         import inspect
+
         from src.core import pipeline_manager
 
         src = inspect.getsource(pipeline_manager.ingest_document)
@@ -345,7 +352,7 @@ class TestTaskStatusNormalization:
         它直接 lower() 出来是 success / progress, 不在前端认的集合里, 页面会一直
         卡在「进行中」—— 比直接显示失败更难排查。
         """
-        from src.api.routes.tasks import _normalize_state, TASK_STATUS
+        from src.api.routes.tasks import TASK_STATUS, _normalize_state
 
         assert set(TASK_STATUS) == {"pending", "processing", "completed", "failed"}
         assert _normalize_state("SUCCESS") == "completed"
@@ -364,6 +371,7 @@ class TestTaskStatusNormalization:
     def test_unknown_state_is_not_passed_through(self):
         """未知状态不能原样透传 —— 前端会一直显示「进行中」。"""
         import logging
+
         from src.api.routes.tasks import _normalize_state
 
         # _normalize_state 对未知值会打 ERROR 日志。项目的 JSON 日志配置在 pytest

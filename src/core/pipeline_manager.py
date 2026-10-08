@@ -13,16 +13,16 @@ Fin-Agent ETL 流水线管理器 (企业版)
   result = ingest_document("/path/to/report.pdf")
 """
 
+import logging
 import os
 import sys
 import time
-import logging
 from typing import Optional
 
-from src.core.smart_chunk import smart_chunk_pdf as extract_chunks_from_pdf
-from src.retrieval.vector_indexer import add_chunks_to_index
-from src.database import db_manager
 from src.cache.redis_client import RedisCache
+from src.core.smart_chunk import smart_chunk_pdf as extract_chunks_from_pdf
+from src.database import db_manager
+from src.retrieval.vector_indexer import add_chunks_to_index
 
 logger = logging.getLogger(__name__)
 
@@ -39,6 +39,7 @@ def _append_chunks_to_store(chunks: list) -> None:
     —— 那会让新上传的文档在混合检索里只能被稠密路召回。
     """
     import json
+
     from src.infra.paths import CHUNKS_PROCESSED_PATH
     os.makedirs(os.path.dirname(CHUNKS_PROCESSED_PATH), exist_ok=True)
     with open(CHUNKS_PROCESSED_PATH, "a", encoding="utf-8") as f:
@@ -166,7 +167,7 @@ def ingest_document(
 
         # BM25 重建: 原先吞异常跳过 → 会让新文档进不了稀疏路(检索不到),
         # 而混合检索的稀疏路一旦缺内容, 检索结果就会静默变差。
-        from src.infra.paths import CHUNKS_PROCESSED_PATH, BM25_INDEX_PATH
+        from src.infra.paths import BM25_INDEX_PATH, CHUNKS_PROCESSED_PATH
         from src.retrieval.bm25_index import rebuild_bm25_index
         rebuild_bm25_index(CHUNKS_PROCESSED_PATH, BM25_INDEX_PATH)
         steps.append("BM25 索引已重建")

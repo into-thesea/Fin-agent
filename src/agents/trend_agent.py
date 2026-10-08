@@ -5,13 +5,13 @@ TrendAgent — 趋势分析智能体
 需要从图谱中获取同一指标在不同时间段的数据点。
 """
 
-import os
-import json
 import logging
+import os
 
 from dotenv import load_dotenv
-from src.retrieval.retriever import HybridRetriever, format_graph_context
+
 from src.llm.llm_client import create_client
+from src.retrieval.retriever import HybridRetriever, format_graph_context
 
 logger = logging.getLogger(__name__)
 

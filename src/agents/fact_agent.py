@@ -4,14 +4,13 @@ FactAgent — 事实查询智能体
 专注回答具体数值/事实类问题，强调精确引用和溯源。
 """
 
-import os
-import json
 import logging
-from typing import Optional
+import os
 
 from dotenv import load_dotenv
-from src.retrieval.retriever import HybridRetriever, format_graph_context
+
 from src.llm.llm_client import create_client
+from src.retrieval.retriever import HybridRetriever, format_graph_context
 
 logger = logging.getLogger(__name__)
 

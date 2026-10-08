@@ -11,8 +11,8 @@
 所以按「整组」而不是「逐个端点」来断言: 新增端点默认继承守卫, 不会漏。
 """
 
-import sys
 import os
+import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(__file__))))
 

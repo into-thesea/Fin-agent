@@ -4,11 +4,11 @@
 测试内容寻址存储、版本管理、文档 CRUD。
 """
 
-import sys
 import os
+import sys
+
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(__file__))))
 
-import pytest
 import tempfile
 
 

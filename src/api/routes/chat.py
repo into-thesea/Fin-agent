@@ -13,17 +13,18 @@ API:
   POST /api/v1/chat/stream   SSE 流式问答
 """
 
-import json
 import asyncio
+import json
 import logging
+import threading
 import time
 import uuid
-import threading
 from functools import partial
-from queue import Queue, Empty as QueueEmpty
+from queue import Empty as QueueEmpty
+from queue import Queue
 from typing import Optional
 
-from fastapi import APIRouter, HTTPException, Header
+from fastapi import APIRouter, Header, HTTPException
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 
@@ -104,12 +105,12 @@ async def chat_sync(req: ChatRequest, authorization: Optional[str] = Header(None
         user_id = resolve_user_id(authorization) or ""
 
     # ── 1. 初始化 (同步, 毫秒级: 状态 + 重写 + 缓存) ──
+    from src.agents.prompts import BOUNDARY_BLOCK_LIGHT
+    from src.core.answer_cache import get_cached as cache_get
     from src.core.dialog_state import get_state_manager
-    from src.llm.query_rewriter import rewrite_query
-    from src.core.answer_cache import get_cached as cache_get, set_cache as cache_set
     from src.core.fast_path import route_class
     from src.llm.llm_client import create_client
-    from src.agents.prompts import BOUNDARY_BLOCK_LIGHT
+    from src.llm.query_rewriter import rewrite_query
 
     state_mgr = get_state_manager()
     state = state_mgr.get_or_create(session_id)
@@ -480,9 +481,9 @@ async def _stream_chat_response(query: str, session_id: str, user_id: str = "",
     _stream_start = time.time()
 
     def _run_analysis():
-        from src.graph.cs_graph import run_graph_stream
         from src.business.context import set_current_user
         from src.core.concurrency import processing_slot
+        from src.graph.cs_graph import run_graph_stream
         set_current_user(user_id or None)  # 空则清除, 避免线程间泄漏
         try:
             # P6: 门控 LLM 密集处理并发 (超时 → 降级, 不拒绝)

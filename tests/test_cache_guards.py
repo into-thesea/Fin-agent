@@ -12,7 +12,6 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(__file__))))
 
 from src.core.answer_cache import _action_groups, _extract_product, _l2_similarity
 
-
 # ── 动作守卫 ────────────────────────────────────
 
 def test_opposite_actions_blocked():

@@ -8,9 +8,9 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(__file__))))
 
 from src.core.emotion import (
+    build_emotion_instruction,
     detect_emotion,
     is_negative,
-    build_emotion_instruction,
     should_suggest_handoff,
 )
 from src.graph.cs_graph import _emotion_prompt, _empty_state

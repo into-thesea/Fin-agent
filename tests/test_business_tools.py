@@ -1,16 +1,17 @@
 """理财工具注册与 handoff 传播测试"""
 
-import sys
 import os
+import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(__file__))))
 
 import pytest
+
 import src.agents.agentic_agent as aa
 
 
 def test_finance_tools_registered_readonly():
-    from src.tools.registry import TOOL_DEFINITIONS, EXECUTE_TOOLS
+    from src.tools.registry import EXECUTE_TOOLS, TOOL_DEFINITIONS
     names = {t["name"] for t in TOOL_DEFINITIONS}
     assert {"retrieve_knowledge", "query_products", "check_suitability",
             "query_holdings"} <= names

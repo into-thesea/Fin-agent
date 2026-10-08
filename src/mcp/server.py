@@ -23,18 +23,21 @@ import sys
 # 直接运行/被 stdio 拉起时把项目根加入路径 (兼容 from src... 导入)
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
-from fastmcp import FastMCP
-
 # 顶部导入工具实现：重型原生库 (numpy/scipy/sklearn/torch/transformers) 必须在主线程
 # 启动时初始化——fastmcp 在工作线程执行工具，惰性首次导入 C 扩展会死锁。
 import torch  # noqa: F401
-from sentence_transformers import SentenceTransformer, CrossEncoder  # noqa: F401
+from fastmcp import FastMCP
+from sentence_transformers import CrossEncoder, SentenceTransformer  # noqa: F401
 
 from src.business.context import set_current_user
 from src.business.finance_services import (
-    query_products as _query_products,
     check_suitability as _check_suitability,
+)
+from src.business.finance_services import (
     query_holdings as _query_holdings,
+)
+from src.business.finance_services import (
+    query_products as _query_products,
 )
 from src.retrieval.retriever import HybridRetriever  # noqa: F401
 from src.tools.registry import retrieve_knowledge as _retrieve_knowledge

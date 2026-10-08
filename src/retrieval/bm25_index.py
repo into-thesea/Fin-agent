@@ -7,10 +7,10 @@
 
 from __future__ import annotations
 
+import logging
 import math
 import os
 import pickle
-import logging
 from collections import Counter
 from typing import List, Optional
 

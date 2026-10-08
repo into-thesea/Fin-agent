@@ -18,11 +18,11 @@ Milvus 向量索引管理器 (P0) —— 系统唯一的向量后端
 
 from __future__ import annotations
 
-import os
-import warnings
-import threading
 import logging
-from typing import Optional, Any
+import os
+import threading
+import warnings
+from typing import Any, Optional
 
 import numpy as np
 
@@ -34,7 +34,7 @@ warnings.filterwarnings("ignore", message=".*ORM-style PyMilvus API.*")
 
 # 模块级懒导入：pymilvus 未安装时各方法经 available 短路，不会解引用 None
 try:
-    from pymilvus import connections, utility, Collection, CollectionSchema, FieldSchema, DataType
+    from pymilvus import Collection, CollectionSchema, DataType, FieldSchema, connections, utility
 except Exception:  # pragma: no cover - 未安装 pymilvus 时降级
     connections = utility = Collection = CollectionSchema = FieldSchema = DataType = None
 

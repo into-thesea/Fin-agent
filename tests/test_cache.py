@@ -4,11 +4,11 @@
 测试 RedisCache 的优雅降级、语义缓存、向量缓存等核心功能。
 """
 
-import sys
 import os
+import sys
+
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(__file__))))
 
-import pytest
 
 
 class TestRedisCache:
@@ -16,6 +16,7 @@ class TestRedisCache:
 
     def setup_method(self):
         import unittest.mock as mock
+
         from src.cache.redis_client import RedisCache
         # 模拟 Redis 不可用, 使降级测试不依赖真实环境 (Redis 现常驻运行)
         self._patch = mock.patch.object(RedisCache, "_check_available", return_value=False)

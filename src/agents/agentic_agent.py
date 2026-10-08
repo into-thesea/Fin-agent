@@ -12,14 +12,14 @@ AgenticAgent — Function Calling 自主决策引擎
   - answer_stream: 先跑工具循环收集上下文(发 stage 事件), 再对最终答案流式输出
 """
 
+import concurrent.futures
 import json
 import logging
-import concurrent.futures
-from typing import Optional, Iterator, Tuple, Any
+from typing import Any, Iterator, Optional, Tuple
 
-from src.llm.llm_client import create_client, append_tool_result
 from src.agents.prompts import TOOL_GUIDE
-from src.tools.registry import TOOL_DEFINITIONS, EXECUTE_TOOLS
+from src.llm.llm_client import append_tool_result, create_client
+from src.tools.registry import EXECUTE_TOOLS, TOOL_DEFINITIONS
 
 logger = logging.getLogger(__name__)
 

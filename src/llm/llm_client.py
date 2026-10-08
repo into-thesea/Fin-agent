@@ -13,13 +13,15 @@ LLM 客户端工厂 — 统一 DeepSeek / Gemini 调用接口
         print(token)
 """
 
-import json
-import time
 import asyncio
+import json
 import logging
-from typing import Generator, Optional, AsyncGenerator
+import threading
+import time
+from typing import AsyncGenerator, Generator
 
 from dotenv import load_dotenv
+
 # 加载 .env, 确保环境变量在任何导入顺序下都可用
 load_dotenv()
 
@@ -498,7 +500,7 @@ class LLMClient:
                 )
                 if resp.status_code == 401:
                     raise PermissionError(
-                        f"DeepSeek API 认证失败 (401)，请检查 API Key"
+                        "DeepSeek API 认证失败 (401)，请检查 API Key"
                     )
                 if resp.status_code != 200:
                     raise RuntimeError(
@@ -578,10 +580,10 @@ class LLMClient:
                 else:
                     logger.error("LLM HTTP 重试耗尽: %s", e)
                     raise
-            except (PermissionError, ValueError) as e:
+            except (PermissionError, ValueError):
                 # 4xx 或认证错误 — 不重试
                 raise
-            except Exception as e:
+            except Exception:
                 # 其他意外错误 — 重试一次
                 if attempt < max_retries:
                     time.sleep(base_delay)
@@ -629,7 +631,7 @@ class LLMClient:
                 )
                 if resp.status_code == 401:
                     raise PermissionError(
-                        f"DeepSeek API 认证失败 (401)，请检查 API Key"
+                        "DeepSeek API 认证失败 (401)，请检查 API Key"
                     )
                 if resp.status_code != 200:
                     raise RuntimeError(
@@ -669,10 +671,10 @@ class LLMClient:
                 else:
                     logger.error("LLM HTTP 重试耗尽: %s", e)
                     raise
-            except (PermissionError, ValueError) as e:
+            except (PermissionError, ValueError):
                 # 4xx 或认证错误 — 不重试
                 raise
-            except Exception as e:
+            except Exception:
                 # 其他意外错误 — 重试一次
                 if attempt < max_retries:
                     await asyncio.sleep(base_delay)

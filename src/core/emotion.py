@@ -10,9 +10,7 @@
   - 连续负面轮次自动升级共情和转人工建议
 """
 
-import re
 import logging
-from typing import Optional
 
 logger = logging.getLogger(__name__)
 

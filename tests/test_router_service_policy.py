@@ -50,8 +50,8 @@ def test_intent_is_kb_grounded():
     """服务规则类必须有知识库依据: 图上落 finance_node(finance KB prompt)。"""
     assert INTENT_NODE_MAP.get(QueryIntent.SERVICE_POLICY) == "finance_node"
 
-    from src.analyst_agent import AnalystAgent  # noqa: F401  (确认可导入)
     from src.agents.prompts import FINANCE_KB_SYSTEM_PROMPT
+    from src.analyst_agent import AnalystAgent  # noqa: F401  (确认可导入)
     src = open(os.path.join(os.path.dirname(os.path.dirname(__file__)),
                             "src", "analyst_agent.py"), encoding="utf-8").read()
     assert "QueryIntent.SERVICE_POLICY: FINANCE_KB_SYSTEM_PROMPT" in src, \

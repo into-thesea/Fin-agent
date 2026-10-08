@@ -1,11 +1,11 @@
 """槽位填充测试 — 金融理财产品槽位 (产品/金额/期限/风险) 提取与追问"""
 
-import sys
 import os
+import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(__file__))))
 
-from src.core.slot_filler import extract_slots, missing_required, followup_question, KNOWN_PRODUCTS
+from src.core.slot_filler import KNOWN_PRODUCTS, extract_slots, followup_question, missing_required
 
 
 def test_product_from_catalog():
