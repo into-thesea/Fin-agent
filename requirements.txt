@@ -7,7 +7,7 @@ python-dotenv==1.2.2
 sentence-transformers==5.4.0
 pandas==3.0.2
 numpy==2.4.4
-langgraph==0.3.5
+langgraph==1.1.10
 redis==5.3.0
 celery==5.5.2
 fastapi==0.117.0
