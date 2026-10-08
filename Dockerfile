@@ -42,8 +42,8 @@ COPY run.py .
 # 前端静态 (由 FastAPI 托管)
 COPY --from=frontend /app/frontend/dist ./frontend/dist
 
-# 本地 bge 模型 (离线加载, 需随镜像或挂载)
-COPY models/ ./models/
+# 本地 bge 模型 (离线加载, 运行时用 -v 挂载或启动后下载, 不打包进镜像)
+RUN mkdir -p models
 
 # 数据目录 (生产建议用 -v 挂载持久化, 不打包数据)
 RUN mkdir -p data/output_analysis data/data_reports data/customer_faq logs
