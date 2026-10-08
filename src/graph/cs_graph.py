@@ -27,7 +27,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspa
 
 logger = logging.getLogger(__name__)
 
-from src.llm.query_router import classify as rule_classify
+from src.core.fast_path import route_class, should_answer_fast
 from src.llm.llm_client import create_client
 from src.agents.router_agent import RouterAgent, QueryIntent
 from src.agents.agentic_agent import AgenticAgent
@@ -37,8 +37,8 @@ from src.agents.prompts import (
     CS_CHITCHAT_SYSTEM_PROMPT, UNKNOWN_SYSTEM_PROMPT,
     BOUNDARY_BLOCK_LIGHT,
 )
-from src.core.slot_filler import extract_slots, missing_required, followup_question
-from src.tools.registry import retrieve_knowledge
+from src.core.slot_filler import extract_slots, missing_required, followup_question, is_executable_order
+from src.core.query_decomposer import decompose_query
 from src.memory.memory_store import memory_store
 from src.business import finance_services as fs  # 阶段二: 适当性门控 / 申购
 from src.analyst_agent import format_response  # 复用现有格式化器
@@ -110,8 +110,7 @@ def _should_enter_subscribe(intent: QueryIntent, slots: dict, query: str = "") -
     slots = slots or {}
     code_hit = bool(_CODE_RE.search(query or ""))
     product = slots.get("product")
-    amount_given = slots.get("amount") is not None
-    order = intent == QueryIntent.BUY_PROCESS and amount_given
+    order = is_executable_order(intent.value, slots)   # 判据唯一定义在 slot_filler
     confirm = intent == QueryIntent.PRODUCT_CONSULT and code_hit  # 索码后的补码轮
     return bool(product) and (order or confirm)
 
@@ -146,6 +145,9 @@ class CsState(TypedDict):
     confidence: float
     entities: list
     contexts: dict
+    kb_text: str            # 带产品对齐守卫的 KB 原文 (只由 triage 产出, 快答复用)
+    strong_intent: str      # 强信号规则命中的意图 (供 fast_path 闸①)
+    fast_path: bool         # triage 的五道闸判定结果
     memory_context: str
     agent_result: dict
     review: dict
@@ -154,14 +156,47 @@ class CsState(TypedDict):
     handoff: bool
     retry_count: int
     stage: str
+    last_intent: str           # 上一轮意图 (续轮继承用, 来自 dialog_state)
+    awaiting_slot: str       # 上一轮待补槽位 (纯金额续轮用)
+
+
+def _emotion_prompt(base_prompt: str, state: dict) -> str:
+    """按上一轮情绪给 System Prompt 追加共情/转人工建议.
+
+    情绪只影响措辞, 不改变业务逻辑 (见 src/core/emotion.py 的设计原则)。
+    """
+    from src.core.emotion import build_emotion_instruction, should_suggest_handoff
+    emotion = state.get("emotion") or "normal"
+    extra = build_emotion_instruction(emotion)
+    if should_suggest_handoff(emotion, state.get("turn_count", 0), state.get("negative_turns", 0)):
+        extra += "\n用户已连续多轮未解决或情绪负面，请在回答末尾主动提示：可回复「转人工」接入人工坐席。"
+    return f"{base_prompt}\n\n{extra}" if extra else base_prompt
 
 
 def _empty_state(query: str, session_id: str = "", user_id: str = "", slots: Optional[dict] = None) -> dict:
+    # 情绪上下文来自上一轮 (dialog_state.update 在回答后写回), 读取失败不阻塞对话
+    emotion, negative_turns, turn_count = "normal", 0, 0
+    last_intent, awaiting_slot = None, None
+    if session_id:
+        try:
+            from src.core.dialog_state import get_state_manager
+            ds = get_state_manager().get_or_create(session_id)
+            emotion = getattr(ds, "emotion", None) or "normal"
+            negative_turns = getattr(ds, "negative_turns", 0) or 0
+            turn_count = getattr(ds, "turn_count", 0) or 0
+            last_intent = getattr(ds, "last_intent", None)
+            awaiting_slot = getattr(ds, "awaiting_slot", None)
+        except Exception as e:
+            logger.debug("会话上下文读取失败 (可忽略): %s", e)
+
     return {
         "query": query, "session_id": session_id, "user_id": user_id, "slots": dict(slots or {}),
         "qclass": "", "intent": "", "confidence": 0.0, "entities": [],
-        "contexts": {}, "memory_context": "",
+        "contexts": {}, "kb_text": "", "strong_intent": None, "fast_path": False,
+        "memory_context": "",
         "agent_result": {}, "review": {}, "answer": "", "sources": [], "handoff": False,
+        "emotion": emotion, "negative_turns": negative_turns, "turn_count": turn_count,
+        "last_intent": last_intent, "awaiting_slot": awaiting_slot,
         "retry_count": 0, "stage": "start",
     }
 
@@ -198,12 +233,17 @@ def build_graph(token_queue=None):
 
     # ── 1. 规则路由 (毫秒级, 决定快速通道 vs 完整管道) ──
     def classify_node(state: dict) -> dict:
-        qclass = rule_classify(state["query"])
+        # 唯一入口: 规则分类 + HANDOFF/私有数据硬前置 (见 src/core/fast_path.py)。
+        # 此处拿不到强信号意图 (那要等 route_retrieve_node), 所以只传 query;
+        # 诈骗类的强信号拦截由 route_retrieve_node → _route_next 承担, 判定入口只有一个。
+        qclass = route_class(state["query"])
         logger.info("P3 classify: %s", qclass)
         return {"qclass": qclass, "stage": "classify"}
 
     def _classify_next(state: dict) -> str:
-        return {"greeting": "greeting_node", "simple_fact": "simple_fact_node"}.get(state["qclass"], "route_retrieve_node")
+        # 只有 greeting 在这里分流。快答与否由 route_retrieve_node 之后的五道闸决定,
+        # 不再由关键词表直接决定 (见 src/core/fast_path.py)
+        return "greeting_node" if state.get("qclass") == "greeting" else "route_retrieve_node"
 
     # ── 1.5 分层记忆注入 (P4): 会话窗口 + 用户画像 + 向量语义记忆 → memory_context ──
     def memory_node(state: dict) -> dict:
@@ -233,9 +273,13 @@ def build_graph(token_queue=None):
                 "intent": QueryIntent.CHITCHAT.value, "confidence": 0.9}
 
     def simple_fact_node(state: dict) -> dict:
-        r = retrieve_knowledge(state["query"], 8)
+        """快答: 复用 triage 已拿到的 KB 原文 (含产品对齐守卫), 不重复检索也不重复路由。
+
+        意图/置信度/kb_text 都由 route_retrieve_node 产出 —— 这里只生成答案。
+        """
         messages = [
-            {"role": "system", "content": "你是理财客服助手。请基于知识库检索结果简要回答, 无法确定时明确说明。\n\n" + BOUNDARY_BLOCK_LIGHT + "\n\n" + r["text"]},
+            {"role": "system", "content": "你是理财客服助手。请基于知识库检索结果简要回答, 无法确定时明确说明。\n\n"
+                                          + BOUNDARY_BLOCK_LIGHT + "\n\n" + (state.get("kb_text") or "")},
             {"role": "user", "content": state["query"]},
         ]
         if token_queue is not None:
@@ -247,12 +291,9 @@ def build_graph(token_queue=None):
             ans = "".join(_parts)
         else:
             ans = create_client(cheap=True).chat(messages)
-        # 快速通道用LLM分类获取intent (方案A: 提升全链路意图准确率)
-        # router.route()内部先做强信号规则仲裁, 强信号命中零延迟, 其余走LLM分类
-        route_result = router.route(state["query"])
-        return {"answer": ans, "sources": r["sources"], "contexts": r.get("contexts", {}),
-                "stage": "simple_fact", "intent": route_result.intent.value,
-                "confidence": route_result.confidence}
+        return {"answer": ans,
+                "sources": (state.get("contexts") or {}).get("sources", []),
+                "stage": "simple_fact"}
 
     # ── 3. 复杂路径: 路由 + 检索 (并行) ──
     def _build_dialog_context(state: dict) -> str:
@@ -307,19 +348,70 @@ def build_graph(token_queue=None):
             return dominant_theme, True, f"检索结果高度集中于{dominant_theme.value}主题"
         return intent, False, ""
 
+
+    def _merge_retrieval_results(contexts_list: list, top_k: int = 8) -> dict:
+        """合并多个子问题的检索结果：按 chunk_id 去重，保留最高分，按分数降序取 top_k"""
+        merged = {}
+        all_sources = []
+        for ctx in contexts_list:
+            for item in ctx.get("local", []):
+                cid = item.get("chunk_id") or item.get("id") or id(item)
+                score = item.get("score", 0.0)
+                if cid not in merged or score > merged[cid].get("score", 0.0):
+                    merged[cid] = item
+            all_sources.extend(ctx.get("sources", []))
+        sorted_items = sorted(merged.values(), key=lambda x: x.get("score", 0.0), reverse=True)[:top_k]
+        return {"local": sorted_items, "sources": list(set(all_sources))[:top_k]}
+
     def route_retrieve_node(state: dict) -> dict:
         from src.retrieval.retriever import HybridRetriever
+        from src.tools.registry import format_kb_text
+        from src.core.intent_inheritance import try_inherit_intent
+        from src.agents.router_agent import RoutingResult, INTENT_CATEGORY
         retriever = HybridRetriever()
         dialog_ctx = _build_dialog_context(state)
-        with concurrent.futures.ThreadPoolExecutor(max_workers=2) as pool:
-            route_future = pool.submit(router.route, state["query"], dialog_ctx)
-            retrieve_future = pool.submit(retriever.hybrid_retrieve, state["query"])
-            route_result = route_future.result()
-            contexts = retrieve_future.result()
+        # LLM 拆分多问题（单问题时快速路径直接返回 [原问题]，零额外延迟）
+        sub_queries = decompose_query(state["query"])
+        is_multi = len(sub_queries) > 1
+        # 续轮意图继承: 确定性规则, 命中则跳过路由 LLM (零延迟)
+        inherited, inherited_intent = try_inherit_intent(
+            state["query"], state.get("last_intent"), state.get("awaiting_slot"))
+        workers = max(2, min(len(sub_queries) + 1, 6))  # 路由 + N 个检索，上限 6
+        with concurrent.futures.ThreadPoolExecutor(max_workers=workers) as pool:
+            if inherited:
+                inherited_qintent = QueryIntent(inherited_intent)
+                route_result = RoutingResult(original_query=state["query"])
+                route_result.intent = inherited_qintent
+                route_result.category = INTENT_CATEGORY.get(inherited_qintent)
+                route_result.confidence = 1.0
+                route_result.entities = []
+                route_result.explanation = f"[规则继承] 续轮沿用 {inherited_intent}"
+                route_future = None
+                logger.info("P3 意图继承: %s (上一轮=%s)", inherited_intent, state.get("last_intent"))
+            else:
+                route_future = pool.submit(router.route, state["query"], dialog_ctx)
+            if is_multi:
+                # 多子问题并行检索
+                retrieve_futures = [pool.submit(retriever.hybrid_retrieve, q) for q in sub_queries]
+                contexts_list = [f.result() for f in retrieve_futures]
+                contexts = _merge_retrieval_results(contexts_list)
+                logger.info("P3 多问题拆分: %d 个子问题 → 合并 %d 条结果", len(sub_queries), len(contexts.get("local", [])))
+            else:
+                retrieve_future = pool.submit(retriever.hybrid_retrieve, state["query"])
+                contexts = retrieve_future.result()
+            if route_future:
+                route_result = route_future.result()
+        # 强信号规则是纯内存字典扫描 (无 I/O, 微秒级), 直接调不必进线程池
+        _strong_result, strong_intent = router.strong_signal_rule(state["query"])
+        # KB 原文一律经 format_kb_text 施加产品对齐守卫 —— 完整管道此前直接调
+        # hybrid_retrieve 绕过了它, 只有快速通道有这道保护 (见 spec Review Focus #3)。
+        # 注意 top_k 仍走 hybrid_retrieve 的配置默认值, 不在这里改成硬编码, 免得静默改动完整管道。
+        kb_text = format_kb_text(state["query"], contexts)["text"]
         adjusted_intent, adjusted, reason = _intent_retrieval_consistency_check(
             route_result.intent, route_result.confidence, contexts)
         if adjusted:
             route_result.intent = adjusted_intent
+            route_result.category = INTENT_CATEGORY.get(adjusted_intent)
             route_result.explanation = (route_result.explanation or "") + f" [一致性校验调整: {reason}]"
         logger.info("P3 route: %s (%.0f%%) - %s", route_result.intent.value,
                     route_result.confidence * 100, route_result.explanation)
@@ -328,10 +420,18 @@ def build_graph(token_queue=None):
             "confidence": route_result.confidence,
             "entities": route_result.entities,
             "contexts": contexts,
+            "kb_text": kb_text,
+            "strong_intent": strong_intent,
+            # 四道闸判定集中在这里, triage 只负责产出事实
+            "fast_path": should_answer_fast(
+                route_result.intent.value, contexts, state["query"], strong_intent),
             "stage": "route_retrieve",
         }
 
     def _route_next(state: dict) -> str:
+        # 过闸 → 快答; 不过闸 → 升级到完整管道 (unknown 仍走 unknown_node)
+        if state.get("fast_path"):
+            return "simple_fact_node"
         return "unknown_node" if state.get("intent") == QueryIntent.UNKNOWN.value else "slot_check_node"
 
     def unknown_node(state: dict) -> dict:
@@ -341,17 +441,25 @@ def build_graph(token_queue=None):
         ])
         return {"answer": ans, "sources": [], "stage": "unknown"}
 
-    # ── 4. 槽位抽取 + 缺失追问 (阶段二接入资金动账流程后在此补必填槽位) ──
+    # ── 4. 槽位抽取 + 缺失追问 (仅在构成可执行下单指令时追问, 见 missing_required) ──
     def slot_check_node(state: dict) -> dict:
         intent = QueryIntent(state["intent"])
-        slots = dict(state["slots"])
+        slots = dict(state.get("slots") or {})
         slots.update(extract_slots(state["query"], state.get("entities", [])))
+
         missing = missing_required(intent.value, slots)
+
         if missing:
             logger.info("P3 slot 预检: 意图=%s 缺 %s → 追问", intent.value, missing)
-            return {"slots": slots, "answer": followup_question(missing),
-                    "sources": [], "stage": "slot_followup", "intent": intent.value}
-        return {"slots": slots, "stage": "slot_check"}
+            return {
+                "slots": slots,
+                "answer": followup_question(missing),
+                "sources": [],
+                "stage": "slot_followup",
+                "intent": intent.value,
+                "awaiting_slot": missing[0],
+            }
+        return {"slots": slots, "stage": "slot_check", "awaiting_slot": None}
 
     def _slot_next(state: dict) -> str:
         return END if state.get("stage") == "slot_followup" else "orchestrator_node"
@@ -407,7 +515,7 @@ def build_graph(token_queue=None):
             # P8: 图节点流转绑定 user_id (工具调用经拦截器读取 thread-local)
             from src.business.context import set_current_user
             set_current_user(state.get("user_id") or None)
-            agent = AgenticAgent(system_prompt=prompt, intent=intent)
+            agent = AgenticAgent(system_prompt=_emotion_prompt(prompt, state), intent=intent)
             q = _with_memory(state)  # P4: 前置记忆上下文
             if token_queue is not None:
                 # 流式: 工具循环收集上下文 → 逐 token 推送
@@ -542,12 +650,14 @@ def build_graph(token_queue=None):
     g.add_edge(START, "classify_node")
     g.add_edge("classify_node", "memory_node")  # P4: 路由前注入记忆
     g.add_conditional_edges("memory_node", _classify_next,
-                            {"greeting_node": "greeting_node", "simple_fact_node": "simple_fact_node",
+                            {"greeting_node": "greeting_node",
                              "route_retrieve_node": "route_retrieve_node"})
     g.add_edge("greeting_node", END)
     g.add_edge("simple_fact_node", END)
     g.add_conditional_edges("route_retrieve_node", _route_next,
-                            {"unknown_node": "unknown_node", "slot_check_node": "slot_check_node"})
+                            {"simple_fact_node": "simple_fact_node",
+                             "unknown_node": "unknown_node",
+                             "slot_check_node": "slot_check_node"})
     g.add_edge("unknown_node", END)
     g.add_conditional_edges("slot_check_node", _slot_next,
                             {END: END, "orchestrator_node": "orchestrator_node"})

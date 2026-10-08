@@ -73,8 +73,10 @@ def test_rule_fallback_finance_intents():
 
 
 def test_classify_basic_routes():
+    # v4.0: classify 只分 greeting/complex —— "简不简单"改由五道闸判定
+    # (src/core/fast_path.py), 不再由关键词表决定。原 simple_fact 断言随之作废。
     assert classify("你好") == "greeting"
-    assert classify("收益怎么算") == "simple_fact"
-    assert classify("存款保险保多少") == "simple_fact"
+    assert classify("收益怎么算") == "complex"
+    assert classify("存款保险保多少") == "complex"
     assert classify("为什么理财会亏损") == "complex"
     assert classify("我的持仓收益如何") == "complex"

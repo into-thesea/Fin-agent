@@ -18,9 +18,9 @@
               ┌─────────────┼─────────────┐
               ▼             ▼             ▼
           ┌────────┐  ┌──────────┐  ┌──────────┐
-          │ FAISS  │  │  BM25    │  │  Neo4j    │
-          │ 1497   │  │ +RRF/MMR │  │ Docker    │
-          │ 向量检索│  │ +社区摘要 │  │ 图谱(主)  │
+          │ Milvus │  │  BM25    │  │  Neo4j    │
+          │ Docker │  │ +RRF/MMR │  │ Docker    │
+          │ 向量检索│  │ 稀疏检索 │  │ 图谱检索  │
           └────────┘  └──────────┘  └──────────┘
 ```
 
@@ -52,7 +52,7 @@ wsl redis-server --daemonize yes --port 6379
 ```bash
 python -m venv .venv
 .venv/Scripts/pip install -r requirements.txt
-.venv/Scripts/pip install faiss-cpu neo4j        # 额外依赖
+.venv/Scripts/pip install neo4j                 # 额外依赖
 ```
 
 ### 3. API Key

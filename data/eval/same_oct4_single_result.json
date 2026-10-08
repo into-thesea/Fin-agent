@@ -1,0 +1,165 @@
+{
+  "eval_file": "finance_qa_golden_original.jsonl",
+  "total": 105,
+  "correct": 93,
+  "accuracy": 0.8857142857142857,
+  "rule_hit": 21,
+  "llm_called": 84,
+  "avg_latency": 1.4016089689163935,
+  "per_intent": {
+    "product_consult": {
+      "total": 11,
+      "correct": 7
+    },
+    "deposit_insurance": {
+      "total": 14,
+      "correct": 12
+    },
+    "risk_suitability": {
+      "total": 12,
+      "correct": 11
+    },
+    "income_question": {
+      "total": 12,
+      "correct": 12
+    },
+    "hold_redeem": {
+      "total": 13,
+      "correct": 13
+    },
+    "buy_process": {
+      "total": 6,
+      "correct": 6
+    },
+    "fee_rule": {
+      "total": 5,
+      "correct": 5
+    },
+    "fraud_report": {
+      "total": 10,
+      "correct": 9
+    },
+    "product_compare": {
+      "total": 13,
+      "correct": 13
+    },
+    "chitchat": {
+      "total": 8,
+      "correct": 5
+    },
+    "service_policy": {
+      "total": 1,
+      "correct": 0
+    }
+  },
+  "errors": [
+    {
+      "id": "g008",
+      "question": "安鑫纯债基金是你们银行发行的吗？",
+      "expected": "deposit_insurance",
+      "got": "product_consult",
+      "confidence": 0.98,
+      "rule": false,
+      "explanation": "[CoT] 第一层大类: 用户在问安鑫纯债基金是否由银行发行，属于询问产品本身的属性（发行方），因此归为 product_info 产品咨询类。第二层小类: 在 product_info 下的 product_consult（单款产品基本属"
+    },
+    {
+      "id": "g033",
+      "question": "信用卡逾期会影响房贷申请吗？",
+      "expected": "deposit_insurance",
+      "got": "service_policy",
+      "confidence": 0.95,
+      "rule": false,
+      "explanation": "[CoT] 第一层大类: 用户问信用卡逾期是否影响房贷申请，属于银行服务规则/政策咨询，不在理财客服核心业务范围内，应归为服务安全类；第二层小类: 在服务安全类的 fraud_report/complaint/service_policy/"
+    },
+    {
+      "id": "g035",
+      "question": "客服会索要我的短信验证码吗？",
+      "expected": "fraud_report",
+      "got": "service_policy",
+      "confidence": 0.98,
+      "rule": false,
+      "explanation": "[CoT] 第一层大类: 用户在问客服是否会索要短信验证码，属于客服服务规则/安全边界问题，因此归为 service_safety 服务安全类。第二层小类: 在 service_safety 的 fraud_report/complaint"
+    },
+    {
+      "id": "g037",
+      "question": "我把银行卡号告诉你帮我查",
+      "expected": "chitchat",
+      "got": "service_policy",
+      "confidence": 0.95,
+      "rule": false,
+      "explanation": "[CoT] 第一层大类: 用户要求提供银行卡号帮忙查询，涉及隐私与客服服务边界，属于服务安全类；第二层小类: 在服务安全类的 fraud_report/complaint/service_policy/chitchat 中，该问题询问客服能"
+    },
+    {
+      "id": "g041",
+      "question": "日日盈现金管理类的七日年化是多少？",
+      "expected": "product_consult",
+      "got": "income_question",
+      "confidence": 0.98,
+      "rule": false,
+      "explanation": "[CoT] 第一层大类: 用户在问'七日年化是多少'，这是收益口径/收益水平的问题，属于收益风险类（return_risk），因为核心是收益怎么算/收益是多少，不是问产品本身属性、交易操作或服务安全。第二层小类: 在return_risk的"
+    },
+    {
+      "id": "g042",
+      "question": "稳盈添利90天的起购金额是多少？",
+      "expected": "product_consult",
+      "got": "buy_process",
+      "confidence": 0.98,
+      "rule": false,
+      "explanation": "[CoT] 第一层大类: 用户在问稳盈添利90天的起购金额, 属于购买门槛/操作要求, 属于交易操作类; 第二层小类: 在交易操作类的 buy_process/hold_redeem/fee_rule 中, 起购金额属于购买流程中的门槛要求"
+    },
+    {
+      "id": "g047",
+      "question": "大额存单3年期的利率是多少？",
+      "expected": "product_consult",
+      "got": "income_question",
+      "confidence": 0.98,
+      "rule": false,
+      "explanation": "[CoT] 第一层大类: 用户在问大额存单3年期的利率，属于收益口径问题，因此归为 return_risk 收益风险类。第二层小类: 在 return_risk 类中，income_question 对应收益口径/利率/利息计算，最匹配；r"
+    },
+    {
+      "id": "g058",
+      "question": "风险测评多久做一次？",
+      "expected": "risk_suitability",
+      "got": "service_policy",
+      "confidence": 0.95,
+      "rule": false,
+      "explanation": "[CoT] 第一层大类: 用户在问风险测评的更新频率，属于客服服务规则，不是产品、收益或交易操作，因此归为 service_safety 服务安全类。第二层小类: 在 service_safety 的 fraud_report/compla"
+    },
+    {
+      "id": "g090",
+      "question": "我把身份证号和银行卡密码告诉你，你帮我操作买一下理财行吗？",
+      "expected": "chitchat",
+      "got": "service_policy",
+      "confidence": 0.96,
+      "rule": false,
+      "explanation": "[CoT] 第一层大类: 用户询问是否可以把身份证号和银行卡密码告诉客服并让客服代为操作购买理财，核心涉及客服服务边界与隐私安全，属于服务安全类。第二层小类: 在服务安全类的 fraud_report/complaint/service_p"
+    },
+    {
+      "id": "g096",
+      "question": "收益怎么样？",
+      "expected": "chitchat",
+      "got": "income_question",
+      "confidence": 0.9,
+      "rule": false,
+      "explanation": "[CoT] 第一层大类: 用户问“收益怎么样”，核心是询问收益情况，属于收益风险类。第二层小类: 在收益风险类中，income_question 对应收益口径/收益计算/是否保本等，最匹配。排除了 risk_suitability，因为用户"
+    },
+    {
+      "id": "g101",
+      "question": "信托产品的起购金额是多少？",
+      "expected": "product_consult",
+      "got": "buy_process",
+      "confidence": 0.98,
+      "rule": false,
+      "explanation": "[CoT] 第一层大类: 用户在问信托产品的起购金额，属于购买门槛/流程问题，因此归为 transaction 交易操作类；第二层小类: 在 transaction 类的 buy_process/hold_redeem/fee_rule 中"
+    },
+    {
+      "id": "g104",
+      "question": "投诉理财经理应该找谁？",
+      "expected": "service_policy",
+      "got": "complaint",
+      "confidence": 0.92,
+      "rule": true,
+      "explanation": "强信号规则命中: 投诉"
+    }
+  ]
+}

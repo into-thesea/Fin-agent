@@ -116,62 +116,138 @@ class QueryIntent(str, Enum):
     FEE_RULE = "fee_rule"
     FRAUD_REPORT = "fraud_report"
     COMPLAINT = "complaint"
-    SERVICE_POLICY = "service_policy"   # 客服服务规则: 转人工条件/客服边界/隐私与信息索取/投诉渠道
+    SERVICE_POLICY = "service_policy"
     CHITCHAT = "chitchat"
     UNKNOWN = "unknown"
 
 
+class IntentCategory(str, Enum):
+    """第一层粗分类 (4 大类, 边界清晰, 几乎不会判错)"""
+    PRODUCT_INFO = "product_info"       # 产品咨询类: 问产品是什么/有什么/对比/存款属性
+    RETURN_RISK = "return_risk"         # 收益风险类: 问收益口径/保本/适当性
+    TRANSACTION = "transaction"         # 交易操作类: 问申购/赎回/费率
+    SERVICE_SAFETY = "service_safety"   # 服务安全类: 问诈骗/投诉/服务规则/闲聊
+
+
+# 大类 → 该大类下的小类
+CATEGORY_INTENTS = {
+    IntentCategory.PRODUCT_INFO: [
+        QueryIntent.PRODUCT_CONSULT,
+        QueryIntent.PRODUCT_COMPARE,
+        QueryIntent.DEPOSIT_INSURANCE,
+    ],
+    IntentCategory.RETURN_RISK: [
+        QueryIntent.INCOME_QUESTION,
+        QueryIntent.RISK_SUITABILITY,
+    ],
+    IntentCategory.TRANSACTION: [
+        QueryIntent.BUY_PROCESS,
+        QueryIntent.HOLD_REDEEM,
+        QueryIntent.FEE_RULE,
+    ],
+    IntentCategory.SERVICE_SAFETY: [
+        QueryIntent.FRAUD_REPORT,
+        QueryIntent.COMPLAINT,
+        QueryIntent.SERVICE_POLICY,
+        QueryIntent.CHITCHAT,
+    ],
+}
+
+# 小类 → 所属大类 (反向映射, 供规则直出/兜底时补 category)
+INTENT_CATEGORY = {}
+for _cat, _intents in CATEGORY_INTENTS.items():
+    for _intent in _intents:
+        INTENT_CATEGORY[_intent] = _cat
+
+
 @dataclass
 class RoutingResult:
-    """路由结果"""
+    """路由结果 (层级式: category 大类 + intent 小类)"""
     intent: QueryIntent = QueryIntent.UNKNOWN
-    entities: list = field(default_factory=list)  # 提取的实体列表 [{"name": "...", "type": "..."}]
-    time_range: list = field(default_factory=list)  # 保留字段
-    metrics: list = field(default_factory=list)  # 保留字段
-    confidence: float = 0.0  # 路由置信度
+    category: Optional[IntentCategory] = None  # 第一层粗分类
+    entities: list = field(default_factory=list)
+    time_range: list = field(default_factory=list)
+    metrics: list = field(default_factory=list)
+    confidence: float = 0.0
     original_query: str = ""
     explanation: str = ""
 
 
-# 意图检测 Prompt (含 CoT 推理 + 动态 few-shot 占位)
-INTENT_DETECTION_PROMPT = """你是一个银行/金融理财产品智能客服的查询分类器。请先分析用户问题的核心诉求和关键词，再输出分类 JSON。
+# 层级式意图检测 Prompt (两层: 先 4 大类, 再大类内小类; 一次调用输出两层)
+INTENT_DETECTION_PROMPT = """你是一个银行/金融理财产品智能客服的查询分类器。请按"先大类、后小类"两层步骤分析用户问题，再输出分类 JSON。
 
-【推理要求】
-请按以下步骤思考（在 analysis 字段中简要写出）:
-1. 用户问题的核心诉求是什么？（问产品属性/问政策制度/问操作流程/问资金安全/其他）
-2. 问题中出现了哪些关键词？这些关键词指向哪些候选意图？
-3. 哪些候选意图可以排除？为什么？
-4. 最终意图是什么？置信度多少？
+【推理步骤】
+请在 analysis 字段中简要写出以下推理:
+1. 第一层——大类判断: 用户问题的核心诉求属于哪一大类? (4 选 1, 大类边界清晰)
+   - product_info 产品咨询类: 问产品本身是什么、有哪些产品、产品对比、是不是存款/受不受存款保险
+   - return_risk 收益风险类: 问收益怎么算、保不保本、净值、业绩基准、我能不能买、风险测评匹配
+   - transaction 交易操作类: 问怎么买、申购流程、赎回、到期、提前支取、费率手续费
+   - service_safety 服务安全类: 问诈骗举报、投诉、客服服务规则、隐私、问候寒暄、领域外问题
+2. 第二层——小类判断: 在该大类包含的小类中, 哪一个最匹配? (2-4 选 1, 只在大类内部比较, 不要考虑其他大类的小类)
+3. 最终小类是什么? 置信度多少?
 
-注意: analysis 是推理过程，intent 是最终结论。两者必须一致。
+注意: 必须先确定大类, 再在大类内部确定小类。category 和 intent 必须属于同一大类。
 
-意图分类定义:
-  product_consult:   单款产品咨询 (收益/期限/风险等级/门槛/能不能买这一款) ("稳盈添利30天收益怎么样？")
-  product_compare:   多款产品对比或选品推荐 ("大额存单和固收理财哪个适合我？" / "帮我对比两款理财")
-  risk_suitability:  风险等级含义/风险测评/适当性/我能买R几级产品 ("R3是什么风险？" / "我测评是R2能买R3吗？")
-  income_question:   收益口径/是否保本/利息怎么算/业绩比较基准含义 ("这款保本吗？" / "年化4%是不是就有4%？")
-  deposit_insurance: 存款保险/是不是存款/保不保/偿付限额 ("银行理财是存款吗？存款保险赔吗？")
-  buy_process:       怎么买/起购门槛/申购流程/冷静期/双录 ("这个怎么买？" / "首次买理财要办什么？")
-  hold_redeem:       持有/到期/赎回/净值/撤单/提前支取 ("没到期能取出来吗？" / "怎么看我的净值？")
-  fee_rule:          费率/手续费/管理费/赎回费 ("提前赎回要手续费吗？")
-  fraud_report:      假理财/飞单/疑似被骗/举报/内部高收益渠道 ("这个高收益理财是真的吗？")
+【第一层大类定义】
+  product_info 产品咨询类:
+    用户想了解"产品本身"——产品是什么、有什么属性、有哪些产品可选、几款产品对比、产品是不是存款/受不受存款保险保障。
+  return_risk 收益风险类:
+    用户想了解"收益和风险"——收益怎么算、保不保本、利息/年化/净值/业绩基准含义、风险等级与我的测评是否匹配、我能不能买某产品。
+  transaction 交易操作类:
+    用户想了解"怎么操作"——购买流程、起购门槛、双录、赎回、到期处理、提前支取、费率手续费。
+  service_safety 服务安全类:
+    用户想了解"服务与安全"——疑似诈骗举报、投诉、客服能做什么/不能做什么、隐私与信息索取、工单时效、问候寒暄、不在理财客服范围内的问题。
+
+【第二层小类定义 (按大类分组, 判断小类时只看所属大类内部)】
+
+product_info 产品咨询类下:
+  product_consult:   单款产品的基本属性咨询 (期限/发行方/产品类型/封闭期/开放日/风险等级是多少; 起购金额门槛归 buy_process)
+                     例: "安心固收90天是什么类型的产品？" "远见成长混合的持仓周期多久？" "这款产品的风险等级是多少？" "远见成长混合基金是自营还是代销的？"
+  product_compare:   两款及以上产品对比, 或按条件筛选/推荐产品
+                     例: "国债和定期存款哪个利息高？" "有哪些R1的活期理财？" "这三款哪个流动性最好？"
+  deposit_insurance: 问产品是不是存款、受不受存款保险保障、存款保险偿付限额
+                     例: "货币基金算存款吗？" "存款保险保外币存款吗？" "通知存款受存款保险保障吗？"
+
+return_risk 收益风险类下:
+  income_question:   收益口径/是否保本/利息怎么算/净值与业绩基准含义/会不会亏
+                     例: "定期存款3年利率是多少？" "这款产品保本吗？" "万份收益是什么意思？"
+                         "业绩比较基准4%是不是保证能拿到？" "理财产品净值下跌是不是就亏了？" "纯债基金历史上亏过本金吗？"
+  risk_suitability:  风险等级与用户测评的适当性匹配 (我能不能买某产品/R几能买R几), 以及风险等级含义与等级间区别
+                     例: "我是保守型能买远见成长吗？" "R1能买R3的产品吗？" "买保险需要做适当性评估吗？" "R1和R5的风险差距在哪里？"
+
+transaction 交易操作类下:
+  buy_process:       怎么买/申购流程/起购门槛/开通权限/冷静期/双录
+                     例: "第一次在手机银行买基金要开通什么？" "首次购买私募产品需要什么条件？" "私募基金的投资门槛是多少？"
+  hold_redeem:       持有/到期/赎回/提前支取/转让/退保/钱退到哪里
+                     例: "封闭期内可以赎回吗？" "理财产品赎回后资金回到哪里？" "年金险买了之后能退保吗？" "定期存款可以转让吗？"
+  fee_rule:          费率/手续费/管理费/赎回费
+                     例: "持有不满7天赎回有惩罚费吗？" "信托产品的管理费怎么收？"
+
+service_safety 服务安全类下:
+  fraud_report:      假理财/飞单/疑似被骗/举报/内部高收益渠道
+                     例: "陌生人拉我进群推荐理财" "承诺年化15%的稳赚产品能信吗？" "私下推荐的高收益产品可靠吗？"
   complaint:         投诉/不满/要求处理
-  service_policy:    客服服务规则 (哪些情况转人工/客服能做什么与不能做什么/隐私与信息索取/投诉渠道/工单时效) ("哪些情况应该转人工坐席？" / "客服会索要我的验证码吗？")
-  chitchat:          仅限问候与寒暄 ("你是谁" / "你好" / "谢谢"); 凡涉及产品、政策、业务或服务流程的问题都不得归到此项
-  unknown:           无法归类
+                     例: "我要投诉网点服务" "对理财产品销售不满怎么反映？"
+  service_policy:    客服服务规则 (转人工条件/客服边界/隐私/测评流程/工单时效)
+                     例: "如何接通人工客服？" "客服会要求我提供交易密码吗？" "适当性评估有效期多久？" "客户信息会被共享给第三方吗？"
+  chitchat:          仅限问候寒暄, 或明确不在理财客服范围内的问题; 不得收纳任何产品/收益/交易/服务政策类业务问题
+                     例: "你好" "谢谢" "帮我分析宁德时代股票" "以太坊价格走势" "帮我写遗嘱" "下周A股怎么走"
+                     "我把存折号告诉你帮我查余额" "我把网银密码告诉你帮我转账"
+                     "利息多少？"(无产品上下文) "那款产品怎么样？"(无上下文无法确定具体产品)
 
-实体提取规则:
+【实体提取规则】
   - Product: 产品名（"稳盈添利30天" / "大额存单" / "安鑫纯债基金"）
-  - ProductType: 产品大类（理财/存款/基金/保险/大额存单）
+  - ProductType: 产品大类（理财/存款/基金/保险）
   - Amount: 金额（"50万" / "50000元"）
   - Term: 期限（"30天" / "90天" / "3年"）
   - RiskLevel: 风险/测评等级（R1~R5）
-  - YieldType: 收益口径（业绩比较基准/七日年化/执行利率/预定利率，可选）
+  - YieldType: 收益口径（业绩比较基准/七日年化/执行利率/预定利率）
 
-输出格式 (严格 JSON):
+【输出格式 (严格 JSON)】
 {
-  "analysis": "核心诉求是... 关键词包括... 排除了...因为... 最终判断为...",
-  "intent": "product_consult|product_compare|risk_suitability|income_question|deposit_insurance|buy_process|hold_redeem|fee_rule|fraud_report|complaint|service_policy|chitchat|unknown",
+  "analysis": "第一层大类: 用户在问...属于X类, 因为...; 第二层小类: 在X类的a/b/c中, ...最匹配, 因为...; 排除了...因为...",
+  "category": "product_info|return_risk|transaction|service_safety",
+  "intent": "该大类下的某个小类",
   "entities": [{"name": "稳盈添利30天", "type": "Product"}, {"name": "R2", "type": "RiskLevel"}],
   "time_range": [],
   "metrics": [],
@@ -179,27 +255,41 @@ INTENT_DETECTION_PROMPT = """你是一个银行/金融理财产品智能客服�
   "explanation": "简短理由"
 }
 
-分类示例 (易错边界):
-  Q: "结构性存款的收益是保证的吗？" → intent: income_question (问收益口径, 不是存款保险)
-  Q: "理财产品能承诺保本保收益吗？" → intent: income_question (问收益承诺, 不是适当性)
-  Q: "大额存单和固收理财哪个适合我？" → intent: product_compare (多产品对比, 不是适当性)
-  Q: "我测评是R2，能买平衡增利180天吗？" → intent: risk_suitability (适当性匹配, 不是产品咨询)
-  Q: "银行理财是存款吗？存款保险赔吗？" → intent: deposit_insurance (存款保险属性, 不是收益)
-  Q: "买理财为什么要双录？" → intent: buy_process (购买流程要求, 不是服务规则)
-  Q: "这个高收益内部渠道靠谱吗？" → intent: fraud_report (疑似诈骗, 不是产品咨询)
-  Q: "R3风险等级是什么意思？" → intent: risk_suitability (风险等级含义, 不是产品咨询)
-  Q: "提前赎回会收费吗？" → intent: fee_rule (费用, 不是持有赎回)
-  Q: "没到期能取出来吗？" → intent: hold_redeem (赎回/支取, 不是费用)
-  Q: "客服会索要我的验证码吗？" → intent: service_policy (客服边界, 不是购买流程)
+【两层判断示例】
+  Q: "定期存款的利息是固定的吗？"
+    → category: return_risk (问收益保证, 不是问产品属性)
+    → intent: income_question (收益口径, 不是存款保险)
+  Q: "国债和大额存单哪个更适合保守型？"
+    → category: product_info (问产品对比)
+    → intent: product_compare (多产品对比, 不是适当性)
+  Q: "我测评是R3，能买远见成长混合吗？"
+    → category: return_risk (问我能不能买, 核心是适当性)
+    → intent: risk_suitability (适当性匹配, 不是产品咨询)
+  Q: "买私募基金为什么要合格投资者认证？"
+    → category: transaction (问购买流程要求)
+    → intent: buy_process (不是服务规则)
+  Q: "适当性评估过期了怎么更新？"
+    → category: service_safety (问测评流程, 属于客服服务规则)
+    → intent: service_policy (不是适当性匹配)
+  Q: "定期存款3年利率是多少？"
+    → category: return_risk (问利率/收益, 不是问产品属性)
+    → intent: income_question (不是产品咨询)
+  Q: "安心固收90天封闭期多久？"
+    → category: product_info (问产品属性/期限)
+    → intent: product_consult (不是购买流程)
+  Q: "客服会要求我提供交易密码吗？"
+    → category: service_safety (问客服边界)
+    → intent: service_policy (不是购买流程)
 
 【相似历史案例参考】
 {dyn_few_shots}
 
-多轮上下文判断规则:
-  - 如果上一轮在咨询某款产品的某个属性（收益/期限/风险等），本轮用"它/这个/那"指代同一款产品继续问另一个属性，应归为 product_consult，而不是根据本轮出现的关键词误分类。
-    例如：上一轮问"稳盈添利30天收益怎么样"（product_consult），本轮问"那它的风险等级呢" → 仍为 product_consult（继续问同一款产品的属性），不是 risk_suitability。
-  - 如果本轮明确问"我能买R几""我的测评等级""R3是什么意思"，才是 risk_suitability。
-  - 上下文仅作参考，如果本轮问题明显开启了新话题（如突然问存款保险、突然投诉），以本轮内容为准。
+【多轮上下文判断规则】
+  - 如果上一轮在咨询某款产品, 本轮用"它/这个/那"指代同一款产品继续问, 大类应与上一轮一致, 小类根据本轮问的具体属性判断。
+    例: 上一轮"稳盈添利30天收益怎么样"(return_risk/income_question), 本轮"那它的风险等级呢"
+        → category: product_info (问产品属性), intent: product_consult
+        注意: 本轮问的是"风险等级是多少"这一产品属性, 不是问"我能不能买"的适当性, 所以不是 risk_suitability。
+  - 如果本轮明显开启新话题 (突然问存款保险、突然投诉、换一款产品), 以本轮内容为准, 不要被上一轮大类束缚。
 """
 
 
@@ -276,7 +366,10 @@ class RouterAgent:
             result.explanation = "规则兜底: 无法识别为明确的理财客服意图"
 
         result.confidence = 0.55 if result.intent is not QueryIntent.UNKNOWN else 0.30
-        logger.info("规则兜底路由: %s (%.0f%%)", result.intent.value, result.confidence * 100)
+        result.category = INTENT_CATEGORY.get(result.intent)
+        logger.info("规则兜底路由: %s/%s (%.0f%%)",
+                    result.category.value if result.category else "-",
+                    result.intent.value, result.confidence * 100)
         return result
 
     # 强信号意图: 规则命中即直接分类, 不调 LLM (零延迟+高准确)
@@ -290,7 +383,7 @@ class RouterAgent:
                               "受存款保障"],
     }
 
-    def _strong_signal_rule(self, query: str):
+    def strong_signal_rule(self, query: str):
         """强信号规则仲裁: 命中强信号关键词直接返回意图, 不调 LLM.
         返回 (RoutingResult|None, 命中的意图名|None)
         """
@@ -301,15 +394,17 @@ class RouterAgent:
                     intent = QueryIntent(intent_name)
                     r = RoutingResult(
                         intent=intent,
+                        category=INTENT_CATEGORY.get(intent),
                         confidence=0.92,
                         original_query=query,
                         explanation=f"强信号规则命中: {kw}",
                     )
-                    logger.info("强信号规则仲裁: %s (关键词=%s)", intent_name, kw)
+                    logger.info("强信号规则仲裁: %s/%s (关键词=%s)",
+                                r.category.value if r.category else "-", intent_name, kw)
                     return r, intent_name
         return None, None
 
-    def route(self, query: str, dialog_context: str = "") -> RoutingResult:
+    def route(self, query: str, dialog_context: str = "", use_few_shot: bool = True) -> RoutingResult:
         """
         对用户查询进行分类和实体提取.
         优化: (1) 强信号意图规则直出不调LLM; (2) 动态few-shot; (3) CoT推理.
@@ -317,6 +412,7 @@ class RouterAgent:
         Args:
             query: 用户原始查询
             dialog_context: 多轮对话上下文摘要
+            use_few_shot: 是否启用动态 few-shot (评测时设为 False 避免答案泄漏)
 
         Returns:
             RoutingResult 包含意图、实体、置信度
@@ -326,12 +422,12 @@ class RouterAgent:
         result = RoutingResult(original_query=query)
 
         # 规则混合仲裁: 强信号意图直接返回, 不调 LLM (零延迟)
-        strong_result, strong_intent = self._strong_signal_rule(query)
+        strong_result, strong_intent = self.strong_signal_rule(query)
         if strong_result is not None:
             return strong_result
 
-        # 动态 few-shot: 从 Golden QA 检索最相似的边界 case
-        dyn_cases = _retrieve_few_shots(query, top_k=4)
+        # 动态 few-shot: 从 Golden QA 检索最相似的边界 case (评测时可关闭以避免答案泄漏)
+        dyn_cases = _retrieve_few_shots(query, top_k=4) if use_few_shot else []
         dyn_few_shots_text = ""
         if dyn_cases:
             lines = []
@@ -365,6 +461,18 @@ class RouterAgent:
             else:
                 result.intent = QueryIntent.UNKNOWN
 
+            # 解析大类, 并校验大类与小类是否一致
+            category_str = parsed.get("category", "").lower()
+            if category_str in IntentCategory._value2member_map_:
+                parsed_category = IntentCategory(category_str)
+                # 小类属于该大类才采纳, 否则以小类反查的大类为准 (保证两层一致)
+                if result.intent in CATEGORY_INTENTS.get(parsed_category, []):
+                    result.category = parsed_category
+                else:
+                    result.category = INTENT_CATEGORY.get(result.intent)
+            else:
+                result.category = INTENT_CATEGORY.get(result.intent)
+
             result.entities = parsed.get("entities", [])
             result.time_range = parsed.get("time_range", [])
             result.metrics = parsed.get("metrics", [])
@@ -374,11 +482,13 @@ class RouterAgent:
             result.explanation = f"[CoT] {analysis} | {explanation}" if analysis else explanation
 
             logger.info(
-                "路由结果: %s (%.0f%%) — %s",
+                "路由结果: %s/%s (%.0f%%) — %s",
+                result.category.value if result.category else "-",
                 result.intent.value,
                 result.confidence * 100,
                 result.explanation[:100],
                 extra={
+                    "category": result.category.value if result.category else "",
                     "intent": result.intent.value,
                     "confidence": result.confidence,
                     "entities": len(result.entities),

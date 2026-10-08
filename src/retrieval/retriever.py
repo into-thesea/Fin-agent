@@ -5,11 +5,11 @@
   Path A: 向量语义检索 (Milvus + bge-base-zh-v1.5) — 唯一向量后端, 无降级
   Path B: BM25 稀疏检索 — 补充关键词盲区
 
-融合: RRF (Reciprocal Rank Fusion) + MMR 多样性重排。
-注: 知识图谱 (Neo4j) / 社区摘要 已在客服化改造中移除，只保留向量 + 稀疏两路。
+融合: 稠密路内先做 MMR 多样性重排, 再与稀疏路做 RRF (Reciprocal Rank Fusion)。
+图谱: Neo4j 为运行时唯一图谱后端 (不降级内存图), 关系类/多实体查询经 _graph_retrieve
+      注入 1~3 条多跳路径证据, 并保留在 graph 位供前端画推理路径与评测使用。
 
 性能优化:
-  - FAISS 索引全局单例，避免重复加载
   - Redis 缓存层 (向量结果缓存)
   - bge-base-zh-v1.5 本地离线加载
 """
@@ -258,7 +258,7 @@ class HybridRetriever:
             self.cache.close()
 
     # ──────────────────────────────────────────────
-    # Path A: 向量检索 (FAISS + MMR 多样性)
+    # Path A: 向量检索 (Milvus + MMR 多样性)
     # ──────────────────────────────────────────────
 
     @staticmethod
@@ -272,15 +272,10 @@ class HybridRetriever:
         if not results or len(results) <= 1:
             return results[:top_k]
 
-        # 兼容 FAISS(faiss_idx) 与 Milvus(id) 两种结果键。
-        # 注意 faiss_idx 可能为 0 (合法首条), 不能用 `or` 吞掉假值。
-        indices = []
-        for r in results:
-            if "faiss_idx" in r and r.get("faiss_idx") is not None:
-                indices.append(r["faiss_idx"])
-            elif r.get("id") is not None:
-                indices.append(r["id"])
-        if not indices:
+        # Milvus 结果键为 id (主键), 供 index_manager.get_vectors 回查。
+        # 必须与 results 一一对位 —— 下方按位置 i 索引 doc_vectors, 少了会越界。
+        indices = [r.get("id") for r in results]
+        if any(i is None for i in indices):
             return results[:top_k]
 
         doc_vectors = index_manager.get_vectors(indices)

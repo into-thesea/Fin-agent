@@ -91,6 +91,6 @@ def test_save_load_roundtrip_keeps_sources(tmp_path):
 
 
 def test_search_returns_section():
-    """section 要和 FAISS / Milvus 两侧对齐, 否则前端来源标注缺一截"""
+    """section 要和 Milvus 侧对齐, 否则前端来源标注缺一截"""
     h = _index().search("存款保险", top_k=1)[0]
     assert h["section"] in {"s1", "s2"}

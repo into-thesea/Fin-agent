@@ -1,0 +1,88 @@
+{
+  "eval_file": "finance_qa_test.jsonl",
+  "total": 40,
+  "correct": 37,
+  "accuracy": 0.925,
+  "rule_hit": 3,
+  "llm_called": 37,
+  "avg_latency": 1.6684475541114807,
+  "per_intent": {
+    "hold_redeem": {
+      "total": 5,
+      "correct": 5
+    },
+    "product_consult": {
+      "total": 4,
+      "correct": 4
+    },
+    "product_compare": {
+      "total": 4,
+      "correct": 3
+    },
+    "deposit_insurance": {
+      "total": 3,
+      "correct": 3
+    },
+    "income_question": {
+      "total": 4,
+      "correct": 4
+    },
+    "risk_suitability": {
+      "total": 2,
+      "correct": 2
+    },
+    "buy_process": {
+      "total": 4,
+      "correct": 4
+    },
+    "fee_rule": {
+      "total": 2,
+      "correct": 2
+    },
+    "fraud_report": {
+      "total": 3,
+      "correct": 3
+    },
+    "complaint": {
+      "total": 1,
+      "correct": 1
+    },
+    "service_policy": {
+      "total": 3,
+      "correct": 3
+    },
+    "chitchat": {
+      "total": 5,
+      "correct": 3
+    }
+  },
+  "errors": [
+    {
+      "id": "t006",
+      "question": "沪深300指数增强和全球精选QDII，哪个跌起来少一点",
+      "expected": "product_compare",
+      "got": "income_question",
+      "confidence": 0.9,
+      "rule": false,
+      "explanation": "[CoT] 第一层大类: 用户在问两款产品哪个跌起来少一点，即比较两者的风险/回撤大小，属于收益风险类，因为核心是风险比较而非产品属性或交易操作。第二层小类: 在收益风险类的 income_question 和 risk_suitabili"
+    },
+    {
+      "id": "t036",
+      "question": "这段时间行情咋样，能赚不",
+      "expected": "chitchat",
+      "got": "income_question",
+      "confidence": 0.85,
+      "rule": false,
+      "explanation": "[CoT] 第一层大类: 用户在问行情和能否赚钱，属于收益风险类，因为核心是收益和风险判断。第二层小类: 在收益风险类的income_question和risk_suitability中，income_question最匹配，因为用户问的是"
+    },
+    {
+      "id": "t040",
+      "question": "之前聊的那个靠谱不",
+      "expected": "chitchat",
+      "got": "income_question",
+      "confidence": 0.7,
+      "rule": false,
+      "explanation": "[CoT] 第一层大类: 用户问“之前聊的那个靠谱不”，核心是询问之前讨论的某产品是否可靠/安全，属于对产品风险或收益保证的询问，因此归为 return_risk 收益风险类。第二层小类: 在 return_risk 的 income_qu"
+    }
+  ]
+}

@@ -1,11 +1,56 @@
-{"id": "c001", "question": "京东快递首重运费多少？", "answer": "京东快递首重15元", "golden_chunk_ids": ["kb_客服FAQ_0001"], "intent": "faq"}
-{"id": "c002", "question": "订单实付金额满多少可以包邮？", "answer": "满199元免首重运费", "golden_chunk_ids": ["kb_客服FAQ_0001"], "intent": "faq"}
-{"id": "c003", "question": "现货商品下单后多久发货？", "answer": "48小时内发货", "golden_chunk_ids": ["kb_客服FAQ_0002"], "intent": "faq"}
-{"id": "c004", "question": "怎么申请退货？", "answer": "先联系客服申请退货单", "golden_chunk_ids": ["kb_客服FAQ_0004"], "intent": "faq"}
-{"id": "c005", "question": "商品质量问题可以换货吗？", "answer": "签收后15天内可申请换货", "golden_chunk_ids": ["kb_客服FAQ_0005"], "intent": "faq"}
-{"id": "c006", "question": "退款多久到账？", "answer": "验收后1-3个工作日原路退回", "golden_chunk_ids": ["kb_客服FAQ_0006"], "intent": "faq"}
-{"id": "c007", "question": "数码类商品保修多久？", "answer": "一年全国联保", "golden_chunk_ids": ["kb_客服FAQ_0007"], "intent": "faq"}
-{"id": "c008", "question": "可以开发票吗？", "answer": "支持增值税普通和专用发票", "golden_chunk_ids": ["kb_客服FAQ_0008"], "intent": "faq"}
-{"id": "c009", "question": "支持哪些支付方式？", "answer": "微信、支付宝、银联卡、花呗分期", "golden_chunk_ids": ["kb_客服FAQ_0009"], "intent": "faq"}
-{"id": "c010", "question": "B3耳机单次续航多久？", "answer": "单次6小时，配合充电仓30小时", "golden_chunk_ids": ["kb_客服FAQ_0011"], "intent": "faq"}
-{"id": "c011", "question": "售后电话是多少？", "answer": "400-800-1234", "golden_chunk_ids": ["kb_客服FAQ_0012"], "intent": "faq"}
+{"id": 1, "question": "银行代销产品是什么意思？", "answer": "代销产品是指银行除销售自营理财、吸收存款外，还代理销售其他金融机构的产品，如公募基金、保险产品、信托、贵金属等。这类产品由基金公司、保险公司等发行和管理，银行只作为代销渠道，不是产品发行人。", "golden_chunk_ids": ["kb_agency_products_31e49ea294"], "intent": "faq"}
+{"id": 2, "question": "银行代销的基金、保险是银行自己发行的吗？", "answer": "不是。代销产品由基金公司、保险公司等发行和管理，银行只作为代销渠道，不是产品发行人。", "golden_chunk_ids": ["kb_agency_products_31e49ea294"], "intent": "faq"}
+{"id": 3, "question": "家庭资产配置应该遵循哪些基本原则？", "answer": "家庭资产配置的基本原则包括：先保障后理财，即先配置充足的保险保障，再考虑投资理财；分散投资，不要把鸡蛋放在一个篮子里，股债搭配、长短结合；风险匹配，根据自身风险承受能力选择产品。", "golden_chunk_ids": ["kb_asset_allocation_66253fc790_c3"], "intent": "faq"}
+{"id": 4, "question": "不同风险等级的产品分别适合什么类型的投资者？", "answer": "R1~R2适合保守型，R3适合稳健型，R4~R5适合进取型。", "golden_chunk_ids": ["kb_asset_allocation_66253fc790_c3"], "intent": "faq"}
+{"id": 5, "question": "买理财产品之前需要先做什么准备？", "answer": "购买理财产品前必须完成：账户实名认证、绑定本人银行卡、完成风险承受能力测评且测评等级不低于产品风险等级。", "golden_chunk_ids": ["kb_buy_process_0260fa54ca"], "intent": "faq"}
+{"id": 6, "question": "我的风险测评过期了或者等级不匹配，还能直接买理财产品吗？", "answer": "不能直接购买。测评未完成或测评过期、测评等级不匹配时，系统会引导先做测评或选择匹配的产品。", "golden_chunk_ids": ["kb_buy_process_0260fa54ca"], "intent": "faq"}
+{"id": 7, "question": "冷静期内撤单要收费吗？确认后还能撤吗？", "answer": "冷静期内可以无理由撤单且不产生费用；确认后撤单则按产品赎回规则处理。", "golden_chunk_ids": ["kb_buy_process_095a8dce30_c1"], "intent": "faq"}
+{"id": 8, "question": "现金管理类产品有冷静期吗？", "answer": "没有。现金管理类产品随赎随到、不设冷静期。", "golden_chunk_ids": ["kb_buy_process_095a8dce30_c1"], "intent": "faq"}
+{"id": 9, "question": "你们能直接告诉我具体的收益和费率数字吗？", "answer": "涉及收益、费率、政策的具体数字，我们只能引用知识库与产品说明书中的内容。", "golden_chunk_ids": ["kb_complaints_human_90c81f1145"], "intent": "faq"}
+{"id": 10, "question": "银行理财亏了，存款保险赔吗？", "answer": "不赔。存款保险只保存款，不保理财。", "golden_chunk_ids": ["kb_deposit_insurance_2bfdba9fc8"], "intent": "faq"}
+{"id": 11, "question": "大额存单受不受存款保险保护？", "answer": "受保护，和普通定期存款一样计入50万元限额。", "golden_chunk_ids": ["kb_deposit_insurance_2bfdba9fc8"], "intent": "faq"}
+{"id": 12, "question": "朋友推荐我扫码转账买理财，客服能帮我确认是不是骗局吗？", "answer": "可以。对于“朋友介绍的高收益理财”“内部渠道”“扫码转账购买理财”等表述，客服会主动提示诈骗风险、核实产品真实性，并引导转人工处理，全程记录留痕。请您尽快联系人工客服进行核实。", "golden_chunk_ids": ["kb_fraud_report_5e399d792d_c1"], "intent": "faq"}
+{"id": 13, "question": "万份收益是什么意思？", "answer": "万份收益指每持有1万份当日实际获得的收益金额，是历史或短期参考，不代表未来收益。", "golden_chunk_ids": ["kb_income_and_interest_7338618aa4_c1"], "intent": "faq"}
+{"id": 14, "question": "百万医疗险的免赔额是多少？保额有多少？", "answer": "百万医疗险通常有1万元免赔额，额度为200万~600万。", "golden_chunk_ids": ["kb_insurance_knowledge_8cdf364e84_c2"], "intent": "faq"}
+{"id": 15, "question": "意外险主要保障哪些内容？保费贵吗？", "answer": "意外险保障因意外事故导致的身故、伤残和医疗费用，保费极低，100万保额约150元/年，杠杆极高。", "golden_chunk_ids": ["kb_insurance_knowledge_8cdf364e84_c2"], "intent": "faq"}
+{"id": 16, "question": "增额终身寿险和年金险有什么区别？", "answer": "增额终身寿险回本较慢，通常需要5~8年，长期持有（10年以上）收益确定。年金险则是按合同约定的年龄（如55岁/60岁）开始按年或按月领取固定金额，活多久领多久，适合养老规划和子女教育金规划；但灵活性较低，领取前退保会有本金损失，领取金额和时间在投保时确定。", "golden_chunk_ids": ["kb_insurance_knowledge_4d7a2b2619_c2"], "intent": "faq"}
+{"id": 17, "question": "存款、银行理财和保险这三种产品有什么区别？", "answer": "存款保本保息、受存款保险保障，期限灵活；银行理财参考收益可能更高但不保本；保险提供长期确定的合同利益与保障功能，但资金锁定长、早期退保有损失。", "golden_chunk_ids": ["kb_insurance_products_ed32c29498_c1"], "intent": "faq"}
+{"id": 18, "question": "我发现我的账户可能信息泄露了，应该怎么办？", "answer": "如果您发现疑似信息泄露或账户异常，应立即修改密码、暂停非柜面交易、联系客服核实并申请挂失，必要时报警。", "golden_chunk_ids": ["kb_privacy_security_af1b8bc891"], "intent": "faq"}
+{"id": 19, "question": "我怀疑账户信息泄露，联系客服后你们会怎么处理？", "answer": "客服收到此类诉求应优先转人工并全程留痕。", "golden_chunk_ids": ["kb_privacy_security_af1b8bc891"], "intent": "faq"}
+{"id": 20, "question": "买理财产品要收哪些费用？", "answer": "理财产品常见的费用包括：申购费（自营理财一般无）、赎回费（提前赎回或有）、销售服务费、托管费、管理费。其中托管费和管理费多从产品净值中每日计提，客户不需另行支付。", "golden_chunk_ids": ["kb_redeem_and_fee_a16234502d"], "intent": "faq"}
+{"id": 21, "question": "代销的公募基金怎么收费？", "answer": "代销的公募基金会按基金合同收取申购/赎回费和管理费。", "golden_chunk_ids": ["kb_redeem_and_fee_a16234502d"], "intent": "faq"}
+{"id": 22, "question": "R2 风险等级适合买哪些产品？适合什么样的人？", "answer": "R2（稳健型/中低风险）本金亏损概率较低，收益有一定波动，常见产品包括纯债基金、固定收益类理财、增额终身寿等，适合稳健型投资者。", "golden_chunk_ids": ["kb_risk_level_c9affe4d28"], "intent": "faq"}
+{"id": 23, "question": "你们推荐的理财产品有风险吗？", "answer": "理财非存款、产品有风险、投资须谨慎。", "golden_chunk_ids": ["kb_terms_faq_8acc39f4d2_c1"], "intent": "faq"}
+{"id": 24, "question": "这个基金说的业绩比较基准能保证我拿到这个收益吗？", "answer": "业绩比较基准/历史收益不代表实际收益，不构成收益承诺。", "golden_chunk_ids": ["kb_terms_faq_8acc39f4d2_c1"], "intent": "faq"}
+{"id": 25, "question": "存款保险能保多少钱？", "answer": "存款保险保存款类产品本息，单家银行同一存款人限额内 50 万元全额偿付。", "golden_chunk_ids": ["kb_terms_faq_e9b2a50eaf_c1"], "intent": "faq"}
+{"id": 26, "question": "这个产品是不是保证能拿到 3 个点的收益？", "answer": "不是。业绩比较基准是产品管理人根据历史与投资策略测算的参考指标，不代表实际收益，不构成收益承诺，仅为参考。", "golden_chunk_ids": ["kb_prod_p002_7d142c97e3"], "intent": "faq"}
+{"id": 27, "question": "业绩比较基准能代表实际收益吗？", "answer": "不能。业绩比较基准仅为参考指标，不代表实际收益，不构成收益承诺。", "golden_chunk_ids": ["kb_prod_p003_7d142c97e3"], "intent": "faq"}
+{"id": 28, "question": "业绩比较基准4.00%是保证收益吗？", "answer": "不是。业绩比较基准仅为参考，不代表实际收益，不构成收益承诺。", "golden_chunk_ids": ["kb_prod_p004_7d142c97e3_c1"], "intent": "faq"}
+{"id": 29, "question": "这个产品风险大吗？净值波动怎么样？", "answer": "本产品可少量配置权益类资产，净值波动较纯固收产品明显，需向客户如实说明。", "golden_chunk_ids": ["kb_prod_p004_7d142c97e3_c1"], "intent": "faq"}
+{"id": 30, "question": "我想买这个产品，需要满足什么条件？", "answer": "本产品仅面向符合合格投资者标准的私银客户开放，且客户风险测评等级须达到 R4 及以上。测评等级不足、或非合格投资者的客户不能购买。", "golden_chunk_ids": ["kb_prod_p005_caae90d2e0_c1"], "intent": "faq"}
+{"id": 31, "question": "我的风险测评等级不够，还能买这个产品吗？", "answer": "不能购买。测评等级不足、或非合格投资者的客户不能购买本产品。不匹配的情况必须转人工坐席，由坐席完成合格投资者核验、风险揭示与双录后，方可继续流程。", "golden_chunk_ids": ["kb_prod_p005_caae90d2e0_c1"], "intent": "faq"}
+{"id": 32, "question": "这个产品的执行利率是多少？", "answer": "执行利率为到期还本付息利率，为 3.00%。", "golden_chunk_ids": ["kb_prod_p006_7d142c97e3"], "intent": "faq"}
+{"id": 33, "question": "如果我提前支取会有什么影响？", "answer": "提前支取一般按活期利率计息，利息损失明显。能持有到期才享受 3.00% 的执行利率，提前支取不划算，可考虑转让给他人以减少损失。", "golden_chunk_ids": ["kb_prod_p006_7d142c97e3"], "intent": "faq"}
+{"id": 34, "question": "纯债基金的净值会亏损吗？", "answer": "纯债基金主要投资债券，净值波动小于权益类，但仍有净值回撤可能，比如在利率上行期。", "golden_chunk_ids": ["kb_prod_p008_7d142c97e3_c1"], "intent": "faq"}
+{"id": 35, "question": "纯债基金近1年收益率能代表未来收益吗？", "answer": "不能。近1年收益率、成立以来年化等均为历史口径，不预示未来。", "golden_chunk_ids": ["kb_prod_p008_7d142c97e3_c1"], "intent": "faq"}
+{"id": 36, "question": "你们这只基金有业绩比较基准吗？能保证收益吗？", "answer": "基金没有业绩比较基准可作承诺，只有历史净值与业绩走势。历史表现不代表未来，权益市场波动可能造成本金较大损失。", "golden_chunk_ids": ["kb_prod_p009_7d142c97e3"], "intent": "faq"}
+{"id": 37, "question": "投保后犹豫期是多久？犹豫期内退保能全额退款吗？", "answer": "投保后有 15 天犹豫期（演示口径），犹豫期内退保全额退还已交保费。", "golden_chunk_ids": ["kb_prod_p010_f63827f9de_c1"], "intent": "faq"}
+{"id": 38, "question": "过了犹豫期再退保会亏本金吗？为什么？", "answer": "超过犹豫期退保按现金价值退，早期会有本金损失。因为现金价值随持有年限增长，前期（前 3~5 年）现金价值通常低于已交保费，所以适合长期持有、5 年内不用的资金。", "golden_chunk_ids": ["kb_prod_p010_f63827f9de_c1"], "intent": "faq"}
+{"id": 39, "question": "这个养老年金保险是存款吗？受存款保险保障吗？", "answer": "不是存款，也不是银行理财，不受存款保险保障。本产品是养老年金保险，作用是提供与生命等长的确定现金流，作为养老补充。", "golden_chunk_ids": ["kb_prod_p011_c78a231fb5_c1"], "intent": "faq"}
+{"id": 40, "question": "这个基金是你们银行自己发行的产品吗？", "answer": "不是的，本产品为基金公司发行的公募基金，本行仅为代销渠道，非本行发行、非本行管理，本行不承担投资损失。", "golden_chunk_ids": ["kb_prod_p012_51c7bb4ec0"], "intent": "faq"}
+{"id": 41, "question": "买这个基金会保本吗？亏了银行赔吗？", "answer": "基金非存款，不受存款保险保障，不承诺保本保收益。本行仅为代销渠道，不承担投资损失。", "golden_chunk_ids": ["kb_prod_p012_51c7bb4ec0"], "intent": "faq"}
+{"id": 42, "question": "这个产品跟踪什么指数？", "answer": "本产品跟踪沪深300指数并力求增强。", "golden_chunk_ids": ["kb_prod_p013_7d142c97e3_c1"], "intent": "faq"}
+{"id": 43, "question": "这个产品有收益保障吗？", "answer": "无收益保障。收益体现在基金净值上，净值随市场波动，指数增强不保证超越基准，也可能跑输标的指数。", "golden_chunk_ids": ["kb_prod_p013_7d142c97e3_c1"], "intent": "faq"}
+{"id": 44, "question": "这个基金的收益是怎么算的？", "answer": "收益体现在基金净值上，无收益保障。净值同时受海外市场行情与汇率变动影响，存在双重波动来源。", "golden_chunk_ids": ["kb_prod_p014_7d142c97e3_c1"], "intent": "faq"}
+{"id": 45, "question": "你们能给我一个预期收益数字吗？", "answer": "演示口径下不提供预期收益数字。收益体现在基金净值上，无收益保障。", "golden_chunk_ids": ["kb_prod_p014_7d142c97e3_c1"], "intent": "faq"}
+{"id": 46, "question": "FOF基金是不是会收两次费用？", "answer": "是的。FOF投资于其他基金，除自身的管理费、托管费外，底层基金也会收取费用，存在双重收费，实际费率高于普通基金。", "golden_chunk_ids": ["kb_prod_p015_bb40617f21"], "intent": "faq"}
+{"id": 47, "question": "投保后多久可以全额退保？", "answer": "投保后有 15 天犹豫期，犹豫期内可以全额退保。", "golden_chunk_ids": ["kb_prod_p016_9f8d741872_c1"], "intent": "faq"}
+{"id": 48, "question": "过了犹豫期退保能退多少钱？", "answer": "超过犹豫期退保仅退保单现金价值，早期现金价值远低于已交保费，会有本金损失。", "golden_chunk_ids": ["kb_prod_p016_9f8d741872_c1"], "intent": "faq"}
+{"id": 49, "question": "这个医疗险是消费型的吗？交一年保一年吗？", "answer": "是的，医疗险为消费型保险，交一年保一年。", "golden_chunk_ids": ["kb_prod_p017_c78a231fb5_c1"], "intent": "faq"}
+{"id": 50, "question": "这个医疗险有现金价值吗？是存款或理财吗？受存款保险保障吗？", "answer": "医疗险无现金价值，非存款非理财，不受存款保险保障，由保险公司承保、本行代销。", "golden_chunk_ids": ["kb_prod_p017_c78a231fb5_c1"], "intent": "faq"}
+{"id": 51, "question": "家庭支柱定期寿险（P019）的起购金额是多少？", "answer": "家庭支柱定期寿险（P019）的起购金额为0.05万元。", "golden_chunk_ids": ["kb_prod_p019_5328d8ad58"], "intent": "faq"}
+{"id": 52, "question": "这个产品的收益是怎么来的？如果中途卖出会怎样？", "answer": "收益来自两部分：票面利息和交易价差。持有到期则按面值兑付，可获得全部票面利息；中途卖出则价格可能高于或低于买入价。", "golden_chunk_ids": ["kb_prod_p021_7d142c97e3_c1"], "intent": "faq"}
+{"id": 53, "question": "信托产品的合格投资者需要满足什么条件？", "answer": "需满足金融资产不低于300万元，或最近三年年均收入不低于50万元。", "golden_chunk_ids": ["kb_prod_p023_caae90d2e0"], "intent": "faq"}
+{"id": 54, "question": "信托产品的起投金额是多少？购买前需要做什么？", "answer": "起投金额通常100万元。客户必须先完成合格投资者认证与风险测评，不满足条件的不能购买。", "golden_chunk_ids": ["kb_prod_p023_caae90d2e0"], "intent": "faq"}
+{"id": 55, "question": "这个产品适合哪些人买？", "answer": "适合风险承受能力 R3 及以上、希望配置避险资产以分散组合风险、能接受价格波动的客户。", "golden_chunk_ids": ["kb_prod_p024_43dfcec86a_c1"], "intent": "faq"}
+{"id": 56, "question": "追求固定收益的客户能买这个产品吗？", "answer": "不适合。该产品不适合追求固定收益的客户。", "golden_chunk_ids": ["kb_prod_p024_43dfcec86a_c1"], "intent": "faq"}

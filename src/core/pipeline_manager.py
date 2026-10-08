@@ -155,14 +155,14 @@ def ingest_document(
             return {"status": "failed", "error": "No content extracted from PDF."}
         steps.append(f"解析: {len(chunks)} 分块")
 
-        # Step 2: 向量索引 (追加分块 → FAISS + Milvus → 重建 BM25)
+        # Step 2: 向量索引 (追加分块 → Milvus → 重建 BM25)
         logger.info("Step 2/4: 向量索引...")
         _report("vectorizing", 2)
         _append_chunks_to_store(chunks)
         steps.append(f"分块入库: {len(chunks)} 条")
 
         added = add_chunks_to_index(chunks, document_id=file_name)
-        steps.append(f"向量化: {added} 条 (FAISS + Milvus)")
+        steps.append(f"向量化: {added} 条 (Milvus)")
 
         # BM25 重建: 原先吞异常跳过 → 会让新文档进不了稀疏路(检索不到),
         # 而混合检索的稀疏路一旦缺内容, 检索结果就会静默变差。

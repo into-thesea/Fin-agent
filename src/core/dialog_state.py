@@ -36,9 +36,49 @@ class DialogState:
     focal_company: Optional[str] = None                # 焦点公司 (客服场景一般不使用)
     focal_metric: Optional[str] = None                 # 焦点指标 (保留兼容)
     focal_year: Optional[str] = None                   # 焦点年份 (保留兼容)
-    last_intent: Optional[str] = None                  # 上轮意图
-    slots: dict = field(default_factory=dict)          # 客服槽位 {order_id, product_id, issue_type, ...} (Phase 2 填充)
-    awaiting_slot: Optional[str] = None                # 当前待补充的槽位名 (Phase 2 填充)
+    last_intent: Optional[str] = None                  # 上轮意图 (12类平面结构, 兼容旧代码)
+    # ── 意图分层 (L0/L1/L2) ──
+    current_l0: Optional[str] = None                   # 当前产品域, 取值见 slot_filler.L0_DOMAINS
+    current_l1: Optional[str] = None                   # 当前问询类型: product_info/income/fee/risk/buy_process/redeem/compare/compliance
+    current_l2: Optional[str] = None                   # LLM 动态提取的具体操作 (可选)
+    # ── 槽位 ──
+    slots: dict = field(default_factory=dict)          # 客服槽位 {product, product_type, amount, term, risk_level, ...}
+    awaiting_slot: Optional[str] = None                # 当前待补充的槽位名
+    # ── 多轮对话增强 ──
+    topic_stack: list = field(default_factory=list)    # 话题栈: 切换产品域时旧话题入栈, 支持"回到刚才"
+    negative_turns: int = 0                            # 连续负面情绪轮次 (情绪处理用)
+    turn_count: int = 0                                # 当前话题轮次计数
+    emotion: Optional[str] = None                      # 上轮检测到的情绪: normal/anxiety/complaint/confusion
+
+    def push_topic(self):
+        """当前话题入栈 (切换产品域前调用)"""
+        if self.current_l0:
+            self.topic_stack.append({
+                "l0": self.current_l0,
+                "l1": self.current_l1,
+                "l2": self.current_l2,
+                "slots": dict(self.slots),
+                "intent": self.last_intent,
+            })
+            logger.debug("话题入栈: l0=%s, 栈深度=%d", self.current_l0, len(self.topic_stack))
+
+    def pop_topic(self) -> Optional[dict]:
+        """弹出上一个话题 (用户说"回到刚才"时调用)"""
+        if self.topic_stack:
+            topic = self.topic_stack.pop()
+            self.current_l0 = topic.get("l0")
+            self.current_l1 = topic.get("l1")
+            self.current_l2 = topic.get("l2")
+            self.slots = topic.get("slots", {})
+            self.last_intent = topic.get("intent")
+            logger.debug("话题出栈: l0=%s, 栈深度=%d", self.current_l0, len(self.topic_stack))
+            return topic
+        return None
+
+    def reset_topic(self):
+        """开启新话题时重置轮次计数"""
+        self.turn_count = 0
+        self.negative_turns = 0
 
 
 class DialogStateManager:
@@ -94,7 +134,9 @@ class DialogStateManager:
             return state
 
     def update(self, session_id: str, query: str, answer: str,
-               entities: list = None, intent: str = None) -> DialogState:
+               entities: list = None, intent: str = None,
+               l0: str = None, l1: str = None, l2: str = None,
+               emotion: str = None) -> DialogState:
         """
         更新对话状态 (同步写入内存 + Redis)
 
@@ -103,10 +145,38 @@ class DialogStateManager:
             query: 用户原始查询
             answer: 系统回答
             entities: 路由阶段提取的实体列表
-            intent: 路由阶段识别的意图
+            intent: 路由阶段识别的意图 (12类平面结构, 兼容旧代码)
+            l0: 产品域 (deposit/wealth/fund/insurance/common/out_of_scope)
+            l1: 问询类型
+            l2: 具体操作
+            emotion: 检测到的情绪
         """
         with self._lock:
             state = self.get_or_create(session_id)
+
+            # 话题切换检测: L0 变化时旧话题入栈
+            if l0 and state.current_l0 and l0 != state.current_l0:
+                state.push_topic()
+                state.reset_topic()
+
+            # 更新意图分层
+            if l0:
+                state.current_l0 = l0
+            if l1:
+                state.current_l1 = l1
+            if l2:
+                state.current_l2 = l2
+            # 负面轮次累计 (先算: 情绪判定要用到本轮累计后的值)
+            from src.core.emotion import is_negative, detect_emotion
+            if is_negative(query):
+                state.negative_turns += 1
+            else:
+                state.negative_turns = 0
+            state.turn_count += 1
+
+            # 情绪检测: 显式传入优先, 否则按本轮问句 + 连续负面轮次判定
+            # (此前 emotion 参数无人传, state.emotion 恒为 None, 下游拿不到情绪)
+            state.emotion = emotion or detect_emotion(query, state.negative_turns)
 
             # 追加历史 (截断 answer 节省 Redis 空间)
             state.history.append({
@@ -160,9 +230,9 @@ class DialogStateManager:
             # 持久化到 Redis
             self._persist_to_redis(state)
 
-            logger.debug("对话状态更新: company=%s, metric=%s, year=%s, intent=%s",
-                         state.focal_company, state.focal_metric,
-                         state.focal_year, state.last_intent)
+            logger.debug("对话状态更新: l0=%s, l1=%s, intent=%s, neg_turns=%d, turn=%d",
+                         state.current_l0, state.current_l1,
+                         state.last_intent, state.negative_turns, state.turn_count)
             return state
 
     def _persist_to_redis(self, state: DialogState):
@@ -190,8 +260,15 @@ class DialogStateManager:
             focal_metric=data.get("focal_metric"),
             focal_year=data.get("focal_year"),
             last_intent=data.get("last_intent"),
+            current_l0=data.get("current_l0"),
+            current_l1=data.get("current_l1"),
+            current_l2=data.get("current_l2"),
             slots=data.get("slots", {}),
             awaiting_slot=data.get("awaiting_slot"),
+            topic_stack=data.get("topic_stack", []),
+            negative_turns=data.get("negative_turns", 0),
+            turn_count=data.get("turn_count", 0),
+            emotion=data.get("emotion"),
         )
 
     def close(self):

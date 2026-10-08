@@ -41,7 +41,7 @@ class RetrievalError(FinAgentError):
 
 
 class StorageError(FinAgentError):
-    """存储层错误 (SQLite / FAISS / Pickle)"""
+    """存储层错误 (SQLite / Milvus / Pickle)"""
     def __init__(self, message: str, details: Optional[dict] = None):
         super().__init__(message, code="STORAGE_ERROR", status_code=500, details=details)
 

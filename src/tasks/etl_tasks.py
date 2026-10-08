@@ -138,7 +138,7 @@ def etl_pipeline_task(self: Task, pdf_path: str, filename: str = None, version_t
     同步降级路径用的是章节感知分块且重建 BM25 —— 同一份 PDF 走两条路进去,
     产出完全不同的分块和索引覆盖。
 
-    刻意不自动重试: 流水线是「先写索引(FAISS+Milvus+BM25)再写库」, 不是幂等的,
+    刻意不自动重试: 流水线是「先写索引(Milvus+BM25)再写库」, 不是幂等的,
     重试会重复追加向量。失败要看得见, 而不是靠重试掩盖。
     (原先还有 `reporter.fail()` 在 `self.retry()` 之前 —— 重试期间前端就判死了,
      最终任务成功但界面永久显示失败。)

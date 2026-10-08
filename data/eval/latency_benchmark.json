@@ -2,48 +2,48 @@
   "summary": {
     "overall_end_to_end": {
       "n": 40,
-      "mean": 6.66,
-      "p50": 6.17,
-      "p90": 8.75,
-      "p95": 10.09,
-      "min": 3.26,
-      "max": 13.87
+      "mean": 7.85,
+      "p50": 7.3,
+      "p90": 10.69,
+      "p95": 11.19,
+      "min": 3.3,
+      "max": 15.34
     },
     "fast_path": {
-      "n": 27,
-      "mean": 5.73,
-      "p50": 5.96,
-      "p90": 6.34,
-      "p95": 6.49,
-      "min": 4.11,
-      "max": 6.85
+      "n": 24,
+      "mean": 6.97,
+      "p50": 7.11,
+      "p90": 7.73,
+      "p95": 7.88,
+      "min": 4.96,
+      "max": 8.43
     },
     "complex_path": {
-      "n": 13,
-      "mean": 8.6,
-      "p50": 8.42,
-      "p90": 10.82,
-      "p95": 12.16,
-      "min": 3.26,
-      "max": 13.87
+      "n": 16,
+      "mean": 9.17,
+      "p50": 10.05,
+      "p90": 12.75,
+      "p95": 14.7,
+      "min": 3.3,
+      "max": 15.34
     },
     "retrieval_standalone": {
       "n": 40,
-      "mean": 0.07,
+      "mean": 0.08,
       "p50": 0.08,
       "p90": 0.1,
-      "p95": 0.1,
-      "min": 0.04,
-      "max": 0.2
+      "p95": 0.11,
+      "min": 0.06,
+      "max": 0.13
     },
     "routing_standalone": {
       "n": 40,
-      "mean": 1.26,
-      "p50": 1.43,
-      "p90": 1.68,
-      "p95": 1.77,
+      "mean": 1.69,
+      "p50": 1.9,
+      "p90": 2.35,
+      "p95": 2.36,
       "min": 0.0,
-      "max": 2.05
+      "max": 2.64
     }
   },
   "records": [
@@ -53,9 +53,9 @@
       "question": "稳盈添利30天风险等级是多少？",
       "stage": "simple_fact",
       "routed_intent": "product_consult",
-      "total_s": 5.91,
-      "retrieve_s": 0.04,
-      "route_s": 1.43
+      "total_s": 7.2,
+      "retrieve_s": 0.07,
+      "route_s": 1.8
     },
     {
       "id": "g009",
@@ -63,9 +63,9 @@
       "question": "盛世稳赢增额终身寿是理财吗？",
       "stage": "simple_fact",
       "routed_intent": "product_consult",
-      "total_s": 6.16,
-      "retrieve_s": 0.05,
-      "route_s": 1.33
+      "total_s": 7.36,
+      "retrieve_s": 0.07,
+      "route_s": 1.77
     },
     {
       "id": "g041",
@@ -73,9 +73,9 @@
       "question": "日日盈现金管理类的七日年化是多少？",
       "stage": "simple_fact",
       "routed_intent": "product_consult",
-      "total_s": 5.99,
-      "retrieve_s": 0.05,
-      "route_s": 1.35
+      "total_s": 6.37,
+      "retrieve_s": 0.09,
+      "route_s": 1.91
     },
     {
       "id": "g042",
@@ -83,9 +83,9 @@
       "question": "稳盈添利90天的起购金额是多少？",
       "stage": "simple_fact",
       "routed_intent": "product_consult",
-      "total_s": 5.33,
-      "retrieve_s": 0.09,
-      "route_s": 1.75
+      "total_s": 6.55,
+      "retrieve_s": 0.08,
+      "route_s": 2.14
     },
     {
       "id": "g002",
@@ -93,8 +93,8 @@
       "question": "日日盈现金管理类是存款吗？",
       "stage": "simple_fact",
       "routed_intent": "deposit_insurance",
-      "total_s": 4.11,
-      "retrieve_s": 0.09,
+      "total_s": 4.97,
+      "retrieve_s": 0.08,
       "route_s": 0.0
     },
     {
@@ -103,8 +103,8 @@
       "question": "大额存单受存款保险保障吗？",
       "stage": "simple_fact",
       "routed_intent": "deposit_insurance",
-      "total_s": 4.7,
-      "retrieve_s": 0.11,
+      "total_s": 4.96,
+      "retrieve_s": 0.09,
       "route_s": 0.0
     },
     {
@@ -113,8 +113,8 @@
       "question": "银行理财是存款吗？存款保险赔吗？",
       "stage": "simple_fact",
       "routed_intent": "deposit_insurance",
-      "total_s": 4.17,
-      "retrieve_s": 0.1,
+      "total_s": 7.08,
+      "retrieve_s": 0.12,
       "route_s": 0.0
     },
     {
@@ -122,10 +122,10 @@
       "intent": "deposit_insurance",
       "question": "安鑫纯债基金是你们银行发行的吗？",
       "stage": "simple_fact",
-      "routed_intent": "deposit_insurance",
-      "total_s": 6.21,
-      "retrieve_s": 0.1,
-      "route_s": 1.67
+      "routed_intent": "product_consult",
+      "total_s": 7.23,
+      "retrieve_s": 0.09,
+      "route_s": 1.89
     },
     {
       "id": "g005",
@@ -133,9 +133,9 @@
       "question": "我测评是R2，能买平衡增利180天吗？",
       "stage": "simple_fact",
       "routed_intent": "risk_suitability",
-      "total_s": 5.84,
-      "retrieve_s": 0.1,
-      "route_s": 1.51
+      "total_s": 6.95,
+      "retrieve_s": 0.11,
+      "route_s": 2.38
     },
     {
       "id": "g028",
@@ -143,19 +143,19 @@
       "question": "私银聚享混合策略谁能买？",
       "stage": "simple_fact",
       "routed_intent": "risk_suitability",
-      "total_s": 5.4,
+      "total_s": 6.94,
       "retrieve_s": 0.08,
-      "route_s": 1.52
+      "route_s": 2.64
     },
     {
       "id": "g029",
       "intent": "risk_suitability",
       "question": "R3风险等级是什么意思？",
-      "stage": "simple_fact",
+      "stage": "formatter",
       "routed_intent": "risk_suitability",
-      "total_s": 5.96,
+      "total_s": 15.34,
       "retrieve_s": 0.09,
-      "route_s": 1.39
+      "route_s": 2.07
     },
     {
       "id": "g030",
@@ -163,9 +163,9 @@
       "question": "风险测评等级R1能买什么产品？",
       "stage": "simple_fact",
       "routed_intent": "risk_suitability",
-      "total_s": 5.63,
-      "retrieve_s": 0.1,
-      "route_s": 1.51
+      "total_s": 7.29,
+      "retrieve_s": 0.07,
+      "route_s": 2.0
     },
     {
       "id": "g006",
@@ -173,9 +173,9 @@
       "question": "结构性存款的收益是保证的吗？",
       "stage": "simple_fact",
       "routed_intent": "income_question",
-      "total_s": 6.39,
-      "retrieve_s": 0.09,
-      "route_s": 1.9
+      "total_s": 6.37,
+      "retrieve_s": 0.08,
+      "route_s": 1.7
     },
     {
       "id": "g007",
@@ -183,9 +183,9 @@
       "question": "业绩比较基准是什么意思？",
       "stage": "simple_fact",
       "routed_intent": "income_question",
-      "total_s": 6.05,
-      "retrieve_s": 0.1,
-      "route_s": 1.11
+      "total_s": 6.58,
+      "retrieve_s": 0.07,
+      "route_s": 1.48
     },
     {
       "id": "g013",
@@ -193,9 +193,9 @@
       "question": "理财产品能承诺保本保收益吗？",
       "stage": "simple_fact",
       "routed_intent": "income_question",
-      "total_s": 6.28,
-      "retrieve_s": 0.1,
-      "route_s": 1.45
+      "total_s": 7.34,
+      "retrieve_s": 0.07,
+      "route_s": 1.75
     },
     {
       "id": "g032",
@@ -203,19 +203,19 @@
       "question": "远见成长混合基金会亏本金吗？",
       "stage": "simple_fact",
       "routed_intent": "income_question",
-      "total_s": 6.17,
-      "retrieve_s": 0.09,
-      "route_s": 1.34
+      "total_s": 7.14,
+      "retrieve_s": 0.08,
+      "route_s": 2.35
     },
     {
       "id": "g010",
       "intent": "hold_redeem",
       "question": "增额终身寿买了能退吗？",
-      "stage": "simple_fact",
+      "stage": "formatter",
       "routed_intent": "hold_redeem",
-      "total_s": 6.22,
-      "retrieve_s": 0.08,
-      "route_s": 1.39
+      "total_s": 10.67,
+      "retrieve_s": 0.07,
+      "route_s": 2.08
     },
     {
       "id": "g011",
@@ -223,19 +223,19 @@
       "question": "犹豫期内退保能全退吗？",
       "stage": "formatter",
       "routed_intent": "hold_redeem",
-      "total_s": 8.28,
-      "retrieve_s": 0.04,
-      "route_s": 1.44
+      "total_s": 9.67,
+      "retrieve_s": 0.07,
+      "route_s": 2.05
     },
     {
       "id": "g012",
       "intent": "hold_redeem",
       "question": "保险退保超了犹豫期会亏吗？",
-      "stage": "simple_fact",
+      "stage": "formatter",
       "routed_intent": "hold_redeem",
-      "total_s": 5.96,
-      "retrieve_s": 0.09,
-      "route_s": 1.43
+      "total_s": 10.44,
+      "retrieve_s": 0.1,
+      "route_s": 2.0
     },
     {
       "id": "g016",
@@ -243,19 +243,19 @@
       "question": "申购后没到确认前能不能撤单？",
       "stage": "formatter",
       "routed_intent": "hold_redeem",
-      "total_s": 8.35,
-      "retrieve_s": 0.04,
-      "route_s": 1.24
+      "total_s": 9.89,
+      "retrieve_s": 0.07,
+      "route_s": 2.1
     },
     {
       "id": "g014",
       "intent": "buy_process",
       "question": "首次线上买理财要办什么？",
-      "stage": "simple_fact",
+      "stage": "formatter",
       "routed_intent": "buy_process",
-      "total_s": 5.99,
-      "retrieve_s": 0.08,
-      "route_s": 1.28
+      "total_s": 10.22,
+      "retrieve_s": 0.07,
+      "route_s": 1.76
     },
     {
       "id": "g015",
@@ -263,19 +263,19 @@
       "question": "买理财为什么要双录？",
       "stage": "formatter",
       "routed_intent": "buy_process",
-      "total_s": 8.35,
-      "retrieve_s": 0.05,
-      "route_s": 1.43
+      "total_s": 11.02,
+      "retrieve_s": 0.07,
+      "route_s": 1.74
     },
     {
       "id": "g066",
       "intent": "buy_process",
       "question": "买理财需要开通什么权限？",
-      "stage": "simple_fact",
+      "stage": "formatter",
       "routed_intent": "buy_process",
-      "total_s": 5.59,
-      "retrieve_s": 0.1,
-      "route_s": 1.59
+      "total_s": 10.41,
+      "retrieve_s": 0.07,
+      "route_s": 1.7
     },
     {
       "id": "g067",
@@ -283,19 +283,19 @@
       "question": "申购理财后什么时候开始算收益？",
       "stage": "formatter",
       "routed_intent": "buy_process",
-      "total_s": 8.58,
-      "retrieve_s": 0.04,
-      "route_s": 1.57
+      "total_s": 14.49,
+      "retrieve_s": 0.08,
+      "route_s": 1.71
     },
     {
       "id": "g019",
       "intent": "fee_rule",
       "question": "提前赎回会收费吗？",
-      "stage": "formatter",
+      "stage": "simple_fact",
       "routed_intent": "fee_rule",
-      "total_s": 8.42,
-      "retrieve_s": 0.04,
-      "route_s": 1.49
+      "total_s": 6.81,
+      "retrieve_s": 0.07,
+      "route_s": 1.92
     },
     {
       "id": "g020",
@@ -303,38 +303,38 @@
       "question": "理财产品的管理费谁出？",
       "stage": "simple_fact",
       "routed_intent": "fee_rule",
-      "total_s": 6.31,
-      "retrieve_s": 0.09,
-      "route_s": 1.37
+      "total_s": 7.35,
+      "retrieve_s": 0.07,
+      "route_s": 1.92
     },
     {
       "id": "g075",
       "intent": "fee_rule",
       "question": "基金申购费和赎回费是多少？",
-      "stage": "formatter",
+      "stage": "simple_fact",
       "routed_intent": "fee_rule",
-      "total_s": 8.72,
-      "retrieve_s": 0.04,
-      "route_s": 1.33
+      "total_s": 7.66,
+      "retrieve_s": 0.08,
+      "route_s": 1.79
     },
     {
       "id": "g076",
       "intent": "fee_rule",
       "question": "理财产品有申购费吗？",
-      "stage": "formatter",
+      "stage": "simple_fact",
       "routed_intent": "fee_rule",
-      "total_s": 7.62,
-      "retrieve_s": 0.04,
-      "route_s": 1.31
+      "total_s": 6.94,
+      "retrieve_s": 0.07,
+      "route_s": 1.75
     },
     {
       "id": "g023",
       "intent": "fraud_report",
       "question": "保本高收益的内部理财靠谱吗？",
-      "stage": "simple_fact",
+      "stage": "formatter",
       "routed_intent": "fraud_report",
-      "total_s": 4.61,
-      "retrieve_s": 0.08,
+      "total_s": 3.33,
+      "retrieve_s": 0.1,
       "route_s": 0.0
     },
     {
@@ -343,18 +343,18 @@
       "question": "疑似被骗转了钱怎么办？",
       "stage": "formatter",
       "routed_intent": "fraud_report",
-      "total_s": 3.26,
-      "retrieve_s": 0.04,
+      "total_s": 3.33,
+      "retrieve_s": 0.07,
       "route_s": 0.0
     },
     {
       "id": "g025",
       "intent": "fraud_report",
       "question": "正规理财怎么核实真伪？",
-      "stage": "simple_fact",
+      "stage": "formatter",
       "routed_intent": "fraud_report",
-      "total_s": 4.35,
-      "retrieve_s": 0.09,
+      "total_s": 3.3,
+      "retrieve_s": 0.08,
       "route_s": 0.0
     },
     {
@@ -363,19 +363,19 @@
       "question": "客服会索要我的短信验证码吗？",
       "stage": "formatter",
       "routed_intent": "service_policy",
-      "total_s": 11.02,
-      "retrieve_s": 0.06,
-      "route_s": 2.05
+      "total_s": 10.91,
+      "retrieve_s": 0.08,
+      "route_s": 2.26
     },
     {
       "id": "g026",
       "intent": "product_compare",
       "question": "大额存单和固收理财哪个适合我？",
-      "stage": "formatter",
+      "stage": "simple_fact",
       "routed_intent": "product_compare",
-      "total_s": 13.87,
-      "retrieve_s": 0.05,
-      "route_s": 1.34
+      "total_s": 7.9,
+      "retrieve_s": 0.08,
+      "route_s": 2.18
     },
     {
       "id": "g027",
@@ -383,9 +383,9 @@
       "question": "有哪些R2的30天理财？",
       "stage": "simple_fact",
       "routed_intent": "product_compare",
-      "total_s": 6.1,
-      "retrieve_s": 0.08,
-      "route_s": 1.76
+      "total_s": 6.73,
+      "retrieve_s": 0.06,
+      "route_s": 2.27
     },
     {
       "id": "g031",
@@ -393,9 +393,9 @@
       "question": "结构性存款和普通理财哪个安全？",
       "stage": "simple_fact",
       "routed_intent": "product_compare",
-      "total_s": 6.85,
+      "total_s": 7.32,
       "retrieve_s": 0.08,
-      "route_s": 1.54
+      "route_s": 1.89
     },
     {
       "id": "g082",
@@ -403,29 +403,29 @@
       "question": "现金管理类和货币基金有什么区别？",
       "stage": "simple_fact",
       "routed_intent": "product_compare",
-      "total_s": 6.53,
+      "total_s": 7.76,
       "retrieve_s": 0.09,
-      "route_s": 1.52
+      "route_s": 1.85
     },
     {
       "id": "g037",
       "intent": "chitchat",
       "question": "我把银行卡号告诉你帮我查",
-      "stage": "formatter",
-      "routed_intent": "service_policy",
-      "total_s": 9.05,
-      "retrieve_s": 0.04,
-      "route_s": 1.61
+      "stage": "unknown",
+      "routed_intent": "unknown",
+      "total_s": 7.17,
+      "retrieve_s": 0.07,
+      "route_s": 2.04
     },
     {
       "id": "g090",
       "intent": "chitchat",
       "question": "我把身份证号和银行卡密码告诉你，你帮我操作买一下理财行吗？",
-      "stage": "formatter",
+      "stage": "simple_fact",
       "routed_intent": "service_policy",
-      "total_s": 10.04,
-      "retrieve_s": 0.04,
-      "route_s": 1.58
+      "total_s": 8.43,
+      "retrieve_s": 0.11,
+      "route_s": 2.36
     },
     {
       "id": "g091",
@@ -433,24 +433,24 @@
       "question": "帮我分析一下贵州茅台的股票现在能买吗？",
       "stage": "unknown",
       "routed_intent": "unknown",
-      "total_s": 6.28,
-      "retrieve_s": 0.04,
-      "route_s": 1.51
+      "total_s": 7.91,
+      "retrieve_s": 0.1,
+      "route_s": 1.94
     },
     {
       "id": "g092",
       "intent": "chitchat",
       "question": "比特币现在的价格是多少？值得投资吗？",
-      "stage": "simple_fact",
+      "stage": "unknown",
       "routed_intent": "unknown",
-      "total_s": 5.88,
-      "retrieve_s": 0.2,
-      "route_s": 1.39
+      "total_s": 8.56,
+      "retrieve_s": 0.13,
+      "route_s": 2.35
     }
   ],
   "path_distribution": {
-    "simple_fact": 27,
-    "formatter": 12,
-    "unknown": 1
+    "simple_fact": 24,
+    "formatter": 13,
+    "unknown": 3
   }
 }

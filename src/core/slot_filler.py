@@ -34,6 +34,61 @@ CATALOG = _load_catalog()
 KNOWN_PRODUCTS = [p["name"] for p in CATALOG if p.get("name")]
 KNOWN_PRODUCT_TYPES = list(dict.fromkeys(p.get("type", "") for p in CATALOG if p.get("type")))
 
+
+# ── L0 产品域 (由 catalog 派生, 不要另写产品词表) ──────────────────────────
+# 7 个产品域 + common(制度/通用, 判不出时的落点) + out_of_scope。
+# 产品域与 KB 的一级大类一一对应 (见 kg_domain_triples.jsonl 的 is_subtype_of 链),
+# 不是按 catalog.type 字符串个数拍出来的。
+L0_DOMAINS = ("deposit", "wealth", "fund", "insurance", "bond", "trust", "gold",
+              "common", "out_of_scope")
+
+# 键 = catalog.type 的括号前缀, 闭合集合。新产品一般落在已有类别里; 真出现新类别时
+# _UNMAPPED_TYPES 会告警、tests/test_l0_derivation.py 会失败 —— 提醒补这里, 而不是静默判错。
+_L0_BY_TYPE = {
+    # 存款 (is_subtype_of 存款, 受存款保险保障)
+    "存款": "deposit", "结构性存款": "deposit",
+    # 理财 —— 含现金管理类: KB 明确"现金管理类产品属于理财产品, 非存款"(catalog P001 自述 +
+    # kg: 现金管理类理财 is_subtype_of 理财产品), 旧实现把它判成 deposit 是错的
+    "现金管理": "wealth", "固定收益": "wealth", "固收增强": "wealth", "私银混合": "wealth",
+    # 代销
+    "公募基金": "fund", "保险": "insurance",
+    # KB 里各自独立成类, 均 'is_not 存款'
+    "债券": "bond", "信托": "trust", "贵金属": "gold",
+}
+
+# 能直接定域的意图 (制度/通用类); 其余靠产品槽位判, 判不出落 common
+_L0_BY_INTENT = {
+    "deposit_insurance": "common", "fraud_report": "common", "complaint": "common",
+    "service_policy": "common", "chitchat": "common", "unknown": "common",
+}
+
+
+def _type_to_l0(product_type: str) -> str:
+    """catalog 的 type 串 → L0; 认不出的类别返回 '' (不猜)"""
+    return _L0_BY_TYPE.get((product_type or "").split("(")[0].strip(), "")
+
+
+# 产品名 → L0 (与 KNOWN_PRODUCTS 同源; 产品名在 extract_slots 里已按 catalog 精确匹配)
+_PRODUCT_TO_L0 = {p["name"]: _type_to_l0(p.get("type", "")) for p in CATALOG if p.get("name")}
+
+_UNMAPPED_TYPES = ({p["type"].split("(")[0].strip() for p in CATALOG if p.get("type")}
+                   - set(_L0_BY_TYPE))
+if _UNMAPPED_TYPES:
+    logger.warning("catalog 有未映射 L0 的产品类别 (将落 common): %s", sorted(_UNMAPPED_TYPES))
+
+
+def intent_to_l0(intent: str = "", slots: dict = None) -> str:
+    """推断 L0 产品域 (见 L0_DOMAINS)
+
+    优先级: catalog 精确产品名 → 产品类型 → 意图映射 → common。
+    "common" 是**判定不出**时的通用域, 不是假装知道 —— 旧实现默认返回 wealth,
+    会让基金/存款类问题套上理财的合规话术。
+    """
+    slots = slots or {}
+    l0 = (_PRODUCT_TO_L0.get(slots.get("product") or "", "")
+          or _type_to_l0(slots.get("product_type") or ""))
+    return l0 or _L0_BY_INTENT.get(intent or "", "common")
+
 # 金额: 如 50万 / 50000元 / 1万元 → 统一存万元 (float)
 _AMOUNT_RE = re.compile(r"(\d+(?:\.\d+)?)\s*(万|w|元)")
 # 期限: 如 30天 / 3个月 / 1年 / 3年期
@@ -116,14 +171,30 @@ def extract_slots(query: str = "", entities: list = None) -> dict:
     return slots
 
 
-def missing_required(intent: str, slots: dict) -> list:
+def is_executable_order(intent: str, slots: dict) -> bool:
+    """这一轮是否构成可执行的下单指令: 明确购买意图 + 已给出金额.
+
+    「申购先分析」语义的唯一定义点 —— cs_graph._should_enter_subscribe (有产品→进门控)
+    与 missing_required (缺产品→追问) 都从这一条派生, 避免两处判据各自漂移。
+    """
+    return intent == "buy_process" and (slots or {}).get("amount") is not None
+
+
+def missing_required(intent: str = "", slots: dict = None) -> list:
     """返回当前意图缺失的必需槽位名列表.
 
-    阶段一: 咨询/查询类无强制槽位 (产品缺失时可据目录澄清)。阶段二接入资金动账工具后,
-    购买/赎回流程在此补充 product/amount/verification 等必需槽位。
+    必填槽位**只在执行流生效**: 只有当用户这一轮构成了可执行的下单指令
+    (购买意图 + 已给出金额), 却没说买哪款产品时, 才追问产品名。
+
+    咨询/查询类一律不追问 —— 信息型问题本来就不保证带得出产品名,
+    按产品域硬性要求会拦掉绝大多数正常提问 (实测 105 条 Golden 中 75 条)。
+    判据与 cs_graph._should_enter_subscribe 共用 is_executable_order:
+    该函数要求 product + amount 同时具备才进门控, 缺产品时本就落回产品分析, 这里补齐缺口。
     """
-    required = {}  # 阶段二扩展: e.g. {"subscribe": ["product", "amount"]}
-    return [s for s in required.get(intent, []) if not slots.get(s)]
+    slots = slots or {}
+    if not is_executable_order(intent, slots):
+        return []
+    return [] if slots.get("product") else ["product"]
 
 
 def followup_question(missing: list) -> str:

@@ -1,79 +1,132 @@
 {
   "total": 105,
-  "correct": 94,
-  "accuracy": 0.8952380952380953,
+  "correct": 93,
+  "accuracy": 0.8857142857142857,
   "rule_hit": 21,
   "llm_called": 84,
-  "avg_latency": 1.1635563691457114,
+  "avg_latency": 1.332846028464181,
   "per_intent": {
     "product_consult": {
-      "total": 11,
-      "correct": 11
+      "total": 8,
+      "correct": 7
     },
     "deposit_insurance": {
+      "total": 12,
+      "correct": 12
+    },
+    "risk_suitability": {
+      "total": 11,
+      "correct": 9
+    },
+    "income_question": {
       "total": 14,
       "correct": 13
     },
-    "risk_suitability": {
-      "total": 12,
-      "correct": 12
-    },
-    "income_question": {
-      "total": 12,
-      "correct": 12
-    },
     "hold_redeem": {
       "total": 13,
-      "correct": 13
+      "correct": 12
     },
     "buy_process": {
-      "total": 6,
-      "correct": 6
+      "total": 8,
+      "correct": 8
     },
     "fee_rule": {
       "total": 5,
-      "correct": 5
+      "correct": 4
     },
     "fraud_report": {
-      "total": 10,
-      "correct": 9
+      "total": 9,
+      "correct": 8
     },
     "product_compare": {
       "total": 13,
-      "correct": 13
+      "correct": 11
+    },
+    "service_policy": {
+      "total": 3,
+      "correct": 2
     },
     "chitchat": {
-      "total": 9,
-      "correct": 0
+      "total": 8,
+      "correct": 6
+    },
+    "complaint": {
+      "total": 1,
+      "correct": 1
     }
   },
   "errors": [
     {
+      "id": "g016",
+      "question": "申购后没到确认前能不能撤单？",
+      "expected": "hold_redeem",
+      "got": "buy_process",
+      "confidence": 0.95,
+      "rule": false,
+      "explanation": "[CoT] 第一层大类: 用户在问申购后未确认前能否撤单，属于交易操作流程问题，因此归为 transaction 交易操作类。第二层小类: 在 transact"
+    },
+    {
       "id": "g033",
       "question": "信用卡逾期会影响房贷申请吗？",
-      "expected": "deposit_insurance",
-      "got": "unknown",
-      "confidence": 0.8,
+      "expected": "service_policy",
+      "got": "chitchat",
+      "confidence": 0.95,
       "rule": false,
-      "explanation": "[CoT] 核心诉求是询问信用卡逾期对房贷申请的影响，属于信用记录与贷款审批的关系。关键词包括“信用卡逾期”“影响”“房贷申请”。候选意图中，deposit_i"
+      "explanation": "[CoT] 第一层大类: 用户问信用卡逾期是否影响房贷申请，核心是信用卡逾期对房贷审批的影响，属于银行信贷业务咨询，但不在理财客服范围内（理财客服主要处理理财产"
     },
     {
-      "id": "g035",
-      "question": "客服会索要我的短信验证码吗？",
+      "id": "g040",
+      "question": "我测评过期了还能买理财吗？",
+      "expected": "risk_suitability",
+      "got": "service_policy",
+      "confidence": 0.95,
+      "rule": false,
+      "explanation": "[CoT] 第一层大类: 用户在问测评过期后能否购买理财，核心是适当性评估的有效性规则，属于服务与安全类；第二层小类: 在 service_safety 的 f"
+    },
+    {
+      "id": "g048",
+      "question": "结构性存款的本金有保障吗？",
+      "expected": "product_consult",
+      "got": "income_question",
+      "confidence": 0.95,
+      "rule": false,
+      "explanation": "[CoT] 第一层大类: 用户在问结构性存款的本金是否安全，属于收益风险类，因为核心是本金保障/风险问题，而非产品属性、交易操作或服务安全。第二层小类: 在收益"
+    },
+    {
+      "id": "g077",
+      "question": "保险退保会扣手续费吗？",
+      "expected": "fee_rule",
+      "got": "hold_redeem",
+      "confidence": 0.9,
+      "rule": false,
+      "explanation": "[CoT] 第一层大类: 用户在问退保是否会扣手续费，核心是退保操作及费用问题，属于交易操作类；第二层小类: 在交易操作类的 buy_process/hold_"
+    },
+    {
+      "id": "g087",
+      "question": "我听说你们行有一款年化10%的保本理财，叫什么名字？",
       "expected": "fraud_report",
-      "got": "service_policy",
+      "got": "product_consult",
       "confidence": 0.95,
       "rule": false,
-      "explanation": "[CoT] 核心诉求是询问客服服务规则中关于信息索取的边界，即客服是否会索要短信验证码。关键词包括“客服”、“索要”、“短信验证码”，指向服务政策（servic"
+      "explanation": "[CoT] 第一层大类: 用户询问一款具体理财产品的名称，核心诉求是了解产品本身（叫什么名字），属于产品咨询类。第二层小类: 在产品咨询类的 product_c"
     },
     {
-      "id": "g037",
-      "question": "我把银行卡号告诉你帮我查",
-      "expected": "chitchat",
-      "got": "service_policy",
+      "id": "g088",
+      "question": "大额存单的利息是不是比理财高？我记得大额存单有5%的利率",
+      "expected": "product_compare",
+      "got": "income_question",
       "confidence": 0.95,
       "rule": false,
-      "explanation": "[CoT] 核心诉求是用户想提供银行卡号让客服帮忙查询，这涉及客服服务规则中关于隐私与信息索取的规定。关键词包括“银行卡号”、“告诉你”、“帮我查”，指向服务政"
+      "explanation": "[CoT] 第一层大类: 用户在比较大额存单和理财产品的收益高低，并提及大额存单利率，核心诉求是收益对比，属于收益风险类。第二层小类: 在收益风险类中，inco"
+    },
+    {
+      "id": "g089",
+      "question": "你们的私银产品是不是只有内部人才能买？我有熟人能不能通融一下？",
+      "expected": "risk_suitability",
+      "got": "buy_process",
+      "confidence": 0.9,
+      "rule": false,
+      "explanation": "[CoT] 第一层大类: 用户在问购买资格和能否通过熟人通融，核心是购买流程/条件，属于 transaction 交易操作类，因为涉及怎么买、购买条件。第二层小"
     },
     {
       "id": "g090",
@@ -82,70 +135,34 @@
       "got": "service_policy",
       "confidence": 0.95,
       "rule": false,
-      "explanation": "[CoT] 核心诉求是询问能否代客操作购买理财，涉及客服服务边界与信息安全。关键词包括“身份证号”“银行卡密码”“帮我操作买”，指向购买流程和客服服务规则。排除"
-    },
-    {
-      "id": "g091",
-      "question": "帮我分析一下贵州茅台的股票现在能买吗？",
-      "expected": "chitchat",
-      "got": "unknown",
-      "confidence": 0.95,
-      "rule": false,
-      "explanation": "[CoT] 核心诉求是询问贵州茅台股票是否值得买入，属于投资建议。关键词包括“贵州茅台”、“股票”、“能买吗”。贵州茅台是股票，不属于银行理财产品范畴，因此无法"
-    },
-    {
-      "id": "g092",
-      "question": "比特币现在的价格是多少？值得投资吗？",
-      "expected": "chitchat",
-      "got": "unknown",
-      "confidence": 0.95,
-      "rule": false,
-      "explanation": "[CoT] 核心诉求是询问比特币价格和投资价值，但比特币不属于银行/金融理财产品范畴，且问题涉及加密货币投资建议，超出客服查询分类范围。关键词包括'比特币'、'"
-    },
-    {
-      "id": "g093",
-      "question": "帮我写一份离婚财产分割协议",
-      "expected": "chitchat",
-      "got": "unknown",
-      "confidence": 0.99,
-      "rule": false,
-      "explanation": "[CoT] 用户核心诉求是要求撰写一份离婚财产分割协议，这属于法律文书起草，与银行业务、理财产品、金融服务等完全无关。关键词包括“离婚财产分割协议”，指向法律咨"
-    },
-    {
-      "id": "g094",
-      "question": "明天的大盘会涨还是跌？",
-      "expected": "chitchat",
-      "got": "unknown",
-      "confidence": 0.95,
-      "rule": false,
-      "explanation": "[CoT] 核心诉求是预测股市大盘走势，属于投资市场预测。关键词包括“大盘”、“涨”、“跌”，指向股票市场行情预测。候选意图中，product_consult、"
-    },
-    {
-      "id": "g095",
-      "question": "那个理财怎么样？",
-      "expected": "chitchat",
-      "got": "product_consult",
-      "confidence": 0.6,
-      "rule": false,
-      "explanation": "[CoT] 用户问题核心诉求是询问某款理财产品的整体情况（收益/风险/期限等），属于单款产品咨询。关键词包括“那个理财”“怎么样”，指向 product_con"
+      "explanation": "[CoT] 第一层大类: 用户询问是否可以将身份证号和银行卡密码告知客服并代为操作购买理财，核心涉及客服服务边界与隐私安全，属于服务安全类。第二层小类: 在服务"
     },
     {
       "id": "g096",
       "question": "收益怎么样？",
       "expected": "chitchat",
       "got": "income_question",
-      "confidence": 0.85,
+      "confidence": 0.75,
       "rule": false,
-      "explanation": "[CoT] 用户问题为“收益怎么样？”，核心诉求是询问某产品的收益情况。关键词“收益”指向收益口径或产品收益咨询。由于缺少产品名称和上下文，无法确定具体产品，但"
+      "explanation": "[CoT] 第一层大类: 用户问“收益怎么样”，核心是收益情况，属于收益风险类；第二层小类: 在收益风险类中，income_question 最匹配，因为问的是"
     },
     {
-      "id": "g104",
-      "question": "投诉理财经理应该找谁？",
-      "expected": "chitchat",
-      "got": "complaint",
-      "confidence": 0.92,
-      "rule": true,
-      "explanation": "强信号规则命中: 投诉"
+      "id": "g103",
+      "question": "我想做资产配置，应该怎么分配？",
+      "expected": "product_compare",
+      "got": "chitchat",
+      "confidence": 0.95,
+      "rule": false,
+      "explanation": "[CoT] 第一层大类: 用户问的是资产配置建议，属于投资规划咨询，不在理财客服的四个业务大类（产品咨询、收益风险、交易操作、服务安全）范围内，因此归入服务安全"
+    },
+    {
+      "id": "g105",
+      "question": "什么是净值型理财产品？",
+      "expected": "income_question",
+      "got": "product_consult",
+      "confidence": 0.95,
+      "rule": false,
+      "explanation": "[CoT] 第一层大类: 用户在问净值型理财产品的定义，属于了解产品本身是什么，因此归为 product_info 产品咨询类。第二层小类: 在 product"
     }
   ]
 }

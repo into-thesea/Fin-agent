@@ -43,7 +43,7 @@ class FactAgent:
         Returns:
             {"answer": str, "sources": list, "confidence": str, "citations": list}
         """
-        # 使用预取上下文 (避免重复检索 BGE+BM25+FAISS+Neo4j)
+        # 使用预取上下文 (避免重复检索 BGE+BM25+Neo4j)
         contexts = prefetched_contexts or self.retriever.hybrid_retrieve(query, entity_hint=entity_hint)
 
         local_text = "\n".join(

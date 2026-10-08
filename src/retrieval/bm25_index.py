@@ -1,7 +1,7 @@
 """
 轻量级 BM25 检索实现 (纯 Python, 无外部依赖)
 
-用于 FAISS 密集向量检索的稀疏检索补充。
+用于密集向量检索的稀疏检索补充。
 通过 Reciprocol Rank Fusion (RRF) 合并两种检索结果。
 """
 
@@ -260,7 +260,7 @@ def rrf_fusion(dense_results: List[dict], sparse_results: List[dict],
     Reciprocol Rank Fusion — 合并密集检索和稀疏检索结果
 
     Args:
-        dense_results: FAISS 向量检索结果 [{"chunk_id": str, "content": str, "source": str, "score": float}]
+        dense_results: 密集向量检索结果 [{"chunk_id": str, "content": str, "source": str, "score": float}]
         sparse_results: BM25 检索结果 [{"chunk_id": str, ...}]
         top_k: 最终返回条数
         k: RRF 常数 (通常 60)

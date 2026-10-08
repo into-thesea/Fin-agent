@@ -5,6 +5,7 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from src.graph.cs_graph import _should_enter_subscribe
+from src.core.slot_filler import missing_required
 from src.agents.router_agent import QueryIntent as I
 
 BUY = I.BUY_PROCESS
@@ -39,6 +40,18 @@ def test_subscribe_enter_table():
         assert got is expect, f"{why}: intent={intent.value} slots={slots!r} query={q!r} → {got}, want {expect}"
 
 
+def test_order_predicate_agrees_with_followup():
+    """下单判据只有一处定义: 构成下单指令时, 要么进门控(有产品), 要么追问(缺产品), 不会两头落空."""
+    for slots, q in [(_s(amount=5.0), "申购5万"), (_s(product="稳盈添利30天", amount=5.0), "申购5万")]:
+        enters = _should_enter_subscribe(BUY, slots, q)
+        asks = bool(missing_required(BUY.value, slots))
+        assert enters or asks, f"下单指令无人处理: slots={slots!r}"
+        assert not (enters and asks), f"既进门控又追问: slots={slots!r}"
+    # 非下单指令: 既不进门控也不追问
+    assert not missing_required(CONS.value, _s(product="稳盈添利30天", amount=5.0))
+
+
 if __name__ == "__main__":
     test_subscribe_enter_table()
+    test_order_predicate_agrees_with_followup()
     print("OK: subscribe routing semantics pass")
