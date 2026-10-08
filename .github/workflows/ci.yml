@@ -107,32 +107,12 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Build API image
+      - name: Build image
         uses: docker/build-push-action@v6
         with:
           context: .
-          target: api
-          tags: fin-agent:api-latest
-          load: true
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-
-      - name: Build Web image
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          target: web
-          tags: fin-agent:web-latest
-          load: true
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-
-      - name: Build Frontend image
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          target: frontend
-          tags: fin-agent:frontend-latest
+          target: runtime
+          tags: fin-agent:latest
           load: true
           cache-from: type=gha
           cache-to: type=gha,mode=max
@@ -140,7 +120,7 @@ jobs:
       - name: Trivy vulnerability scan
         uses: aquasecurity/trivy-action@master
         with:
-          image-ref: fin-agent:api-latest
+          image-ref: fin-agent:latest
           format: table
           exit-code: 1
           severity: HIGH,CRITICAL
