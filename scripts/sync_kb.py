@@ -16,7 +16,7 @@
   .venv/Scripts/python.exe scripts/sync_kb.py             # 有变化才重建
   .venv/Scripts/python.exe scripts/sync_kb.py --force     # 强制重建
   .venv/Scripts/python.exe scripts/sync_kb.py --no-eval   # 跳过回归
-退出码: 0 成功 / 1 校验失败已回滚 / 2 重建成功但回归指标变差
+退出码: 0 成功 / 1 校验失败已回滚 / 2 重建成功但回归指标变差 / 3 索引重建成功但图谱未收敛
 """
 
 from __future__ import annotations
@@ -95,6 +95,12 @@ def diff_keys(old: dict, new: dict) -> tuple[list, list, list]:
     return added, removed, modified
 
 
+def save_manifest(m: dict) -> None:
+    os.makedirs(os.path.dirname(MANIFEST), exist_ok=True)
+    with open(MANIFEST, "w", encoding="utf-8") as f:
+        json.dump(m, f, ensure_ascii=False, indent=2)
+
+
 def _read_chunk_hashes() -> dict:
     """读当前产物的 chunk_id → content_hash"""
     from src.infra.paths import CHUNKS_PROCESSED_PATH
@@ -160,6 +166,22 @@ def restore(src: str) -> None:
 
 # ── 校验 ──────────────────────────────────────────────────────────
 
+def _count_indexed(chunks_p: str) -> int:
+    """分块文件里真正进索引的行数
+
+    父子分块后文件里同时躺着父块和子块, 而父块**按设计不入检索索引**
+    (vector_indexer 显式过滤 chunk_type == "parent")。拿文件总行数去跟
+    Milvus/BM25 比, 会永远对不上 → 校验失败 → 回滚, sync_kb 一次都跑不完,
+    manifest 停在旧版本、图谱也就跟着永远落后于源。
+    """
+    n = 0
+    with open(chunks_p, "r", encoding="utf-8") as f:
+        for line in f:
+            if line.strip() and json.loads(line).get("chunk_type") != "parent":
+                n += 1
+    return n
+
+
 def verify(n_chunks: int) -> tuple[bool, str]:
     """分块文件 / Milvus / BM25 三路条数必须一致, 否则视为重建失败
 
@@ -168,7 +190,7 @@ def verify(n_chunks: int) -> tuple[bool, str]:
     """
     from src.vectorstore.milvus_manager import MilvusManager
 
-    _, bm25_p = _artifacts()
+    chunks_p, bm25_p = _artifacts()
     bm25_json = os.path.splitext(bm25_p)[0] + ".json"
     with open(bm25_json, "r", encoding="utf-8") as f:
         n_bm25 = json.load(f).get("total_docs", 0)
@@ -176,25 +198,38 @@ def verify(n_chunks: int) -> tuple[bool, str]:
     mgr = MilvusManager()
     n_vec = mgr.total_count if mgr.available else -1
 
-    detail = f"chunks={n_chunks} milvus={n_vec} bm25={n_bm25}"
-    return (n_chunks == n_vec == n_bm25 and n_chunks > 0), detail
+    n_indexed = _count_indexed(chunks_p)
+    detail = (f"indexable={n_indexed}(文件 {n_chunks} 行, 父块 {n_chunks - n_indexed} 不入索引) "
+              f"milvus={n_vec} bm25={n_bm25}")
+    return (n_indexed == n_vec == n_bm25 and n_indexed > 0), detail
 
 
 # ── 灌图 / 回归 ───────────────────────────────────────────────────
 
-def reload_graph() -> None:
-    """kg_triples.jsonl 变了才灌 Neo4j; Neo4j 没起就跳过(不阻塞本地索引)
+def reload_graph() -> bool:
+    """把源派生出的 kg_triples.jsonl 收敛到 Neo4j, 返回是否成功
+
+    Neo4j 没起不阻塞本地索引重建, 但**必须让失败可见**: 这里以前把灌库失败吞成一句
+    "跳过", main() 照样返回 0, 结果 Neo4j 悄悄落后源 24 条边没人发现 —— main() 现在
+    会非零退出, 且不把 graph_version 记进 manifest, 下次跑本脚本会自动补灌。
 
     load_kg_to_neo4j.main() 连不上时调 sys.exit(1), 抛的是 SystemExit 而非 Exception,
-    所以这里必须显式接住, 否则会把整个同步流程带崩。
+    所以必须显式接住, 否则会把整个同步流程带崩。
     """
     try:
         import load_kg_to_neo4j
-        load_kg_to_neo4j.main()
-    except SystemExit as e:
-        print(f"  Neo4j 灌库跳过 (exit={e.code}); 起库后重跑: docker compose up -d neo4j")
     except Exception as e:
-        print(f"  Neo4j 灌库跳过: {type(e).__name__}: {e}")
+        print(f"  ❌ Neo4j 灌库失败: 无法导入 load_kg_to_neo4j: {e}")
+        return False
+    try:
+        load_kg_to_neo4j.main()
+        return True
+    except SystemExit as e:
+        print(f"  ❌ Neo4j 灌库失败 (exit={e.code}); 先 docker compose up -d neo4j 再重跑本脚本补灌")
+        return False
+    except Exception as e:
+        print(f"  ❌ Neo4j 灌库失败: {type(e).__name__}: {e}")
+        return False
 
 
 def run_eval(version: str, with_answers: bool = False, online_limit: int = 0) -> tuple[dict, bool]:
@@ -268,12 +303,21 @@ def main() -> int:
 
     if not (added or removed or modified) and not args.force:
         print(f"源无变化 (version={old.get('version', '?')}), 跳过重建")
+        if old.get("graph_version") != version:
+            # 上次灌图失败过 (manifest 里没记上这个版本) → 只补灌, 不重跑整条重建。
+            # 少了这一步, 灌库跳过一次源又没再变, 图谱就永久落后, 只能靠人发现。
+            print("上次图谱未收敛 → 只补灌 Neo4j")
+            if not reload_graph():
+                return 3
+            old["graph_version"] = version
+            save_manifest(old)
+            print("✅ 图谱补灌完成")
+            return 0
         if "chunks" not in old:        # 老 manifest 回填一次快照, 否则下次变更报不出增量
             current = _read_chunk_hashes()
             if current:
                 old["chunks"] = current
-                with open(MANIFEST, "w", encoding="utf-8") as f:
-                    json.dump(old, f, ensure_ascii=False, indent=2)
+                save_manifest(old)
                 print(f"已回填知识块快照 ({len(current)} 条)")
         return 0
 
@@ -303,9 +347,9 @@ def main() -> int:
         return 1
     print(f"✅ 校验通过 ({detail})")
 
-    # 三元组现在由 catalog 派生, 每次重建都会重写, 所以直接灌图 (MERGE 幂等)
+    # 三元组由 catalog + kg_domain_triples 派生, 每次重建都会重写; 灌图是收敛式(补边+删陈旧边)
     print("灌 Neo4j")
-    reload_graph()
+    graph_ok = reload_graph()
 
     eval_ok = True
     if not args.no_eval:
@@ -315,15 +359,19 @@ def main() -> int:
     new_chunks = _read_chunk_hashes()
     report_chunk_changes(old.get("chunks", {}), new_chunks)
 
-    os.makedirs(os.path.dirname(MANIFEST), exist_ok=True)
-    with open(MANIFEST, "w", encoding="utf-8") as f:
-        json.dump({"version": version,
-                   "synced_at": datetime.now().isoformat(timespec="seconds"),
-                   "chunk_count": n_chunks,
-                   "sources": fp,
-                   "chunks": new_chunks}, f, ensure_ascii=False, indent=2)
+    manifest = {"version": version,
+                "synced_at": datetime.now().isoformat(timespec="seconds"),
+                "chunk_count": n_chunks,
+                "sources": fp,
+                "chunks": new_chunks}
+    if graph_ok:
+        manifest["graph_version"] = version   # 灌成功才记; 没记上就等于挂了个"下次补灌"的账
+    save_manifest(manifest)
 
     print(f"\n同步完成 · version={version} · chunks={n_chunks}")
+    if not graph_ok:
+        print("❌ 图谱未收敛 —— 索引已更新但 Neo4j 落后于源; 起好 Neo4j 后重跑本脚本会自动补灌")
+        return 3
     if not eval_ok:
         print("⚠️  回归指标有下降, 建议查看 data/eval/report_finance.json")
         return 2

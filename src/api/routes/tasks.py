@@ -23,6 +23,10 @@ _CELERY_STATE_MAP = {
     "RECEIVED": "pending",
     "STARTED": "processing",
     "PROGRESS": "processing",
+    # ProgressReporter.report() 发的是自定义状态 status.upper(), 默认即 "PROCESSING"。
+    # 少了这一条, 未知状态会被下面 _normalize_state 判成 failed —— 正在跑的任务
+    # 在 Celery 兜底那一路会显示成「失败」, 还捎带一条 ERROR 日志。
+    "PROCESSING": "processing",
     "RETRY": "processing",
     "SUCCESS": "completed",
     "FAILURE": "failed",

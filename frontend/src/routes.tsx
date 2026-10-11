@@ -17,6 +17,7 @@ const KnowledgeDocsPage = lazy(() => import('./pages/knowledge/DocsPage').then(m
 const KnowledgeChunksPage = lazy(() => import('./pages/knowledge/ChunksPage').then(m => ({ default: m.ChunksPage })));
 const KnowledgeStrategyPage = lazy(() => import('./pages/knowledge/StrategyPage').then(m => ({ default: m.StrategyPage })));
 const RetrievalTestPage = lazy(() => import('./pages/knowledge/RetrievalTestPage').then(m => ({ default: m.RetrievalTestPage })));
+const PendingReviewPage = lazy(() => import('./pages/knowledge/PendingReviewPage').then(m => ({ default: m.PendingReviewPage })));
 
 function LazyLoad({ children }: { children: React.ReactNode }) {
   return (
@@ -52,6 +53,7 @@ export const router = createBrowserRouter([
       { path: 'knowledge/chunks', element: <LazyLoad><KnowledgeChunksPage /></LazyLoad> },
       { path: 'knowledge/strategy', element: <LazyLoad><KnowledgeStrategyPage /></LazyLoad> },
       { path: 'knowledge/retrieval-test', element: <LazyLoad><RetrievalTestPage /></LazyLoad> },
+      { path: 'knowledge/pending-review', element: <LazyLoad><PendingReviewPage /></LazyLoad> },
       { path: 'dashboard', element: <LazyLoad><DashboardPage /></LazyLoad> },
       { path: 'llmops', element: <LazyLoad><LLMOpsPage /></LazyLoad> },
       { path: 'handoff', element: <LazyLoad><HandoffPage /></LazyLoad> },

@@ -368,6 +368,35 @@ class ApiClient {
     return data;
   }
 
+  // ========== 待审核文档 (上传 → 预览分块 → 审核通过才整文档入库) ==========
+  /** 待审核文档列表 */
+  async listPendingDocs(): Promise<{ total: number; items: any[] }> {
+    const { data } = await this.client.get('/api/v1/kb/pending');
+    return data;
+  }
+
+  /** 查看待审核文档的分块预览 */
+  async getPendingChunks(docId: number, page = 1, size = 20): Promise<{
+    doc_id: number; filename: string; total: number; page: number; size: number; items: any[];
+  }> {
+    const { data } = await this.client.get(`/api/v1/kb/pending/${docId}/chunks`, {
+      params: { page, size },
+    });
+    return data;
+  }
+
+  /** 审核通过 — 整文档原子入库 */
+  async approvePendingDoc(docId: number): Promise<any> {
+    const { data } = await this.client.post(`/api/v1/kb/pending/${docId}/approve`, {}, { timeout: 120000 });
+    return data;
+  }
+
+  /** 审核拒绝 — 清理临时文件 */
+  async rejectPendingDoc(docId: number, reason = ''): Promise<any> {
+    const { data } = await this.client.post(`/api/v1/kb/pending/${docId}/reject`, { reason });
+    return data;
+  }
+
   // ========== 认证 ==========
   async login(username: string, password: string): Promise<{ token: string; user: any }> {
     const { data } = await this.client.post('/api/v1/auth/login', { username, password });

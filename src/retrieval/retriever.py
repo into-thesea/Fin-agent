@@ -18,6 +18,7 @@ from __future__ import annotations
 
 import logging
 import os
+import re
 from typing import Any, Optional
 
 # 强制 HuggingFace 离线 — 本机网络连不上 huggingface.co
@@ -89,6 +90,25 @@ def format_graph_context(items) -> str:
 
 # 嵌入模型加载状态 (供系统状态查询)
 EMBEDDING_MODEL_LOADED = False
+
+
+def parent_id_of(chunk: dict) -> Optional[str]:
+    """取 chunk 的父块 id, 没有则返回 None。
+
+    检索通路回来的 hit **都不带 parent_id**: Milvus collection 没有这个字段、
+    search() 的 output_fields 也不含它; BM25 的 payload 只存 id/text/source/section。
+    于是「父子分块」在检索侧一直是空转 —— 子块命中了也拼不回父章节。
+
+    父块 id 不必再往索引里加: 子块 id 形如 "{parent_id}_c{n}", 关系本来就写在 id 里。
+    从 id 派生即可, 免得为一个字段改 Milvus schema + 清库全量重建。
+    实测 1525 条子块: 派生结果与分块文件里的显式 parent_id 100% 一致, 且没有父块 id
+    会被这条规则误判 (父块 id 尾段是 "_{序号:02d}", 不是 "_c数字")。
+    """
+    pid = chunk.get("parent_id")
+    if pid:
+        return pid
+    m = re.match(r"^(.*)_c\d+$", chunk.get("chunk_id") or "")
+    return m.group(1) if m else None
 
 # --- 核心：自动定位项目根目录 ---
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -421,22 +441,24 @@ class HybridRetriever:
         """子块命中后展开为父块完整内容, 同一父块去重
 
         父子文档分块的核心: 用小chunk精准检索, 返回父章节完整上下文给LLM。
-        没有parent_id的chunk (如上传文档的chunk) 原样保留。
+        父块 id 由 parent_id_of() 从 chunk_id 派生 (检索通路不透出 parent_id)。
+        没有父块可展开的 (旧格式 chunk / 图谱路径条目) 原样保留。
         """
         parent_map = self._load_parent_map()
         result = []
         seen_parent_ids = set()
         for c in chunks:
-            parent_id = c.get("parent_id")
+            parent_id = parent_id_of(c)
             if parent_id and parent_id in parent_map:
                 if parent_id in seen_parent_ids:
                     continue  # 同一父块已展开过, 去重
                 seen_parent_ids.add(parent_id)
                 result.append(parent_map[parent_id])
             else:
-                # 无parent_id (上传文档或旧格式chunk), 原样保留
+                # 原样保留。去重只对带 chunk_id 的条目生效 —— 图谱路径条目没有
+                # chunk_id, 按 None 去重会把注入的多条路径只留第一条。
                 pid = c.get("chunk_id")
-                if pid not in seen_parent_ids:
+                if not pid or pid not in seen_parent_ids:
                     seen_parent_ids.add(pid)
                     result.append(c)
         return result

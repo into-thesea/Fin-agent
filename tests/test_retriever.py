@@ -176,3 +176,86 @@ class TestMmrIndexAlignment:
             results, np.array([[1.0, 0.0]], dtype="float32"), self._mgr({1: [1.0, 0.0]}), top_k=2)
 
         assert out == results[:2]
+
+
+class TestExpandToParents:
+    """子块命中要拼回父章节 —— hit 本身不带 parent_id, 只能从 chunk_id 派生。
+    这条链路曾经整条空转: 两条检索路都不透出 parent_id, 展开函数永远走 else 分支,
+    LLM 拿到的全是 ~100 字的子块。"""
+
+    def _retriever(self, monkeypatch, parent_map: dict):
+        from src.retrieval.retriever import HybridRetriever
+        monkeypatch.setattr(HybridRetriever, "_load_parent_map", lambda self: parent_map)
+        return HybridRetriever.__new__(HybridRetriever)
+
+    def test_child_hit_without_parent_id_still_expands(self, monkeypatch):
+        """hit 只有 chunk_id (线上真实形态) → 仍要返回父块全文"""
+        parent = {"chunk_id": "doc_0001_00", "content": "父章节完整内容" * 20,
+                  "section": "产品概述", "chunk_type": "parent"}
+        r = self._retriever(monkeypatch, {parent["chunk_id"]: parent})
+
+        out = r._expand_to_parents([
+            {"chunk_id": "doc_0001_00_c2", "content": "子块片段", "source": "doc.pdf"},
+        ])
+
+        assert out == [parent], "子块没拼回父章节"
+
+    def test_explicit_parent_id_still_wins(self, monkeypatch):
+        """自带 parent_id 的调用方 (BM25/旧数据) 行为不变"""
+        parent = {"chunk_id": "kb_x", "content": "父块", "chunk_type": "parent"}
+        r = self._retriever(monkeypatch, {"kb_x": parent})
+
+        out = r._expand_to_parents([{"chunk_id": "kb_x_c1", "parent_id": "kb_x"}])
+
+        assert out == [parent]
+
+    def test_same_parent_deduped_and_id_less_entries_kept(self, monkeypatch):
+        """同一父块只留一份; 无 chunk_id 的图谱路径条目不能被去重吃掉"""
+        parent = {"chunk_id": "d_00", "content": "父块", "chunk_type": "parent"}
+        r = self._retriever(monkeypatch, {"d_00": parent})
+        graph_entries = [{"content": "路径1", "source": "kg"}, {"content": "路径2", "source": "kg"}]
+
+        out = r._expand_to_parents([
+            {"chunk_id": "d_00_c1"}, {"chunk_id": "d_00_c3"}, *graph_entries,
+        ])
+
+        assert out == [parent, *graph_entries]
+
+    def test_uploaded_doc_without_parent_stays_as_is(self, monkeypatch):
+        """没有对应父块的旧格式 chunk 原样保留, 不能被吞掉"""
+        r = self._retriever(monkeypatch, {})
+        chunk = {"chunk_id": "legacy.pdf_0001_00", "content": "旧格式内容"}
+
+        assert r._expand_to_parents([chunk]) == [chunk]
+
+
+class TestParentIdDerivation:
+    """派生规则必须与分块文件里的显式 parent_id 一致"""
+
+    def test_matches_every_child_in_chunk_store(self):
+        import json
+
+        from src.infra.paths import CHUNKS_PROCESSED_PATH
+        from src.retrieval.retriever import parent_id_of
+
+        if not os.path.exists(CHUNKS_PROCESSED_PATH):
+            pytest.skip("分块文件不存在")
+        parents, children = set(), []
+        with open(CHUNKS_PROCESSED_PATH, encoding="utf-8") as f:
+            for line in f:
+                if line.strip():
+                    c = json.loads(line)
+                    if c.get("chunk_type") == "parent":
+                        parents.add(c["chunk_id"])
+                    elif c.get("chunk_type") == "child":
+                        children.append(c)
+        if not children:
+            pytest.skip("分块文件里没有子块")
+
+        for c in children:
+            derived = parent_id_of({"chunk_id": c["chunk_id"]})   # hit 的真实形态: 无 parent_id
+            assert derived == c["parent_id"], f"{c['chunk_id']} 派生错了"
+            assert derived in parents, f"{c['chunk_id']} 的父块不在索引里"
+        # 父块自己不能被误判成子块
+        for p in parents:
+            assert parent_id_of({"chunk_id": p}) is None, f"父块 {p} 被误判为子块"

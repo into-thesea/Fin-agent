@@ -65,3 +65,29 @@ def test_fingerprint_covers_every_source():
     assert set(fp) == {os.path.relpath(f, sync_kb.ROOT).replace("\\", "/")
                        for f in sync_kb.source_files()}
     assert all(len(h) == 16 for h in fp.values())
+
+
+def test_graph_failure_returns_nonzero_and_is_retried_next_run(monkeypatch):
+    """灌库失败必须非零退出 + 不记 graph_version, 下次跑自动补灌
+
+    回归点: 以前 reload_graph() 把失败吞成一句"跳过", main() 照样返回 0,
+    源又没再变 → 图谱永久落后于源, 只能靠人肉对账发现 (实测落后 24 条边)。
+    """
+    fp = {"a.md": "111"}
+    version = sync_kb.compute_version(fp)
+    monkeypatch.setattr(sys, "argv", ["sync_kb.py"])
+    monkeypatch.setattr(sync_kb, "fingerprint", lambda: dict(fp))
+    monkeypatch.setattr(sync_kb, "load_manifest",
+                        lambda: {"version": version, "sources": dict(fp)})
+    saved = {}
+    monkeypatch.setattr(sync_kb, "save_manifest", lambda m: saved.update(m))
+
+    # 第一次: 库没起 → 非零退出, 且不许把这一版记成已收敛
+    monkeypatch.setattr(sync_kb, "reload_graph", lambda: False)
+    assert sync_kb.main() == 3
+    assert "graph_version" not in saved
+
+    # 第二次: 库起来了。manifest 还是旧的(没记 graph_version) → 只补灌, 不重跑重建
+    monkeypatch.setattr(sync_kb, "reload_graph", lambda: True)
+    assert sync_kb.main() == 0
+    assert saved["graph_version"] == version

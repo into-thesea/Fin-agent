@@ -428,8 +428,9 @@ def build_all(skip_milvus: bool = False) -> int:
     sync_kb.py 也走这个入口, 保证流水线只有一处定义 (漏了图谱那次就是因为
     步骤散在各处、靠人记)。
 
-    返回**索引里的实际块数**(内置 + 保留的上传文档) —— sync_kb 的 verify 拿它
-    跟分块文件/Milvus/BM25 三路核对, 只报内置数会误判成不一致。
+    返回**写入分块文件的总行数**(内置 + 保留的上传文档, 父块子块都算)。
+    注意这不等于索引条数: 父块不入检索索引, sync_kb.verify 会自己从文件里
+    剔掉父块后再跟 Milvus/BM25 比, 别再拿这个数去跟索引比。
     """
     parent_chunks = collect_chunks()
     # 父子文档分块: 章节为父块, 句子级小chunk为子块

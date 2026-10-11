@@ -84,6 +84,17 @@ def add_chunks_to_index(
     if not new_chunks:
         return 0
 
+    # 父块只作检索命中后的上下文, 不入索引 —— 增量这条路原先漏了过滤, 于是审核
+    # 通过一份上传文档就把父块也灌进了 Milvus。放在这个收口处, 两个调用方
+    # (ingest_document / approve_document) 一起修。
+    from src.core.smart_chunk import indexable_chunks
+    n_all = len(new_chunks)
+    new_chunks = indexable_chunks(new_chunks)
+    if len(new_chunks) != n_all:
+        logger.info("增量索引: 跳过 %d 个父块 (父块只作上下文, 不入索引)", n_all - len(new_chunks))
+    if not new_chunks:
+        return 0
+
     # 1. 加载模型
     model = _get_model()
 
@@ -110,6 +121,10 @@ def add_chunks_to_index(
     #    不可用/写入失败会直接抛错 —— 静默跳过会造成「数据库说成功、索引里没有」。
     from src.vectorstore.milvus_manager import MilvusManager
     milvus = MilvusManager()
+    # 覆盖写: 同 chunk_id 的旧行先清掉。审核入库失败后重试时, 上一次可能已经把
+    # 向量写进去了 —— 直接 add 就成了重复行 (文件那边已由 replace_doc_id 覆盖,
+    # Milvus 这边没有文件那样的"重写"语义, 只能显式删)。放在这个收口处两条路径都覆盖。
+    milvus.delete_by_chunk_ids([c.get("chunk_id") for c in new_chunks])
     milvus.add_embeddings(embeddings, metadata_list)
 
     logger.info(f"向量写入完成: Milvus {milvus.total_count} 条")
@@ -129,7 +144,8 @@ def rebuild_vector_index(chunks_file: str = None) -> int:
     with open(chunks_file, "r", encoding="utf-8") as f:
         raw_chunks = [json.loads(line) for line in f if line.strip()]
     # 父子分块: Milvus只导入子块 (检索用小chunk, 命中后返回父块上下文)
-    all_chunks = [c for c in raw_chunks if c.get("chunk_type") != "parent"]
+    from src.core.smart_chunk import indexable_chunks
+    all_chunks = indexable_chunks(raw_chunks)
     logger.info(f"全量向量重建: {len(all_chunks)} 个子块 (跳过 {len(raw_chunks)-len(all_chunks)} 个父块)")
 
     from src.vectorstore.milvus_manager import MilvusManager

@@ -45,6 +45,9 @@ def temp_paths(tmp_path, monkeypatch):
     )
     monkeypatch.setattr(kb_console, "PENDING_DIR", pending)
     monkeypatch.setattr(kb_console, "KG_TRIPLES_PATH", target)
+    # Neo4j 是外部真服务, 只 monkeypatch jsonl 路径拦不住它 —— 跑一次单测就真往
+    # 生产图谱里 MERGE 一条边 (实测把已删除的陈旧边灌了回来)。
+    monkeypatch.setattr(kb_console, "merge_triple_to_neo4j", lambda t: "loaded")
     yield pending, target
 
 
@@ -94,6 +97,9 @@ def test_approve_writes_source_not_artifact(client, admin_headers, temp_paths):
                     json={"id": tid, "action": "approve"}, headers=admin_headers)
     assert r.status_code == 200
     assert r.json()["status"] == "approved"
+    # "loaded" 只可能来自 fixture 的 stub —— 真连 Neo4j 时本机没起库会是 jsonl_only,
+    # 起了库就真写入。断言它等于确认这层拦截还在。
+    assert r.json()["neo4j"] == "loaded"
 
     rows = _lines(target)
     assert any(t["tail"] == "定期存款" for t in rows), "审核通过的三元组未写入源文件"

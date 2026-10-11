@@ -327,6 +327,16 @@ class DBManager:
         """
         cursor = self.conn.cursor()
 
+        # 没有 content_hash 会让下面两层判重**一起失效**: 这里 "同内容跳过" 要求
+        # hash 相等, 上传口 find_document_by_hash 也按 hash 查 —— 结果是同一份文件
+        # 再传一次会被当成"新版本"插一条新记录, 内容在索引里存两份。
+        # 实测就是这么来的: 6 份 PDF 全部 content_hash=NULL, 全部 version=2。
+        if not content_hash:
+            logger.warning(
+                "文档 %s 未提供 content_hash —— 判重会失效, 同一文件再传会变成新版本; "
+                "调用方必须传 (见 scripts/process_pdfs.py 的教训)", filename,
+            )
+
         # 查找旧版本
         existing = self.find_document_by_filename(filename)
 
@@ -355,6 +365,14 @@ class DBManager:
         action = "新版本" if prev_id else "首次入库"
         logger.info(f"文档 {filename} {action}: v{new_version} (ID: {doc_id})")
         return doc_id
+
+    def update_content_hash(self, doc_id: int, content_hash: str) -> bool:
+        """补写文档的内容哈希 (存量记录缺失时用, 见 scripts/backfill_content_hash.py)"""
+        cursor = self.conn.cursor()
+        cursor.execute("UPDATE documents SET content_hash = ? WHERE id = ?",
+                       (content_hash, doc_id))
+        self.conn.commit()
+        return cursor.rowcount > 0
 
     def update_document_status(self, doc_id: int, status: str, count: int = None) -> bool:
         """更新文档状态 / 分块数
@@ -404,6 +422,38 @@ class DBManager:
         cursor.execute("DELETE FROM documents WHERE id = ?", (doc_id,))
         self.conn.commit()
         return cursor.rowcount > 0
+
+    # ──────────────────────────────────────────────
+    # 待审核文档 (pending_review) — 上传后只解析分块, 审核通过才入库
+    # ──────────────────────────────────────────────
+
+    def get_documents_by_status(self, status: str) -> List[Dict]:
+        """按状态获取文档列表 (pending_review / approved / rejected / done / failed)"""
+        cursor = self.conn.cursor()
+        cursor.execute(
+            "SELECT id, filename, status, upload_time, chunks_count, version, content_hash, file_size, source_label "
+            "FROM documents WHERE status = ? ORDER BY upload_time DESC",
+            (status,),
+        )
+        rows = cursor.fetchall()
+        return [
+            {
+                "id": r[0],
+                "filename": r[1],
+                "status": r[2],
+                "upload_time": r[3],
+                "chunks_count": r[4],
+                "version": r[5],
+                "content_hash": r[6][:12] if r[6] else None,
+                "file_size": r[7],
+                "source_label": r[8],
+            }
+            for r in rows
+        ]
+
+    def get_pending_documents(self) -> List[Dict]:
+        """获取待审核文档 (status = pending_review)"""
+        return self.get_documents_by_status("pending_review")
 
     # ──────────────────────────────────────────────
     # 查询审计

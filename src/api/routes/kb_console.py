@@ -203,6 +203,33 @@ def _triple_id(t: dict) -> str:
     return hashlib.md5(raw.encode("utf-8")).hexdigest()[:12]
 
 
+def merge_triple_to_neo4j(t: dict) -> str:
+    """审核通过的边当场 MERGE 进 Neo4j, 返回 "loaded" 或 "jsonl_only: <原因>"
+
+    单独成函数是为了让单测能把它 patch 掉 —— 之前测试只 monkeypatch 了 jsonl 路径,
+    真连的 Neo4j 照写, 跑一次单测就往生产图谱里塞一条边。
+    """
+    try:
+        from neo4j import GraphDatabase
+        uri = os.getenv("NEO4J_URI", "bolt://127.0.0.1:7687")
+        neo_user = os.getenv("NEO4J_USER", "neo4j")
+        neo_pwd = os.getenv("NEO4J_PASSWORD", "kefu2026neo")
+        driver = GraphDatabase.driver(uri, auth=(neo_user, neo_pwd))
+        with driver.session() as s:
+            s.run("CREATE CONSTRAINT node_name IF NOT EXISTS FOR (n:Entity) REQUIRE n.name IS UNIQUE")
+            s.run(
+                "MERGE (a:Entity {name:$h}) MERGE (b:Entity {name:$t}) "
+                "MERGE (a)-[r:REL {name:$rel}]->(b) SET r.doc=$doc, r.note=$note",
+                h=t["head"], t=t["tail"], rel=t["relation"],
+                doc=t.get("doc", ""), note=t.get("note", "")[:100],
+            )
+        driver.close()
+        return "loaded"
+    except Exception as e:
+        logger.warning("Neo4j 写入失败 (已写入jsonl, 下次 sync_kb 会补灌): %s", str(e)[:80])
+        return f"jsonl_only: {str(e)[:60]}"
+
+
 def _load_pending() -> list:
     """加载所有待审核三元组"""
     if not PENDING_DIR.exists():
@@ -312,27 +339,131 @@ async def audit_triple(body: TripleAuditIn, user=Depends(require_roles("admin"))
         f.write(json.dumps(new_triple, ensure_ascii=False) + "\n")
 
     # 加载到 Neo4j (幂等 MERGE)
-    try:
-        from neo4j import GraphDatabase
-        uri = os.getenv("NEO4J_URI", "bolt://127.0.0.1:7687")
-        neo_user = os.getenv("NEO4J_USER", "neo4j")
-        neo_pwd = os.getenv("NEO4J_PASSWORD", "kefu2026neo")
-        driver = GraphDatabase.driver(uri, auth=(neo_user, neo_pwd))
-        with driver.session() as s:
-            s.run("CREATE CONSTRAINT node_name IF NOT EXISTS FOR (n:Entity) REQUIRE n.name IS UNIQUE")
-            s.run(
-                "MERGE (a:Entity {name:$h}) MERGE (b:Entity {name:$t}) "
-                "MERGE (a)-[r:REL {name:$rel}]->(b) SET r.doc=$doc, r.note=$note",
-                h=target["head"], t=target["tail"], rel=target["relation"],
-                doc=target.get("doc", ""), note=target.get("source_text", "")[:100],
-            )
-        driver.close()
-        neo_status = "loaded"
-    except Exception as e:
-        logger.warning("Neo4j 写入失败 (已写入jsonl, 可手动重跑load_kg_to_neo4j): %s", str(e)[:80])
-        neo_status = f"jsonl_only: {str(e)[:60]}"
+    neo_status = merge_triple_to_neo4j(new_triple)
 
     target["status"] = "approved"
     _save_pending(items)
     logger.info("三元组审核通过: %s → %s [%s] %s", body.id, target["head"], target["relation"], target["tail"])
     return {"status": "approved", "id": body.id, "neo4j": neo_status}
+
+
+# ── 文档待审核 (上传 → 预览分块 → 审核通过才整文档入库) ──────────
+
+class RejectIn(BaseModel):
+    reason: str = ""
+
+
+@router.get("/pending")
+async def list_pending_documents():
+    """待审核文档列表 (status = pending_review)
+
+    上传后系统自动解析分块, 结果存临时文件, 管理员在此审核.
+    审核通过才整文档写入正式索引 (Milvus + BM25 + chunks_processed.jsonl).
+    """
+    from src.database import db_manager
+    docs = db_manager.get_pending_documents()
+    return {"total": len(docs), "items": docs}
+
+
+@router.get("/pending/{doc_id}/chunks")
+async def get_pending_chunks(doc_id: int, page: int = Query(1, ge=1),
+                             size: int = Query(20, ge=1, le=5000)):
+    """查看待审核文档的分块预览
+
+    返回该文档解析出的所有 chunk (内容、来源、页码、章节), 供管理员检查分块质量.
+    """
+    from src.database import db_manager
+    doc = db_manager.get_document_by_id(doc_id)
+    if not doc:
+        raise HTTPException(status_code=404, detail=f"文档 {doc_id} 不存在")
+    if doc["status"] != "pending_review":
+        raise HTTPException(status_code=400,
+                            detail=f"文档状态为 '{doc['status']}', 只有 pending_review 可预览")
+
+    from src.core.pipeline_manager import get_pending_chunks
+    chunks = get_pending_chunks(doc_id)
+
+    start = (page - 1) * size
+    items = [
+        {
+            "chunk_id": c.get("chunk_id", ""),
+            "source": c.get("source", ""),
+            "section": c.get("section", ""),
+            "page": c.get("page", 1),
+            "content": c.get("content", ""),
+            "content_hash": c.get("content_hash", ""),
+            "length": len(c.get("content") or ""),
+            "chunk_type": c.get("chunk_type", "normal"),
+            "parent_id": c.get("parent_id", ""),
+        }
+        for c in chunks[start:start + size]
+    ]
+    return {
+        "doc_id": doc_id,
+        "filename": doc["filename"],
+        "total": len(chunks),
+        "page": page,
+        "size": size,
+        "items": items,
+    }
+
+
+@router.post("/pending/{doc_id}/approve")
+async def approve_pending(doc_id: int, user=Depends(require_roles("admin"))):
+    """审核通过 — 整文档原子入库
+
+    把该文档的所有 chunk 一次性写入正式索引:
+      chunks_processed.jsonl → Milvus 向量化 → BM25 重建 → status=done → 清理临时文件
+
+    原子性: 任何一步失败都不更新 status, 临时文件保留便于重试.
+    整文档入库: 要么全部成功, 要么全部不入库.
+    """
+    from src.database import db_manager
+    doc = db_manager.get_document_by_id(doc_id)
+    if not doc:
+        raise HTTPException(status_code=404, detail=f"文档 {doc_id} 不存在")
+    if doc["status"] != "pending_review":
+        raise HTTPException(status_code=400,
+                            detail=f"文档状态为 '{doc['status']}', 只有 pending_review 可审核")
+
+    from src.core.pipeline_manager import approve_document
+    result = approve_document(doc_id)
+
+    if result["status"] == "failed":
+        raise HTTPException(status_code=500, detail=result.get("error", "入库失败"))
+
+    logger.info("文档审核通过并入库: doc_id=%s, %d 块, 操作人=%s",
+                doc_id, result.get("chunk_count", 0), user.get("user_id", "admin"))
+
+    # 入库后异步抽三元组进审核队列, 把"新文档的关系要人肉补进图谱"这段接上。
+    # 抽取要按父块逐块调 LLM, 不能放在请求路径里; 派发失败也不能回滚已成功的入库,
+    # 但必须让调用方看见 —— 不能再出一个"静默跳过"。
+    from src.tasks.kb_tasks import extract_triples_task
+    try:
+        result["triple_task_id"] = extract_triples_task.delay(doc_id).id
+    except Exception as e:
+        logger.error("三元组抽取任务派发失败 (doc_id=%s): %s", doc_id, e)
+        result["triple_task_id"] = None
+        result["triple_extract_error"] = f"派发失败: {str(e)[:120]}"
+    return result
+
+
+@router.post("/pending/{doc_id}/reject")
+async def reject_pending(doc_id: int, body: RejectIn = None,
+                         user=Depends(require_roles("admin"))):
+    """审核拒绝 — 清理临时分块文件, status=rejected"""
+    from src.database import db_manager
+    doc = db_manager.get_document_by_id(doc_id)
+    if not doc:
+        raise HTTPException(status_code=404, detail=f"文档 {doc_id} 不存在")
+
+    from src.core.pipeline_manager import reject_document
+    reason = body.reason if body else ""
+    result = reject_document(doc_id, reason=reason)
+
+    if result["status"] == "failed":
+        raise HTTPException(status_code=500, detail=result.get("error", "拒绝失败"))
+
+    logger.info("文档审核拒绝: doc_id=%s, 原因=%s, 操作人=%s",
+                doc_id, reason or "无", user.get("user_id", "admin"))
+    return result

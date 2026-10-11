@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Outlet, useNavigate, useLocation, Navigate } from 'react-router-dom';
 import { Layout, Menu, Button, Avatar, Dropdown, Typography, theme } from 'antd';
 import {
@@ -21,6 +21,7 @@ const menuItems = [
     label: '知识库管理',
     children: [
       { key: '/knowledge/docs', label: '文档管理' },
+      { key: '/knowledge/pending-review', label: '待审核入库' },
       { key: '/knowledge/chunks', label: '片段管理' },
       { key: '/knowledge/strategy', label: '策略配置' },
       { key: '/knowledge/retrieval-test', label: '检索调试台' },
@@ -36,10 +37,18 @@ const menuItems = [
 
 export const MainLayout: React.FC = () => {
   const [collapsed, setCollapsed] = useState(false);
+  const [openKeys, setOpenKeys] = useState<string[]>([]);
   const navigate = useNavigate();
   const location = useLocation();
   const { user, logout } = useAuthStore();
   const { token: { colorBgContainer, colorBorderSecondary, borderRadiusLG } } = theme.useToken();
+
+  // 路由变化时自动展开对应父菜单
+  useEffect(() => {
+    if (location.pathname.startsWith('/knowledge')) {
+      setOpenKeys(prev => prev.includes('/knowledge') ? prev : [...prev, '/knowledge']);
+    }
+  }, [location.pathname]);
 
   // 如果没有登录，跳转登录页
   if (!user) {
@@ -97,7 +106,8 @@ export const MainLayout: React.FC = () => {
           mode="inline"
           theme="dark"
           selectedKeys={[location.pathname]}
-          defaultOpenKeys={location.pathname.startsWith('/knowledge') ? ['/knowledge'] : []}
+          openKeys={openKeys}
+          onOpenChange={setOpenKeys}
           items={visibleMenu}
           onClick={({ key }) => navigate(key)}
           style={{ borderRight: 0, marginTop: 8 }}

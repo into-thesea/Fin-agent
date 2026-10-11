@@ -315,7 +315,8 @@ def rebuild_bm25_index(chunks_path: str, output_path: str) -> BM25Index:
                 doc = json.loads(line)
                 all_documents.append(doc)
     # 父子分块: BM25只索引子块 (父块是完整章节, 不直接检索)
-    documents = [d for d in all_documents if d.get("chunk_type") != "parent"]
+    from src.core.smart_chunk import indexable_chunks
+    documents = indexable_chunks(all_documents)
     logger.info("BM25索引: %d 子块 (跳过 %d 父块)", len(documents), len(all_documents) - len(documents))
 
     index = BM25Index()

@@ -15,7 +15,6 @@ import hashlib
 import json
 import logging
 import os
-from datetime import datetime
 
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
 from fastapi.responses import FileResponse
@@ -108,31 +107,43 @@ async def _process_upload(file: UploadFile) -> dict:
         for part in parts:
             f.write(part)
 
-    version_tag = f"api_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
-    from src.tasks.etl_tasks import etl_pipeline_task
-    task = etl_pipeline_task.delay(
-        pdf_path=file_path.replace("\\", "/"),
+    # 待审核模式: 先占位登记 (status=pending_review), 再触发预览处理
+    # 预览只做 PDF 解析+分块, 不写 Milvus/BM25; 管理员审核通过后才整文档入库
+    from src.database import db_manager
+    doc_id = db_manager.add_document(
         filename=safe_name,
-        version_tag=version_tag,
+        status="pending_review",
+        count=0,
+        content_hash=content_hash,
+        file_size=total,
+        source_label="upload",
+    )
+
+    from src.tasks.etl_tasks import preview_pipeline_task
+    task = preview_pipeline_task.delay(
+        pdf_path=file_path.replace("\\", "/"),
+        doc_id=doc_id,
+        filename=safe_name,
     )
 
     # 记录 task_id → task_logs, 删除文档时的 Celery revoke 依赖它。
-    # 原先这张表无人写入, 导致「取消正在跑的任务」是死代码。
     try:
         db_manager.create_task(task.id, safe_name)
     except Exception as e:
         logger.error("task_logs 写入失败 (%s): %s", task.id, e)
 
     logger.info(
-        "上传任务已提交: file=%s, task_id=%s",
-        safe_name, task.id,
-        extra={"task_id": task.id, "file": safe_name},
+        "上传任务已提交 (待审核模式): file=%s, doc_id=%s, task_id=%s",
+        safe_name, doc_id, task.id,
+        extra={"task_id": task.id, "file": safe_name, "doc_id": doc_id},
     )
     return {
         "filename": safe_name,
         "status": "accepted",
         "task_id": task.id,
+        "doc_id": doc_id,
         "content_hash": content_hash,
+        "message": "文件已上传，正在解析分块，审核通过后入库",
     }
 
 

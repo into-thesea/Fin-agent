@@ -101,20 +101,37 @@ def test_pipeline_passes_configured_chunk_params():
 
 
 def _header_pages():
-    """两节长文本 —— 章节检测到手, 且每节都长到需要细切"""
-    return [{"page": 1, "text": "一、产品要素\n" + "甲" * 1000 + "\n二、收益口径\n" + "乙" * 1000}]
+    """两节长文本 —— 章节检测到手, 且每节都长到需要细切
+
+    必须带句号: 子块按句子边界切, 没有句号的整块是一个超长句子, 上限就成了摆设。
+    """
+    sents = "甲" * 12 + "。" * 1
+    return [{"page": 1, "text": "一、产品要素\n" + sents * 40 + "\n二、收益口径\n" + sents * 40}]
 
 
 def test_max_chunk_content_is_a_real_parameter():
-    """content_size 上限必须可传入 —— 它原先只是模块常量, 页面上改了不起作用"""
-    from src.core.smart_chunk import MAX_CHUNK_CONTENT, _chaptered_chunk
+    """子块上限必须可传入 —— 它原先只是模块常量, 页面上改了不起作用
 
-    pages = _header_pages()
+    上限管的是**子块**(入索引的那个)。父块是整章不设限, 所以在父块上量长度
+    量不出这个参数 —— 这也是它一度从"能测出来"变成"空转"的原因。
+    """
+    from src.core.smart_chunk import (
+        MAX_CHUNK_CONTENT,
+        _chaptered_chunk,
+        build_parent_child_chunks,
+    )
+
+    parents = _chaptered_chunk(_header_pages(), "x.pdf")
+
     # 默认(不传) == 显式传常量值, 保证默认行为不变
-    assert _chaptered_chunk(pages, "x.pdf", 350, 70) == \
-        _chaptered_chunk(pages, "x.pdf", 350, 70, max_chunk_content=MAX_CHUNK_CONTENT)
+    assert build_parent_child_chunks(parents) == \
+        build_parent_child_chunks(parents, max_chunk_content=MAX_CHUNK_CONTENT)
 
-    wide = _chaptered_chunk(pages, "x.pdf", 350, 70, max_chunk_content=300)
-    narrow = _chaptered_chunk(pages, "x.pdf", 350, 70, max_chunk_content=80)
+    def children(limit):
+        return [c for c in build_parent_child_chunks(parents, max_chunk_content=limit)
+                if c.get("chunk_type") == "child"]
+
+    wide = children(300)
+    narrow = children(80)
     assert max(len(c["content"]) for c in narrow) < max(len(c["content"]) for c in wide)
     assert len(narrow) > len(wide)

@@ -109,7 +109,19 @@ class ProgressReporter:
         )
 
     def fail(self, error: str):
-        """标记任务失败"""
+        """标记任务失败 (写 Redis + task_logs —— 前端状态读取的前两级)
+
+        **刻意不写 Celery 的 FAILURE 状态**: Celery 约定 FAILURE 必须携带异常信息
+        (exc_type/exc_message/exc_module), 拿它当进度通道塞普通 dict, 会让下一次对
+        同一个 task_id 的 store 在 `_store_result → decode_result → exception_to_python`
+        处抛 `ValueError: Exception information must include the exception type`,
+        被 Celery 判为 Unrecoverable error, **整个 worker 直接退出**; 而且失败的消息会
+        被 restore 回队列, 新 worker 捡起来再炸一次 —— 死循环。
+
+        抛异常结束的任务由 Celery 自己记 FAILURE (带真实 excinfo), 不需要我们代劳。
+        随之而来的取舍: 调完 fail() 后正常 return 的任务 (如 preview_pipeline 的失败
+        分支) 在 Celery 侧会显示 SUCCESS, 权威失败状态在 Redis/task_logs 里。
+        """
         self.cache.set_task_status(
             task_id=self.task_id,
             status="failed",
@@ -118,10 +130,6 @@ class ProgressReporter:
             error=error,
         )
         self._sync_db("failed", self._step, "failed", error)
-        self.task.update_state(
-            state="FAILURE",
-            meta={"progress": self._step, "stage": "failed", "error": error},
-        )
 
 
 # ──────────────────────────────────────────────
@@ -178,6 +186,49 @@ def etl_pipeline_task(self: Task, pdf_path: str, filename: str = None, version_t
     else:
         error_msg = result.get("error", "unknown")
         logger.error("[ETL] 流水线失败 (%s): %s", file_name, error_msg)
+        reporter.fail(error_msg)
+
+    return result
+
+
+@celery_app.task(bind=True, name="preview_pipeline")
+def preview_pipeline_task(self: Task, pdf_path: str, doc_id: int, filename: str = None):
+    """
+    预览处理任务 — 只做 PDF 解析 + 智能分块, 不写索引.
+
+    上传后调用此任务, 分块结果存 data/kb_pending/{doc_id}_chunks.jsonl,
+    管理员在前端审核通过后才由 approve_document() 整文档入库.
+
+    与 etl_pipeline_task 的区别:
+      - 不写 Milvus / BM25 / chunks_processed.jsonl
+      - 不更新 status=done, 而是 pending_review
+      - 失败时 status=failed, 不污染正式索引
+
+    Args:
+        pdf_path: PDF 文件绝对路径
+        doc_id: documents 表中的文档 ID (已占位登记, status=pending_review)
+        filename: 文件名 (显示用)
+    """
+    from src.core.pipeline_manager import preview_document
+
+    pdf_path = os.path.normpath(pdf_path)
+    file_name = filename or os.path.basename(pdf_path)
+    reporter = ProgressReporter(self, total_steps=2)
+
+    try:
+        result = preview_document(pdf_path, doc_id)
+    except Exception as exc:
+        error_msg = f"{type(exc).__name__}: {exc}"
+        logger.error("[预览] 任务崩溃 (%s): %s", file_name, error_msg, exc_info=True)
+        reporter.fail(error_msg)
+        raise
+
+    if result["status"] == "success":
+        reporter.complete(doc_id, 0)
+        logger.info("[预览] %s 完成: %d 分块, 待审核", file_name, result["chunk_count"])
+    else:
+        error_msg = result.get("error", "unknown")
+        logger.error("[预览] %s 失败: %s", file_name, error_msg)
         reporter.fail(error_msg)
 
     return result

@@ -10,11 +10,11 @@ Golden QA 绑定知识库版本
 """
 from __future__ import annotations
 
+import argparse
+import hashlib
+import json
 import os
 import sys
-import json
-import hashlib
-import argparse
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, ROOT)
@@ -49,6 +49,46 @@ def get_file_hash(filepath: str) -> str:
         return hashlib.sha256(f.read()).hexdigest()[:16]
 
 
+_RENDERED = None
+
+
+def _rendered_by_source() -> dict:
+    """{虚拟文档标识: [该文档各 chunk 的 content_hash]} —— 只渲染一次"""
+    global _RENDERED
+    if _RENDERED is None:
+        _RENDERED = {}
+        try:
+            from build_finance_kb import render_product_chunks
+            for c in render_product_chunks():
+                _RENDERED.setdefault(c.get("source", ""), []).append(c.get("content_hash", ""))
+        except Exception as e:
+            print(f"  ⚠️  渲染产品文档失败, 产品类 evidence 只能按路径解析: {e}")
+    return _RENDERED
+
+
+def evidence_hash(ev: str) -> str:
+    """算 evidence 的当前指纹 —— 虚拟文档要落到它的真实来源上。
+
+    evidence 里有一类是**虚拟标识**: 产品的 source 写作 prod_pNNN.md, 但磁盘上没有
+    这个文件 —— 产品文档已改成从 catalog.jsonl 渲染（见 build_finance_kb.render_product_chunks,
+    保留该标识是为了让 golden 的 evidence 维持在产品粒度）。
+
+    直接按路径哈希会拿到 MISSING, 于是 40/105 条产品用例的"内容变了没有"**永远检测
+    不出来** —— 比报错更糟, 是静默失效。
+
+    这里按"这份虚拟文档渲染出来的 chunk"聚合指纹, 而不是整个 catalog.jsonl:
+    后者会让任一款产品一改就把 40 条全报一遍, 噪音大到没人看。
+    """
+    path = os.path.join(KB_DIR, ev)
+    if os.path.exists(path):
+        return get_file_hash(path)
+    chunks = _rendered_by_source().get(ev)
+    if chunks:
+        raw = "|".join(sorted(chunks))
+        return hashlib.sha256(raw.encode("utf-8")).hexdigest()[:16]
+    return "MISSING"
+
+
 def bind_version():
     """给所有Golden QA绑定当前知识库版本"""
     version = get_current_version()
@@ -60,8 +100,7 @@ def bind_version():
                 # 记录evidence文件的当前哈希，用于后续检测变化
                 evidence_hashes = {}
                 for ev in row.get("evidence", []):
-                    ev_path = os.path.join(KB_DIR, ev)
-                    evidence_hashes[ev] = get_file_hash(ev_path)
+                    evidence_hashes[ev] = evidence_hash(ev)
                 row["kb_version"] = version
                 row["evidence_hashes"] = evidence_hashes
                 rows.append(row)
@@ -95,8 +134,7 @@ def check_staleness():
                 changed_files = []
                 missing_files = []
                 for ev, old_hash in old_hashes.items():
-                    ev_path = os.path.join(KB_DIR, ev)
-                    current_hash = get_file_hash(ev_path)
+                    current_hash = evidence_hash(ev)
                     if current_hash == "MISSING":
                         missing_files.append(ev)
                     elif current_hash != old_hash:

@@ -162,10 +162,21 @@ class MilvusManager:
 
     @property
     def total_count(self) -> int:
+        """索引里的**实际**条数。
+
+        不能用 collection.num_entities: 删除是软删, 未 compaction 前它仍把已删行
+        算在内。实测删掉一份文档后 num_entities=1627 而实际只剩 1525, 于是
+        sync_kb.verify() 的三方计数对不上 → 判定"校验失败" → 整个知识库同步回滚。
+        也就是说: **删过任何文档之后, 下一次同步必然失败**, 直到 Milvus compaction。
+
+        query 的 count(*) 会计入删除, 拿到的是真实条数 (同一次实测: 1525)。这也是
+        这个属性唯一的用途所在 —— 校验计数 —— 所以准确性比"便宜"重要。
+        """
         if not self.available or self._collection is None:
             return 0
         try:
-            return self._collection.num_entities
+            res = self._collection.query(expr="id >= 0", output_fields=["count(*)"])
+            return int(res[0]["count(*)"]) if res else 0
         except Exception as e:
             logger.warning("Milvus 计数失败: %s", e)
             return 0
@@ -303,6 +314,34 @@ class MilvusManager:
             # 返回 0 会和「本来就没东西可删」无法区分 → 删除静默失败
             logger.error("Milvus 删除失败: %s", e, exc_info=True)
             raise MilvusUnavailableError(f"Milvus 删除失败: {e}") from e
+
+    def delete_by_chunk_ids(self, chunk_ids: list) -> int:
+        """按 chunk_id 删除向量 (覆盖写之前清掉同一批 chunk 的旧行)。返回删除条数。
+
+        不能复用 delete_by_document: 那个按文件名匹配, 两份同名文档会被连带删掉。
+        chunk_id 是内容派生的, 同一份文档反复入库得到的 id 完全一致, 所以它能精确
+        圈定"这一次要覆盖的窗口"。
+        """
+        if not self.available or self._collection is None:
+            return 0
+        chunk_ids = [c for c in chunk_ids if c]
+        if not chunk_ids:
+            return 0
+        try:
+            col = Collection(self._collection_name)
+            col.flush()
+            expr = "chunk_id in [" + ", ".join(f'"{c}"' for c in chunk_ids) + "]"
+            res = col.query(expr=expr, output_fields=["id"])
+            if not res:
+                return 0
+            ids = [r["id"] for r in res]
+            col.delete(expr=f"id in {ids}")
+            col.flush()
+            logger.info("Milvus 覆盖写: 清掉 %d 条同 chunk_id 的旧向量", len(ids))
+            return len(ids)
+        except Exception as e:
+            logger.error("Milvus 按 chunk_id 删除失败: %s", e, exc_info=True)
+            return 0
 
     # ──────────────────────────────────────────────
     # 管理

@@ -1,7 +1,13 @@
 """
-把 data/finance_kb/kg_triples.jsonl 灌入 Neo4j (Docker 部署的完整图谱后端)
+把 data/finance_kb/kg_triples.jsonl 收敛到 Neo4j (Docker 部署的完整图谱后端)
 
-幂等: 为 (name) 建唯一约束后按 MERGE 写入节点与关系。
+幂等且**收敛**: 为 (name) 建唯一约束后 MERGE 写入源里的边, 再删掉源里已经没有的
+边和由此空掉的节点。只 MERGE 不删的话, 源删一条边它就永久留在图里 —— 实测
+`存款保险 applies_to 定期存款` 就是这么攒下来的。
+
+Neo4j 是纯派生件, 删空也能一条命令重灌, 所以删除无需额外保护; 任何异常由
+sys.exit(非0) 抛出, 由调用方决定是否视为失败 (见 sync_kb.reload_graph)。
+
 用法:
   1) 起 Docker: docker compose up -d neo4j
   2) 灌库:      .venv/Scripts/python.exe scripts/load_kg_to_neo4j.py
@@ -51,10 +57,23 @@ def main():
                 "SET r.doc = $doc, r.note = $note",
                 h=h, t=tail, rel=rel, doc=t.get("doc", ""), note=t.get("note", ""),
             )
+
+        # 收敛: 源里已不存在的边 + 由此空掉的节点, 一并清掉
+        keys = [[t["head"], t["relation"], t["tail"]] for t in triples]
+        n_dropped = s.run(
+            "MATCH (a:Entity)-[r:REL]->(b:Entity) "
+            "WHERE NOT ([a.name, r.name, b.name] IN $keys) "
+            "DELETE r RETURN count(*) AS c", keys=keys,
+        ).single()["c"]
+        n_orphan = s.run(
+            "MATCH (n:Entity) WHERE NOT (n)--() DELETE n RETURN count(*) AS c"
+        ).single()["c"]
+
         n_nodes = s.run("MATCH (n:Entity) RETURN count(n) AS c").single()["c"]
         n_rels = s.run("MATCH ()-[r:REL]->() RETURN count(r) AS c").single()["c"]
     driver.close()
-    logger.info("Neo4j 灌库完成: %d 节点 / %d 关系 (源: %s)", n_nodes, n_rels, KG_PATH)
+    logger.info("Neo4j 灌库完成: %d 节点 / %d 关系 (源 %d 条, 清理陈旧边 %d, 孤节点 %d)",
+                n_nodes, n_rels, len(triples), n_dropped, n_orphan)
 
 
 if __name__ == "__main__":

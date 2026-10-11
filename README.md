@@ -71,7 +71,7 @@ data/
     finance_sessions.jsonl  # 多轮会话评测集(8会话19轮)
 scripts/
   build_finance_kb.py       # KB→父子分块→Milvus 建索引 + BM25
-  load_kg_to_neo4j.py       # 三元组→Neo4j 灌库(幂等)
+  load_kg_to_neo4j.py       # 三元组→Neo4j 灌库(幂等, 并按源收敛: 补新边 + 删陈旧边)
   eval_finance.py           # 单轮 Golden QA 评测(离线:证据覆盖/chunk命中/路径一致; --with-answers:意图/合规)
   eval_sessions.py          # 多轮会话评测(多轮意图/续轮/指代消解/合规)
 tests/                      # 373 passed / 1 skipped
