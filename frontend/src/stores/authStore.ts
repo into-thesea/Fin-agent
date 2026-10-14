@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { CHAT_STORAGE_KEY } from './chatStore';
 
 interface User {
   id: string;
@@ -31,6 +32,8 @@ export const useAuthStore = create<AuthState>()(
 
       logout: () => {
         localStorage.removeItem('fin_token');
+        // 金融隐私: 退出时清掉本地缓存的聊天会话, 避免下一个账号看到上一个人的对话
+        localStorage.removeItem(CHAT_STORAGE_KEY);
         set({ token: null, user: null, isAuthenticated: false });
         window.location.href = '/login';
       },
